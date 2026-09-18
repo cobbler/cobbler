@@ -1,0 +1,1 @@
+Add Kerberos/GSSAPI single sign-on for the Web UI via a native HTTP-API endpoint, and harden the passthru authentication module against timing attacks.

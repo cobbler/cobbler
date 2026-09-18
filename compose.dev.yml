@@ -99,6 +99,21 @@ services:
       - "traefik.http.services.cobbler-http-api.loadbalancer.server.port=8000"
       - "traefik.http.middlewares.cobbler-svc-strip.stripprefix.prefixes=/cblr/svc"
       - "traefik.http.routers.cobbler-http-api.middlewares=cobbler-svc-strip"
+      - "traefik.http.routers.cobbler-sso.rule=PathPrefix(`/sso_login`)"
+      - "traefik.http.routers.cobbler-sso.entrypoints=web"
+      - "traefik.http.routers.cobbler-sso.service=cobbler-http-api"
+      # /sso_login is called with `withCredentials: true` (unlike /cobbler_api's uncredentialed XML-RPC
+      # traffic), so it needs its own CORS middleware: a credentialed cross-origin request requires a specific
+      # Access-Control-Allow-Origin (never "*") plus Access-Control-Allow-Credentials=true. The origin below is
+      # this stack's own local-development default (see docker/compose/web.yml's cobblerUrls for the matching
+      # default on the "web" side) -- change it to your real "web"/frontend origin before deploying, exactly as
+      # documented for docker/compose/web.yml's cobblerUrls.
+      - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowOriginList=http://localhost"
+      - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowCredentials=true"
+      - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowMethods=GET,OPTIONS"
+      - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowHeaders=content-type"
+      - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlMaxAge=100"
+      - "traefik.http.routers.cobbler-sso.middlewares=cobbler-sso-cors"
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)"]
       interval: 10s
@@ -106,3 +121,14 @@ services:
       retries: 6
       start_period: 15s
     restart: unless-stopped
+    # Native Kerberos/GSSAPI SSO via /sso_login (opt-in) -- see docs/user-guide/docker-deployment.rst,
+    # "Kerberos/GSSAPI Single Sign-On (native)". This is opt-in and requires switching
+    # modules.authentication.module to "authentication.passthru" in the cobbler-settings config above (see the
+    # docs section referenced above for the full checklist -- a keytab alone does not make /sso_login functional).
+    # To enable, add the following keys to the existing "environment:" and "volumes:" blocks of this service
+    # above -- do NOT add a second "environment:"/"volumes:" key here, YAML mappings cannot have duplicate keys:
+    #   environment:
+    #     KRB5_KTNAME: /etc/krb5/http-api.keytab
+    #   volumes:
+    #     - /path/on/host/http-api.keytab:/etc/krb5/http-api.keytab:ro
+    #     - /path/on/host/krb5.conf:/etc/krb5.conf:ro

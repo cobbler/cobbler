@@ -193,6 +193,11 @@ Each backend's Traefik labels declare a router rule and, where needed, a ``strip
 * ``web`` (see `Web UI`_ below) matches the catch-all ``PathPrefix(`/`)`` at the lowest priority in the stack, so
   it only ever receives requests the two more specific routers above don't match. The ``cobbler-api`` router also
   carries a CORS middleware for this service's benefit -- see `Web UI`_ for why.
+* ``http-api`` also carries a second router, ``cobbler-sso``, matched on ``PathPrefix(`/sso_login`)`` and pointed
+  at the same ``cobbler-http-api`` backend service (no separate ``loadbalancer.server.port`` needed -- it's the
+  same Gunicorn process). It carries its own dedicated CORS middleware, ``cobbler-sso-cors``, rather than reusing
+  ``cobbler-api-cors`` -- see `Kerberos/GSSAPI Single Sign-On (native)`_ below for why the two endpoints need
+  different CORS treatment even though both are called cross-origin.
 
 Traefik needs its own read-only mount of the host's Docker socket to watch for labeled containers -- the same
 class of trust boundary as ``process_management.docker``'s socket mount discussed above: even read-only, it
@@ -467,6 +472,175 @@ specific routes (``/cobbler_api``, ``/cblr``, ``/httpboot``, ``/images``) don't 
    version of Cobbler (4.0.0) -- the two projects are versioned and released independently. The compose wiring,
    Traefik routing and CORS headers described above are independent of that and can be verified purely at the HTTP
    level even if the UI application itself does not yet fully work end-to-end against a given Cobbler version.
+
+Kerberos/GSSAPI Single Sign-On (native)
+########################################
+
+``cobbler/services/sso.py`` adds a ``/sso_login`` endpoint to the same Gunicorn WSGI app that already serves
+``/cblr/svc``, ``/httpboot`` and ``/images`` -- i.e. it runs inside the ``http-api`` container, on the same
+process, with no extra container or service to deploy. This is a *different* mechanism from the release33
+Apache/``mod_auth_gssapi`` bridge (``svc/sso_login.py`` there, fronted by an Apache ``<Location>`` block): this
+branch's ``http-api`` container has no Apache in front of it at all (see `Images`_ above), so ``sso.py`` performs
+the SPNEGO/Kerberos negotiation itself, natively in Python, using the ``gssapi`` library. Both approaches share the
+same backend: a successful negotiation is exchanged for a normal Cobbler XML-RPC session token via
+``cobbler.modules.authentication.passthru`` and the shared secret cobblerd writes to
+``/var/lib/cobbler/web.ss`` -- only the front door (Apache module vs. native Python) differs.
+
+Enabling it end-to-end requires *all of the following steps* -- doing only the keytab/``KRB5_KTNAME``/Traefik parts
+(the only ones this section used to call out) leaves the feature non-functional, since ``/sso_login`` still
+authenticates against whatever ``modules.authentication.module`` is actually selected:
+
+1. **Switch ``modules.authentication.module`` to ``authentication.passthru``.** The reference stack's
+   ``docker/compose/base.yml`` ships ``authentication.configfile`` by default (see `Settings overrides`_ above) --
+   without switching this, ``sso.py`` still calls ``passthru.authenticate()`` internally to exchange the SPNEGO
+   negotiation for a session token, but that call is checked against the shared secret, and the *overall* login
+   decision path Cobbler exposes elsewhere still reflects ``configfile``. In practice this means a successful
+   Kerberos negotiation is exchanged for a token, but every other login path in the stack -- and the plain
+   username/password login most operators expect -- has silently changed behavior, so this is not something to
+   flip without accounting for its next paragraph. As with any other ``modules`` sub-key, follow the
+   ``.. important::`` note in `Settings overrides`_ above: repeat the *entire* ``modules`` block in the
+   ``cobbler-settings`` config, not just the ``authentication`` line, or you will silently blank out
+   ``authorization``/``dns``/``dhcp``/``process_management``/``serializers`` back to their built-in defaults.
+
+   .. warning::
+
+      Enabling ``authentication.passthru`` disables all ``configfile`` username/password logins **system-wide**,
+      not just for browser/SSO clients -- ``passthru`` authenticates *any* username paired with the correct
+      shared secret (see ``cobbler/modules/authentication/passthru.py``), and once it is selected as
+      ``modules.authentication.module`` there is no longer a ``configfile``-backed username/password check to
+      fall back to. Anyone who can reach ``/cobbler_api`` and knows (or can read) the current contents of
+      ``/var/lib/cobbler/web.ss`` can log in as any username, Kerberos or not.
+
+      Separately, the *default* ``authorization.module`` in this reference stack is ``authorization.allowall``
+      (see `Settings overrides`_ above), which grants full admin access to every authenticated user. Combined
+      with ``authentication.passthru``, this means **every** Kerberos principal in your realm becomes a full
+      Cobbler admin the moment they complete SSO. Before enabling this feature in production, tighten the
+      authorization module too -- e.g. ``authorization.ownership`` or ``authorization.configfile`` -- so that
+      Kerberos-authenticated users are not implicitly granted full administrative rights. See the
+      ``authorization`` section of ``docs/cobbler-conf.rst`` for the available choices.
+
+2. **A Kerberos service principal and keytab.** Create a service principal named ``HTTP/<hostname>@REALM``, where
+   ``<hostname>`` is the externally-reachable hostname clients use to reach this stack (it must match exactly --
+   Kerberos service principal names are hostname-specific) and ``REALM`` is your Kerberos realm, then export it to
+   a keytab file. With MIT Kerberos' ``kadmin``:
+
+   .. code-block:: shell
+
+       kadmin -q "addprinc -randkey HTTP/cobbler.example.org@EXAMPLE.ORG"
+       kadmin -q "ktadd -k /path/on/host/http-api.keytab HTTP/cobbler.example.org@EXAMPLE.ORG"
+
+   Keep this keytab file readable only by whatever will run the ``http-api`` container -- it is equivalent to a
+   long-lived credential for that service principal.
+
+3. **The keytab mounted into the ``http-api`` container, and ``KRB5_KTNAME`` pointing at it.** ``compose.yml``/
+   ``compose.dev.yml`` ship this as a commented-out, opt-in example on the ``http-api`` service. That service
+   already has its own real ``environment:`` and ``volumes:`` blocks (for ``COBBLER_XMLRPC_HOST`` and the
+   webdir/tftproot/distro-sources mounts) -- **add the keys below into those existing blocks**, do not uncomment
+   a second, standalone ``environment:``/``volumes:`` mapping, since YAML mappings cannot have duplicate keys and
+   a second copy would break the compose file:
+
+   .. code-block:: yaml
+
+       services:
+         http-api:
+           environment:
+             # ... existing keys (e.g. COBBLER_XMLRPC_HOST) stay here too ...
+             KRB5_KTNAME: /etc/krb5/http-api.keytab
+           volumes:
+             # ... existing volume entries stay here too ...
+             - /path/on/host/http-api.keytab:/etc/krb5/http-api.keytab:ro
+
+   ``sso.py`` reads ``KRB5_KTNAME`` from the server process's own environment (a Kerberos/krb5 convention, not a
+   WSGI ``environ`` key) at request time -- without it (or without ``gssapi`` installed, see
+   ``docker/images/cobblerd/Dockerfile``'s optional ``gssapi`` dependency), ``/sso_login`` always answers
+   ``501 Not Implemented`` rather than failing to start.
+
+4. **A ``krb5.conf`` with your realm/KDC configuration, mounted into the ``http-api`` container.** The runtime
+   image installs the ``krb5`` package (for the ``gssapi`` library's native dependencies) but ships no realm
+   configuration of its own -- without a realm-aware ``/etc/krb5.conf`` inside the container, GSSAPI has no way to
+   find your KDC and negotiation fails even with a valid keytab. Mount your realm's ``krb5.conf`` read-only,
+   again by adding to the *existing* ``volumes:`` block from the previous step:
+
+   .. code-block:: yaml
+
+       services:
+         http-api:
+           volumes:
+             # ... existing volume entries, plus the keytab mount from the previous step ...
+             - /path/on/host/krb5.conf:/etc/krb5.conf:ro
+
+5. **The Traefik router and CORS middleware from** `Traefik and routing`_ **above**, which are *not* opt-in --
+   they are always present in ``compose.yml``/``compose.dev.yml`` so the endpoint is reachable the moment an
+   operator supplies a keytab, with no separate Compose edit needed.
+
+   A browser calling ``/sso_login`` cross-origin (e.g. from the separate ``web`` container's origin) needs this
+   to survive CORS, but -- unlike ``/cobbler_api`` -- it cannot reuse ``cobbler-api-cors`` unchanged: the
+   ``cobbler-web`` frontend's ``SsoService`` calls this endpoint with ``withCredentials: true`` (its XML-RPC
+   calls to ``/cobbler_api`` are uncredentialed, so ``cobbler-api-cors``'s wildcard
+   ``accessControlAllowOriginList=*`` is fine there), and the Fetch/CORS spec forbids a wildcard
+   ``Access-Control-Allow-Origin`` on any response to a credentialed request -- browsers reject it outright even
+   if every other CORS header looks correct. ``cobbler-sso``'s router therefore carries its own dedicated
+   ``cobbler-sso-cors`` middleware instead, which sets a **specific** allowed origin plus
+   ``accessControlAllowCredentials=true``:
+
+   .. code-block:: yaml
+
+       - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowOriginList=http://localhost"
+       - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowCredentials=true"
+       - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowMethods=GET,OPTIONS"
+       - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlAllowHeaders=content-type"
+       - "traefik.http.middlewares.cobbler-sso-cors.headers.accessControlMaxAge=100"
+
+   The shipped ``http://localhost`` is, like ``docker/compose/web.yml``'s ``cobblerUrls`` default, a
+   *local-development-only* placeholder that only resolves correctly when the browser and the Docker host are
+   the same machine. **Before deploying this anywhere else, change ``accessControlAllowOriginList`` to your real
+   frontend's externally-reachable origin** (e.g. ``https://cobbler.example.org``, with no path component --
+   CORS origins never include one), matching whatever you set ``docker/compose/web.yml``'s ``cobblerUrls`` to.
+   A mismatched or still-wildcarded origin here does not fail loudly: the endpoint keeps answering requests
+   normally, but the browser silently discards the response before JavaScript ever sees it.
+
+6. **Browser-side SPNEGO trust configuration.** Even with everything above in place, browsers do not answer a
+   ``WWW-Authenticate: Negotiate`` challenge for just any origin -- each browser keeps its own allowlist of
+   origins it will negotiate Kerberos with, and without adding yours the flow silently stops dead at the first
+   ``401`` (no error dialog, just no retry with credentials). At minimum:
+
+   * **Firefox:** add your origin to the ``network.negotiate-auth.trusted-uris`` preference (``about:config``),
+     e.g. ``https://cobbler.example.org``.
+   * **Chrome/Chromium:** set the ``AuthServerAllowlist`` policy (and, on older versions,
+     ``AuthNegotiateDelegateAllowlist`` if you also need credential delegation) to your origin, via
+     ``chrome://policy`` on a managed machine or the equivalent enterprise policy mechanism -- there is no
+     per-user ``about:config``-style override.
+
+   Neither of these is a Cobbler-side setting; both are configured on the client machines that will use SSO.
+
+7. **The Angular frontend's own ``ssoLoginUrl`` configuration (forward reference).** Steps 1-6 above are enough
+   to make ``/sso_login`` itself work end-to-end (verifiable directly with ``curl``), but they do not by
+   themselves turn on the SSO login button in the ``cobbler-web`` frontend from `Web UI`_ above.
+   ``docker/compose/web.yml``'s bundled ``app-config.json`` only sets ``cobblerUrls`` by default -- the frontend
+   also needs, on the relevant server entry in that same ``app-config.json`` content block, both ``authMode`` set
+   to ``"sso"`` or ``"both"`` **and** ``ssoLoginUrl`` set to this stack's ``/sso_login`` route -- keep it
+   same-origin/root-relative (e.g. ``"/sso_login"``) rather than an absolute URL, per the ``cobbler-web``
+   project's own deployment docs. It is easy to do everything above, confirm ``/sso_login`` works with ``curl``,
+   and then still not see an SSO option in the UI because these frontend config keys were never added -- do not
+   forget this step.
+
+Once steps 1-6 are in place, the flow is: a client requests ``/sso_login`` with no credentials, gets back
+``401 Unauthorized`` with ``WWW-Authenticate: Negotiate`` (the standard SPNEGO challenge, not an error), retries
+with an ``Authorization: Negotiate <token>`` header carrying a real Kerberos ticket, and -- on successful
+negotiation -- receives a normal Cobbler session token in the JSON response body, exactly as if it had called
+``login()`` over XML-RPC directly.
+
+.. warning::
+
+   Use **HTTPS in production**. The SPNEGO negotiation and the resulting Cobbler session token both travel over
+   plain HTTP otherwise, on the same trust-boundary basis as the release33 Apache bridge. Also note that this
+   endpoint only strengthens the *browser login path*: ``/cobbler_api`` itself still has no authentication in
+   front of it in this reference stack (see `Traefik and routing`_ above) -- direct XML-RPC or command-line
+   clients can still call it, unauthenticated at the transport level, exactly as before. Enabling
+   ``authentication.passthru`` also has the same system-wide implication it always has: **any** username paired
+   with the correct shared secret authenticates successfully, not just ones that went through a real Kerberos
+   negotiation. See step 1 above for the additional ``authorization.allowall`` admin-escalation implication of
+   combining ``passthru`` with this reference stack's default authorization module.
 
 Known limitations and non-goals
 #################################

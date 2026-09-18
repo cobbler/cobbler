@@ -14,6 +14,7 @@ import pytest
 
 import cobbler.services
 import cobbler.services.files
+import cobbler.services.sso
 import cobbler.services.svc
 
 
@@ -140,6 +141,29 @@ def test_healthz_path_dispatches_to_files_healthz_application(
     result = cobbler.services.application(environ, lambda status, headers: None)
 
     assert result == [b"OK"]
+    assert len(calls) == 1
+
+
+def test_sso_login_path_dispatches_to_sso_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    A request path of ``/sso_login`` must be dispatched to ``cobbler.services.sso.application``,
+    not the XML-RPC-backed ``svc`` app.
+    """
+    calls: List[Dict[str, Any]] = []
+
+    def fake_sso_app(environ: Dict[str, Any], start_response: Any) -> List[bytes]:
+        calls.append(environ)
+        start_response("200 OK", [])
+        return [b"from sso app"]
+
+    monkeypatch.setattr(cobbler.services.sso, "application", fake_sso_app)
+
+    environ: Dict[str, Any] = {"RAW_URI": "/sso_login", "QUERY_STRING": ""}
+    result = cobbler.services.application(environ, lambda status, headers: None)
+
+    assert result == [b"from sso app"]
     assert len(calls) == 1
 
 

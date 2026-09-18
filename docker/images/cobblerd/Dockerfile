@@ -28,7 +28,7 @@ RUN zypper ar -f https://download.opensuse.org/repositories/systemsmanagement:/c
 # without them, confirmed by a real build attempt.
 RUN zypper install -y \
     git nginx python-rpm-macros python3 python3-pip python3-devel python3-setuptools python3-setuptools_scm \
-    python3-wheel rpm-build make gzip apache2 apache2-devel tftp systemd-devel cyrus-sasl-devel \
+    python3-wheel rpm-build make gzip apache2 apache2-devel tftp systemd-devel cyrus-sasl-devel krb5-devel \
     python3-Cheetah3 python3-dnspython python3-distro python3-magic python3-ldap python3-netaddr \
     python3-schema python3-systemd python3-PyYAML python3-gunicorn libcobblersignatures \
     python3-Sphinx python3-coverage bash-completion \
@@ -60,8 +60,9 @@ COPY --from=rpm-builder /usr/src/cobbler/rpm-build/RPMS/cobbler-[0-9]*.noarch.rp
 # --no-recommends: cobbler.spec's Recommends: (bash-completion, syslinux, grub2-*-efi, logrotate,
 # python3-librepo) are irrelevant to a container that never builds bootable media locally. python3-docker
 # is added explicitly (a --no-recommends install would skip a spec-level Recommends: anyway) so the
-# optional process_management.docker backend stays available.
-RUN zypper --no-gpg-checks install --no-recommends -y /tmp/rpms/cobbler-[0-9]*.noarch.rpm python3-docker && \
+# optional process_management.docker backend stays available. python3-gssapi and krb5 are added explicitly
+# for optional Kerberos/GSSAPI SSO support.
+RUN zypper --no-gpg-checks install --no-recommends -y /tmp/rpms/cobbler-[0-9]*.noarch.rpm python3-docker python3-gssapi krb5 && \
     rm -rf /tmp/rpms && zypper clean -a
 
 # /etc/cobbler: settings.yaml and other config.
