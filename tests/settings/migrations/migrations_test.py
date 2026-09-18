@@ -28,6 +28,7 @@ from cobbler.settings.migrations import (
     V3_3_7,
     V3_3_8,
     V3_3_9,
+    V3_3_10,
 )
 
 
@@ -317,3 +318,18 @@ def test_migrate_v3_3_9():
 
     # Assert
     assert V3_3_9.validate(new_settings)
+
+
+def test_migrate_v3_3_10():
+    """
+    Test to validate that a migrations of the settings from Cobbler 3.3.9 to 3.3.10 is working as expected.
+    """
+    # Arrange
+    with open("/code/tests/test_data/V3_3_9/settings.yaml", encoding="UTF-8") as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+
+    # Act
+    new_settings = V3_3_10.migrate(old_settings_dict)
+
+    # Assert
+    assert V3_3_10.validate(new_settings)

@@ -1,0 +1,8 @@
+# Set to true to enable the generation of Windows boot files in Cobbler.
+windows_enabled: false
+
+# Location of templates used for Windows
+windows_template_dir: "/etc/cobbler/windows"
+
+# Samba share name for distros
+samba_distro_share: "DISTRO"
