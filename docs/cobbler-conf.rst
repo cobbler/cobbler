@@ -1197,6 +1197,46 @@ Choices:
 
 default: ``sha3_512``
 
+Kerberos Single Sign-On
+=======================
+
+To enable Kerberos-based SSO for browser clients, use ``authentication.passthru`` in combination with Apache's
+``mod_auth_gssapi`` module and the Cobbler ``svc/sso_login.py`` bridge script. The three-component architecture
+works as follows:
+
+1. **Apache ``mod_auth_gssapi``** terminates Kerberos/GSSAPI authentication at the HTTP level
+2. **``authentication.passthru`` module** validates the shared secret passed by the bridge
+3. **``svc/sso_login.py`` bridge script** runs under WSGI and exchanges the Apache-authenticated user identity for
+   a Cobbler XML-RPC authentication token
+
+When ``authentication.passthru`` is enabled, **any** username paired with the correct shared secret will
+authenticate successfully system-wide. This is the existing behavior; enabling the bridge makes it reachable via the
+browser login form at ``/cobbler-sso/login``.
+
+.. warning:: The default authorization module, ``authorization.allowall`` (see below), grants full admin access to
+             every authenticated user. Combined with ``authentication.passthru``, this means **every** Kerberos
+             principal in the realm becomes a full Cobbler admin. Before enabling this feature in production, tighten
+             the authorization module -- e.g. ``authorization.ownership`` or ``authorization.configfile`` -- so that
+             Kerberos-authenticated users are not implicitly granted full administrative rights.
+
+The shared secret used by both ``passthru`` and the bridge is **not** a ``settings.yaml`` key. It is the contents of
+``/var/lib/cobbler/web.ss``, a file that ``cobblerd`` generates itself and regenerates on every restart (see
+``regen_ss_file()`` in ``cobbler/cobblerd.py``). There is nothing to configure for the secret itself; the
+only prerequisite is that the Apache/web-server user must have read access to ``/var/lib/cobbler/web.ss`` (already
+the case by default via the file's existing ownership/permissions). If that file is missing or unreadable, the
+bridge responds with ``sso_not_configured`` instead of authenticating.
+
+To use this feature:
+
+- Uncomment and customize the Kerberos/GSSAPI block in ``config/apache/cobbler.conf`` (it is opt-in and
+  commented out by default)
+- Ensure the Kerberos service principal's hostname exactly matches the virtual host hostname that users connect to
+- Ensure the Apache/web-server user can read ``/var/lib/cobbler/web.ss`` (used by both ``passthru`` and the bridge)
+- Use **HTTPS in production** to protect the shared secret in transit
+- Note: ``/cobbler_api`` itself has no ``<Location>`` auth block in the shipped Apache config. Direct XML-RPC
+  and command-line clients still bypass Apache and reach cobblerd's TCP port directly; this feature only
+  strengthens the browser-facing login path.
+
 authorization
 =============
 
