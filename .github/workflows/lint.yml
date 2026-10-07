@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Black formatter check
         # https://github.com/psf/black
-        uses: psf/black@87928e6d6761a4a6d22250e1fee5601b3998086e # 26.5.1
+        uses: psf/black@4f1883b1f15305a0e83a7c87991f46292bf09f85 # 26.10.0
         with:
           options: "--check --diff --safe --verbose"
           version: "22.3.0"
