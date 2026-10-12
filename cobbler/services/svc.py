@@ -103,8 +103,7 @@ class CobblerSvc:
         """
         Default constructor which sets up everything to be ready.
 
-        :param server: The domain to run at.
-        :param req: This parameter is unused.
+        :param server: The base URL (scheme, host and port) of the XML-RPC server to connect to.
         """
         self.server = server
         self.__remote: Optional[xmlrpc.client.Server] = None
@@ -148,8 +147,12 @@ class CobblerSvc:
 
         :param profile: The name of the profile to generate the autoinstall for.
         :param system: The name of the system to generate the autoinstall for.
-        :param kwargs: This parameter is unused.
-        :return: TODO
+        :param file: The name of the autoinstall template to render. If empty, the template assigned to the
+            resolved profile or system is used instead.
+        :param kwargs: Used to select which cloud-init sub-file to generate by checking for the presence of the keys
+            "user-data", "vendor-data", "meta-data" or "network-config". Ignored for non cloud-init autoinstall types.
+        :return: The rendered auto-installation file content, or an error message string if the request was invalid
+            or the request to the XML-RPC API failed.
         """
         if profile is None and system is None:
             return "ERROR: Neither profile, nor system was given!"
@@ -227,10 +230,11 @@ class CobblerSvc:
         """
         Generate a boot.cfg config file. Used primarily for VMware ESXi.
 
-        :param profile:
-        :param system:
+        :param profile: The profile to generate the boot.cfg for.
+        :param system: The system to generate the boot.cfg for.
         :param kwargs: This parameter is unused.
-        :return:
+        :return: The generated boot.cfg content, or an error message string if the XML-RPC API returned unexpected
+            data.
         """
         profile_uid = self.remote.get_profile_handle(profile) if profile else None
         system_uid = self.remote.get_system_handle(system) if system else None
@@ -556,9 +560,9 @@ def application(
     """
     UWSGI entrypoint for Gunicorn
 
-    :param environ:
-    :param start_response:
-    :return:
+    :param environ: The WSGI environment dict for the incoming request, as provided by Gunicorn.
+    :param start_response: The WSGI ``start_response`` callable used to begin the HTTP response.
+    :return: The response body as a single-element list of bytes, as required by the WSGI specification.
     """
 
     form: Dict[str, Any] = {}
