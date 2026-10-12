@@ -228,10 +228,13 @@ class CobblerAPI:
         execute_settings_automigration: bool = False,
     ):
         """
-        Constructor
+        Constructor. Since :class:`CobblerAPI` is a singleton, the actual initialization logic below only runs once
+        per process; subsequent calls just reuse the already-initialized shared state.
 
         :param is_cobblerd: Whether this API is run as a daemon or not.
         :param settingsfile_location: The location of the settings file on the disk.
+        :param execute_settings_automigration: Whether to automatically migrate the settings file to the current
+            schema version if it is out of date.
         """
 
         # FIXME: this should be switchable through some simple system
@@ -611,9 +614,9 @@ class CobblerAPI:
         This helper validates the common data for ``*_item_resolved_value``.
 
         :param item_uuid: The uuid for the item.
-        :param attribute: The attribute name that is requested.
+        :param attribute_path: The list of attribute names that is requested.
         :returns: The desired item to further process and the target property.
-        :raises TypeError: If ``item_uuid`` or ``attribute`` are not a str.
+        :raises TypeError: If ``item_uuid`` is not a str or ``attribute_path`` is not a list of str.
         :raises ValueError: In case the uuid was invalid or the requested item did not exist.
         :raises AttributeError: In case the attribute did not exist on the item that was requested.
         """
@@ -839,7 +842,7 @@ class CobblerAPI:
 
     def copy_menu(self, ref: "menu.Menu", newname: str) -> None:
         """
-        This method copies a file which is just different in the name of the object.
+        This method copies a menu which is just different in the name of the object.
 
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
@@ -1426,7 +1429,7 @@ class CobblerAPI:
 
     def new_menu(self, is_subobject: bool = False, **kwargs: Any) -> "menu.Menu":
         """
-        Returns a new empty menu object. This file is not automatically persisted. Persistence is achieved via
+        Returns a new empty menu object. This menu is not automatically persisted. Persistence is achieved via
         ``save()``.
 
         :param is_subobject: If the object created is a subobject or not.
@@ -1439,8 +1442,8 @@ class CobblerAPI:
         self, **kwargs: Any
     ) -> "network_interface.NetworkInterface":
         """
-        Returns a new empty network interface object. This file is not automatically persisted. Persistence is achieved
-        via ``save()``.
+        Returns a new empty network interface object. This network interface is not automatically persisted.
+        Persistence is achieved via ``save()``.
 
         :return: An empty Network Interface object.
         """
@@ -1449,7 +1452,7 @@ class CobblerAPI:
 
     def new_template(self, **kwargs: Any) -> "template.Template":
         """
-        Returns a new empty template object. This file is not automatically persisted. Persistence is achieved
+        Returns a new empty template object. This template is not automatically persisted. Persistence is achieved
         via ``save()``.
 
         :return: An empty Template object.
@@ -1945,9 +1948,9 @@ class CobblerAPI:
 
     def __find_by_uid(self, uid: str) -> Optional["BootableItem"]:
         """
-        This is a magic method which just searches all collections for the specified name directly,
+        This is a magic method which just searches all collections for the specified uid directly,
 
-        :param name: The name of the item(s).
+        :param uid: The uid of the item.
         :return: The found item or None.
         """
         if not isinstance(uid, str):  # type: ignore
@@ -2043,7 +2046,6 @@ class CobblerAPI:
         """
         Find an image via a name or keys specified in the ``**kwargs``.
 
-        :param name: The name to search for.
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
         :param kwargs: Key-value pairs which help in finding the desired objects.
@@ -2101,7 +2103,7 @@ class CobblerAPI:
         **kwargs: "FIND_KWARGS",
     ) -> Optional[Union[List["template.Template"], "template.Template"]]:
         """
-        Find a network interface via a name or keys specified in the ``**kwargs``.
+        Find a template via a name or keys specified in the ``**kwargs``.
 
         :param return_list: If only the first result or all results should be returned.
         :param no_errors: Silence some errors which would raise if this turned to False.
@@ -2263,12 +2265,12 @@ class CobblerAPI:
         self, mtime: float, collapse: bool = False
     ) -> List["menu.Menu"]:
         """
-        Return files modified since a certain time (in seconds since Epoch)
+        Return menus modified since a certain time (in seconds since Epoch)
 
         :param mtime: The timestamp which marks the gate if an object is included or not.
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
-        :return: The list of files which are newer then the given timestamp.
+        :return: The list of menus which are newer then the given timestamp.
         """
         return self.__since(mtime, self.menus, collapse=collapse)
 
@@ -2281,7 +2283,7 @@ class CobblerAPI:
         :param mtime: The timestamp which marks the gate if an object is included or not.
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
-        :return: The list of files which are newer then the given timestamp.
+        :return: The list of network interfaces which are newer then the given timestamp.
         """
         return self.__since(mtime, self.network_interfaces, collapse=collapse)
 
@@ -2294,7 +2296,7 @@ class CobblerAPI:
         :param mtime: The timestamp which marks the gate if an object is included or not.
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
-        :return: The list of files which are newer then the given timestamp.
+        :return: The list of templates which are newer then the given timestamp.
         """
         return self.__since(mtime, self.templates, collapse=collapse)
 
@@ -2406,7 +2408,7 @@ class CobblerAPI:
         Import any repos this server knows about and mirror them. Run ``cobbler reposync`` to apply the changes.
         Credit: Seth Vidal.
 
-        :raises ImportError
+        :raises ImportError: If the ``dnf`` Python module is not installed.
         """
         self.log("auto_add_repos")
         try:
@@ -2671,8 +2673,11 @@ class CobblerAPI:
         Generate the auto-installation file and return it.
 
         :param obj: The profile to generate the file for.
-        :param autoinstall_template: TODO
-        :param autoinstaller_subfile: TODO
+        :param autoinstall_template: The template to render. Its tags determine which autoinstallation type
+            (e.g. Kickstart, Preseed, cloud-init) is used to generate the result.
+        :param autoinstaller_subfile: For autoinstallation types that are made up of several files (currently only
+            cloud-init, with "user-data", "vendor-data", "meta-data" and "network-config"), this selects which of
+            those sub-files to generate. Unused for single-file autoinstallation types.
         :return: The str representation of the file.
         """
         # pylint: disable=broad-exception-caught
@@ -2943,10 +2948,10 @@ class CobblerAPI:
         Configures users/groups to run the Cobbler CLI as non-root.
         Pass in only one option at a time. Powers ``cobbler aclconfig``.
 
-        :param adduser:
-        :param addgroup:
-        :param removeuser:
-        :param removegroup:
+        :param adduser: The user to grant Cobbler CLI access to.
+        :param addgroup: The group to grant Cobbler CLI access to.
+        :param removeuser: The user to revoke Cobbler CLI access from.
+        :param removegroup: The group to revoke Cobbler CLI access from.
         """
         action_acl = acl.AclConfig(self)
         action_acl.run(
@@ -2986,8 +2991,8 @@ class CobblerAPI:
         Returns a loaded Cobbler module named 'name', if one exists, else None.
         Cobbler internal use only.
 
-        :param module_name:
-        :return:
+        :param module_name: The name of the module to look up.
+        :return: The requested Python module, or ``None`` if no module with that name was loaded.
         """
         return self.module_loader.get_module_by_name(module_name)
 
@@ -3013,10 +3018,10 @@ class CobblerAPI:
         Looks up a module the same as ``get_module_from_file`` but returns the module name rather than the module
         itself.
 
-        :param section:
-        :param name:
-        :param fallback:
-        :return:
+        :param section: The section to look at.
+        :param name: The name of the module to retrieve.
+        :param fallback: The default module name in case the requested one is not found.
+        :return: The requested module's name.
         """
         return self.module_loader.get_module_name(section, name, fallback)
 
@@ -3055,7 +3060,7 @@ class CobblerAPI:
         :param user: The username to check for authorization.
         :param resource: The type of resource which should be checked for access from the supplied user.
         :param arg1: The actual resource to check for authorization.
-        :param arg2: Not known what this parameter does exactly.
+        :param arg2: Currently unused by the built-in authorization modules. Reserved for future use.
         :return: The return code of the action.
         """
         return_code: int = self.authz.authorize(self, user, resource, arg1, arg2)
