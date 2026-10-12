@@ -5,6 +5,13 @@ This module provides classes to manage DNS-related options for Cobbler items, in
 Interfaces. It defines option classes for setting and validating DNS servers, search domains, DNS names, and common
 names (CNAMEs). The module ensures proper validation and uniqueness of DNS names within Cobbler, and supports
 inheritance and lazy property evaluation.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. Introduces ``DNSOption`` (used by ``Profile``/``System``) and
+      ``DNSInterfaceOption`` (used by ``NetworkInterface``), consolidating the former scalar ``name_servers``,
+      ``name_servers_search``, ``dns_name``, and ``cnames`` properties.
 """
 
 from typing import TYPE_CHECKING, Any, Dict, List, Union
