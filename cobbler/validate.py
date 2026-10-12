@@ -282,6 +282,9 @@ def validate_os_version(os_version: str, breed: str) -> str:
 
     :param os_version: The version which shall be set.
     :param breed: The breed to validate the os_version for.
+    :return: The validated, lowercased os_version, or an empty string if ``os_version`` or ``breed`` was empty.
+    :raises TypeError: If ``os_version`` or ``breed`` is not of type str.
+    :raises ValueError: If ``breed`` is invalid, or ``os_version`` is not a valid version for ``breed``.
     """
     # Type checks
     if not isinstance(os_version, str):  # type: ignore
@@ -317,6 +320,8 @@ def validate_repos(
     :param repos: The repositories to set for the object.
     :param api: The api to find the repos.
     :param bypass_check: If the newly set repos should be checked for existence.
+    :return: The validated list of repository uids (or the magic inherit string, if that was passed in).
+    :raises ValueError: If ``bypass_check`` is ``False`` and a given repo does not exist.
     """
     # allow the magic inherit string to persist
     if repos == enums.VALUE_INHERITED:
@@ -342,6 +347,9 @@ def validate_virt_file_size(num: Union[str, int, float]) -> Union[str, float]:
 
     :param num: is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
                 multiple disks (not working at the moment)
+    :return: The validated virt file size as a float, or the magic inherit string if that was passed in.
+    :raises TypeError: If ``num`` is not a float, int, or a str representing a float.
+    :raises ValueError: If ``num`` is negative.
     """
 
     # FIXME: Data structure does not allow this (yet)
@@ -376,6 +384,8 @@ def validate_virt_auto_boot(value: Union[str, bool, int]) -> Union[bool, str]:
     Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
 
     :param value: May be True or False.
+    :return: The validated boolean value, or the magic inherit string if that was passed in.
+    :raises TypeError: If ``value`` cannot be converted to a bool.
     """
     if value == enums.VALUE_INHERITED:
         return enums.VALUE_INHERITED
@@ -449,6 +459,7 @@ def validate_virt_bridge(vbridge: str) -> str:
     The default bridge for all virtual interfaces under this profile.
 
     :param vbridge: The bridgename to set for the object.
+    :return: The bridge name, or the magic inherit string if ``vbridge`` was empty.
     :raises TypeError: In case vbridge was not of type str.
     """
     if not isinstance(vbridge, str):  # type: ignore
@@ -464,6 +475,8 @@ def validate_virt_path(path: str, for_system: bool = False) -> str:
 
     :param path: The path to the storage.
     :param for_system: If this is set to True then the value is inherited from a profile.
+    :return: The validated path, or the magic inherit string if ``for_system`` is ``True`` and ``path`` was empty.
+    :raises TypeError: If ``path`` is not of type str.
     """
     if not isinstance(path, str):  # type: ignore
         raise TypeError("Field virt_path needs to be of type str!")
@@ -481,6 +494,9 @@ def validate_virt_cpus(num: Union[str, int]) -> int:
     Zero means that the number of cores is inherited. Negative numbers are forbidden
 
     :param num: The number of cpu cores. If you pass the magic inherit string it will be converted to 0.
+    :return: The validated, non-negative number of CPU cores.
+    :raises TypeError: If ``num`` is not an integer or a str representing one.
+    :raises ValueError: If ``num`` is negative.
     """
     if isinstance(num, str):
         if num == enums.VALUE_INHERITED:
@@ -696,7 +712,11 @@ def validate_template(api: "CobblerAPI", value: Union[str, "Template"]) -> str:
 
     :param api: The api to find the templates.
     :param value: The input to verify and sanitize.
-    :returns: The name of the template (if built-in one), the object UID or
+    :returns: An empty string if ``value`` was empty, the magic inherit string if that was passed in, the
+              template's name if it is a built-in template, or the template's UID otherwise.
+    :raises ValueError: If ``value`` is a str but no matching template could be found.
+    :raises TypeError: If ``value`` is neither a valid str nor a Template object, or if a name/UID search
+                        unexpectedly yielded more than one result.
     """
     if isinstance(value, str):
         # Must be empty str, "<<inherit>>", object name or UID.
@@ -739,6 +759,10 @@ def validate_autoinstall_template_file_path(
     Validate the automatic installation template's relative file path.
 
     :param api: The api to get the base template path.
+    :param template_schema: The schema of the template, which determines how/where ``autoinstall`` is resolved
+                             (e.g. an environment variable name, an importlib resource, or a file on disk).
+    :param template_language: The templating language of the template (e.g. "cheetah" or "jinja"), used to resolve
+                               the base path when ``template_schema`` is :attr:`enums.TemplateSchema.IMPORTLIB`.
     :param autoinstall: automatic installation template relative file path
     :returns: If the template is a valid path or not.
     """
