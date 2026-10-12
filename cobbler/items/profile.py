@@ -13,6 +13,15 @@ V4.0.0 (unreleased):
         * ``redhat_management_org``: enums.VALUE_INHERITED
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
+        * ``dns`` property (``DNSOption``).
+        * ``tftp`` property (``TFTPOption``).
+        * ``virt`` property (``VirtOption``).
+        * ``profile_groups`` membership accessor.
+    * Removed:
+        * ``name_servers``, ``name_servers_search`` (-> ``dns``).
+        * ``next_server_v4``, ``next_server_v6`` (-> ``tftp``).
+        * ``virt_auto_boot``, ``virt_cpus``, ``virt_disk_driver``, ``virt_file_size``, ``virt_ram``, ``virt_type``
+          (-> ``virt``; ``virt_bridge`` is unaffected and remains a standalone property).
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
