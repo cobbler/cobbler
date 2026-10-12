@@ -8,6 +8,10 @@ V4.0.0 (unreleased):
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
+    * Added:
+        * ``apt`` property (``APTOption``).
+    * Removed:
+        * ``apt_components``, ``apt_dists`` (-> ``apt.components``/``apt.dists``).
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
