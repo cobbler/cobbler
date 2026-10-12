@@ -6,10 +6,20 @@ Changelog (NetworkInterface):
 
 V4.0.0 (unreleased):
     * Changes:
-        * The NetworkInterface class is now a dedicated item type.
+        * The NetworkInterface class is now a dedicated, independently addressable item type with full CRUD
+          support via ``cobbler.api``/``cobbler.remote``. All interface-related properties and lookups formerly on
+          ``System`` (ip/dns/mac-address/bonding/bridge logic) now live here instead (see ``cobbler.items.system``
+          changelog for the removed side).
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``virt_type``: str - Inheritable; One of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or
           "auto".
+    * Added:
+        * ``dns`` property (``DNSInterfaceOption``).
+        * ``ipv4``/``ipv6`` properties (``IPv4Option``/``IPv6Option``), plus standalone ``ipv6_default_gateway`` and
+          ``ipv6_static_routes`` properties (not yet folded into ``IPv6Option``).
+        * ``dhcp_tag``, ``static``, ``management``, ``mac_address``, ``if_gateway``, ``virt_bridge``,
+          ``interface_type``, ``interface_master``, ``bonding_opts``, ``bridge_opts``, ``connected_mode``
+        * ``system_name``, ``system_uid``, ``system`` back-references to the owning ``System``.
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
