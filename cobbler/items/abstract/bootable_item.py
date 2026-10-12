@@ -10,7 +10,7 @@ V4.0.0 (unreleased):
         * ``inmemory``
         * ``clean_cache()``
     * Overhauled the parent/child system:
-        * ``children`` is now inside ``item.py``.
+        * ``children`` is now on ``InheritableItem``.
         * ``tree_walk()`` was added.
         * ``logical_parent`` was added.
         * ``get_parent()`` was added which returns the internal reference that is used to return the object of the
@@ -21,6 +21,9 @@ V4.0.0 (unreleased):
         * last_cached_mtime
         * fetchable_files
         * boot_files
+        * The ``File``, ``Mgmtclass``, ``Package``, and ``Resource`` item types (the Configuration-Management
+          subsystem) were removed entirely, along with their CRUD surface on ``CobblerAPI``/
+          ``CobblerXMLRPCInterface``.
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
