@@ -3,7 +3,10 @@
 
 Changelog:
     * V4.0.0 (unreleased):
-        * Initial creation of the class
+        * Initial creation of the class; abstract base for group-of-items types (see ``DistroGroup``,
+          ``ProfileGroup``, ``SystemGroup``).
+        * Added:
+            * ``members`` property
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
