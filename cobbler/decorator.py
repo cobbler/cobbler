@@ -46,5 +46,7 @@ class InheritableProperty(LazyProperty):
 
 class InheritableDictProperty(InheritableProperty):
     """
-    This property is supposed to provide a way to identify properties in code that can be set to inherit.
+    This property is a specialization of :class:`InheritableProperty` for properties whose value is a dict (e.g.
+    ``autoinstall_meta``). It is used to identify such properties so that, when resolving inherited values, entries
+    that are identical to the ones already present on the parent item can be deduplicated instead of duplicated.
     """
