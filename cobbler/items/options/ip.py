@@ -1,5 +1,12 @@
 """
 This module provides option classes for managing IP-related settings for network interfaces in Cobbler.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. Introduces ``IPOption`` and the concrete ``IPv4Option``/``IPv6Option``
+      classes, exposed as ``ipv4``/``ipv6`` on ``NetworkInterface``. Note the collapse is partial: ``NetworkInterface``
+      retains ``ipv6_default_gateway`` and ``ipv6_static_routes`` as standalone scalar properties.
 """
 
 from ipaddress import AddressValueError
