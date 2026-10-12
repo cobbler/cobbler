@@ -1,10 +1,17 @@
 """
-All code blonging to Cobbler Templates.
+All code belonging to Cobbler Templates.
 
 Changelog:
 
-V4.0.0 (unrelased):
-    * Initial add of datatype.
+V4.0.0 (unreleased):
+    * Initial creation of the class. New item type representing a reusable autoinstall/boot template, with:
+        * ``content``, ``template_type``, ``built_in``, ``tags`` properties.
+        * ``uri`` property (``URIOption``) for resolving template content location.
+        * ``refresh_content()``.
+        * Full CRUD support via ``cobbler.api``/``cobbler.remote`` (``new_template``,
+          ``get_template``/``get_template_content``/``get_template_handle``, ``save_template``,
+          ``modify_template``), replacing the former profile/system-specific autoinstall RPCs (see
+          ``cobbler.remote`` changelog).
 """
 
 import copy
