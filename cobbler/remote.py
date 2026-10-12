@@ -9,7 +9,8 @@ Current Schema: Please refer to the documentation visible of the individual meth
 
 V4.0.0 (unreleased)
     * Added:
-        * Create, Read, Update & Delete methods for the NetworkInterface class
+        * Create, Read, Update & Delete methods for the new item types: ``NetworkInterface``, ``Template``,
+          ``DistroGroup``, ``ProfileGroup``, ``SystemGroup``
         * ``set_item_resolved_value``
         * ``input_string_or_list_no_inherit``
         * ``input_string_or_list``
@@ -17,8 +18,14 @@ V4.0.0 (unreleased)
         * ``input_string_or_dict_no_inherit``
         * ``input_boolean``
         * ``input_int``
+        * New transactional API: ``transaction_begin``, ``transaction_commit``, ``transaction_abort``, plus
+          supporting ``TransactionItemModifications``, ``TransactionTuple``, ``UnsavedItemsTuple`` named tuples
+        * Generic template RPCs: ``new_template``,
+          ``get_template``/``get_template_content``/``get_template_handle``, ``save_template``, ``modify_template``,
+          ``templates_refresh_content``, ``background_templates_refresh_content``
+        * ``background_signature_reload``, ``get_tftp_file``
     * Changed:
-        * ```get_random_mac``: Change default `virt_type`` to ``kvm``
+        * ``get_random_mac``: Change default ``virt_type`` to ``kvm``
         * ``remove_item`` and all ``remove_<type>`` methods: Require an item handle (object id) instead of the name
           of the item, matching the contract of ``modify_item``. Clients that only know the name of an item have to
           retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
@@ -27,6 +34,17 @@ V4.0.0 (unreleased)
           retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
     * Removed:
         * ``xapi_object_edit``: Remove all-in-one edit method for the CLI
+        * ``copy_file``/``copy_mgmtclass``/``copy_package``/``copy_resource``, corresponding
+          ``remove_*``/``rename_*``/``new_*``/``add_*``/``find_*``/``get_*_since`` methods, and
+          ``files``/``mgmtclasses``/``packages`` collection properties (File/Mgmtclass/Package/Resource item types
+          removed entirely, see ``cobbler.items.abstract.bootable_item`` changelog)
+        * Autoinstall-snippet/template-specific RPCs replaced by the generic ``*_template`` methods above:
+          ``generate_profile_autoinstall``, ``generate_system_autoinstall``, ``get_autoinstall_snippets``,
+          ``get_autoinstall_templates``, ``read_autoinstall_snippet``, ``read_autoinstall_template``,
+          ``remove_autoinstall_snippet``, ``remove_autoinstall_template``, ``write_autoinstall_snippet``,
+          ``write_autoinstall_template``
+        * ``__interface_edits``, ``__is_interface_field``: Removed along with ``System``'s direct ownership of
+          interface fields; see ``cobbler.items.network_interface`` changelog
 
 V3.3.4 (unreleased)
     * No changes
