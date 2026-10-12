@@ -1,5 +1,7 @@
 """
-Cobbler DownloadManager
+This module contains the :class:`DownloadManager` class which is a thin wrapper around the ``requests`` library that
+is used throughout Cobbler to download files from the web, while honoring the system-wide proxy settings configured
+in ``/etc/cobbler/settings.yaml``.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -23,7 +25,8 @@ class DownloadManager:
 
     def __init__(self) -> None:
         """
-        Constructor
+        Constructor. Reads the ``proxy_url_ext`` setting from ``/etc/cobbler/settings.yaml`` and uses it to build the
+        proxy configuration that is used by default for all downloads performed by this instance.
         """
         self.logger = logging.getLogger()
         with open("/etc/cobbler/settings.yaml", encoding="UTF-8") as main_settingsfile:

@@ -85,9 +85,10 @@ class PowerManager:
 
     def __init__(self, api: "CobblerAPI"):
         """
-        Constructor
+        Constructor. Stores a reference to the Cobbler API and its settings, which are used to look up the
+        power-management configuration of systems when power actions are executed.
 
-        :param api: Cobbler API
+        :param api: The Cobbler API instance to use for resolving settings and system information.
         """
         self.api = api
         self.settings = api.settings()

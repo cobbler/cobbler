@@ -31,9 +31,10 @@ class ModuleLoader:
 
     def __init__(self, api: "CobblerAPI", module_path: str = ""):
         """
-        Constructor to initialize the ModuleLoader class.
+        Constructor. Determines the root directory to load plugin modules from and initializes the (still empty)
+        module caches that are populated by :meth:`load_modules`.
 
-        :param api: CobblerAPI
+        :param api: The main API instance which is used by the current running server.
         :param module_path: The path which should be considered as the root module path. If this an empty string, try to
                             auto-detect the path.
         """
