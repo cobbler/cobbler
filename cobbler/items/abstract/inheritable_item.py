@@ -3,7 +3,13 @@
 
 Changelog:
     * V4.0.0 (unreleased):
-        * Initial creation of the class
+        * Initial creation of the class; absorbed the parent/child/inheritance logic formerly on ``Item`` (now
+          ``BootableItem``) so that non-bootable grouping types (``ItemGroup`` and subclasses) can also participate
+          in the hierarchy.
+        * Added:
+            * ``depth``, ``parent``, ``get_parent()``, ``get_conceptual_parent()``, ``logical_parent``
+            * ``children``, ``tree_walk()``, ``descendants``, ``is_subobject``, ``grab_tree()``
+            * ``HierarchyItem`` and ``LogicalHierarchy`` named tuples
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
