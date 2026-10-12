@@ -1,6 +1,18 @@
 """
 "BaseItem" is the highest point in the object hierarchy of Cobbler. All concrete objects that can be generated should
 inherit from it or one of its derived classes.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the class; split out of the former monolithic ``Item`` class as the common root for all
+      item types (concrete and abstract).
+    * Added:
+        * ``uid``, ``ctime``, ``mtime``, ``name``, ``comment``, ``owners``, ``inmemory``, ``in_transaction``
+        * ``cache``, ``clean_cache()``
+        * ``check_if_valid()``, ``make_clone()``
+        * ``sort_key()``, ``find_match()``, ``find_match_single_key()``
+        * ``serialize()``, ``deserialize()``, ``from_dict()``, ``to_dict()``
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
