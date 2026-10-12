@@ -134,7 +134,8 @@ class Serializer:
         Load a collection item from disk.
 
         :param collection_type: The collection type to deserialize.
-        :param uid: The collection item name to deserialize.
+        :param uid: The uid of the collection item to deserialize.
+        :return: The deserialized item data as a dict.
         """
         self.__grab_lock()
         result = self.storage_object.deserialize_item(collection_type, uid)
