@@ -8,7 +8,18 @@ Schema: From -> To
 Current Schema: Please refer to the documentation visible of the individual methods.
 
 V4.0.0 (unreleased)
-    * No changes
+    * Changed:
+        * This module is now part of the ``cobbler.services`` package (formerly the standalone
+          ``cobbler/services.py`` module), alongside new sibling modules ``cobbler.services.files`` (distro-tree
+          file server) and ``cobbler.services.sso`` (Kerberos/SSO negotiate endpoint).
+        * XML-RPC connection setup (``__xmlrpc_setup``) replaced by a ``remote`` property.
+    * Added:
+        * Module-level WSGI ``application()`` entry point.
+        * ``__fillup_form_dict``, ``__generate_remote_mac_list`` internal helpers.
+    * Removed:
+        * ``debug`` (debug-mode toggle).
+        * ``ks``/``findks`` (legacy Kickstart-alias endpoints for ``autoinstall``).
+        * ``puppet`` (Puppet ENC support dropped).
 
 V3.3.4 (unreleased)
     * No changes
