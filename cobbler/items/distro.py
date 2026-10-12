@@ -13,6 +13,7 @@ V4.0.0 (unreleased):
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
         * ``source_tree_path``: str
+        * ``distro_groups`` membership accessor.
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
