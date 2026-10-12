@@ -1,5 +1,13 @@
 """
 Virtualization option management for Cobbler items.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. Introduces ``VirtOption``, exposed as ``virt`` on ``Image``/``Profile``/
+      ``System``, consolidating the former ``virt_auto_boot``, ``virt_cpus``, ``virt_disk_driver``, ``virt_file_size``,
+      ``virt_path``, ``virt_pxe_boot``, ``virt_ram``, and ``virt_type`` scalar properties. ``virt_bridge`` is
+      explicitly excluded from this consolidation and remains a standalone property on the parent item.
 """
 
 from typing import TYPE_CHECKING, Any, Union
