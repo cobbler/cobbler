@@ -9,7 +9,8 @@ Current Schema: Please refer to the documentation visible of the individual meth
 
 V4.0.0 (unreleased)
     * Added:
-        * Create, Read, Update & Delete methods for the NetworkInterface class
+        * Create, Read, Update & Delete methods (plus collection properties) for the new item types:
+          ``NetworkInterface``, ``Template``, ``DistroGroup``, ``ProfileGroup``, ``SystemGroup``
         * ``clean_items_cache``
         * ``new_item``
         * ``deserialize_item``
@@ -19,10 +20,23 @@ V4.0.0 (unreleased)
         * ``input_string_or_dict_no_inherit``
         * ``input_boolean``
         * ``input_int``
+        * ``add_remove_items``: Bulk/transactional add+remove entry point, works with ``TransactionTuple``
+        * ``generate_autoinstall``, ``is_autoinstall_in_use``, ``generate_pxe_file``, ``get_config_data``,
+          ``get_tftp_file``
+        * ``get_repos_compatible_with_profile``
+        * ``get_process_management_module``
+        * ``signature_reload``
+        * ``disable_netboot``
     * Changed:
         * ``new_*``: Accepts kwargs as a last argument now (so a dict) that makes it possible to seed an object
     * Removed:
         * Unused reporter module
+        * ``copy_file``/``copy_mgmtclass``/``copy_package``/``copy_resource``, corresponding
+          ``remove_*``/``rename_*``/``new_*``/``add_*``/``find_*``/``get_*_since`` methods, and
+          ``files``/``mgmtclasses``/``packages`` collection properties (File/Mgmtclass/Package/Resource item types
+          removed entirely, see ``cobbler.items.abstract.bootable_item`` changelog)
+        * ``validate_autoinstall_files()``: Moved to ``AutoInstallationManager.validate_autoinstall_files()``
+          (``api.autoinstall_mgr``)
 
 V3.3.4 (unreleased)
     * No changes
