@@ -3,6 +3,11 @@ Module that contains the logic for Cobbler to cache an item.
 
 The cache significantly speeds up Cobbler. This effect is achieved thanks to the reduced amount of lookups that are
 required to be done.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * No functional changes; relocated from the former monolithic ``cobbler/items/item.py``.
 """
 
 from typing import TYPE_CHECKING, Any, Dict, Optional
