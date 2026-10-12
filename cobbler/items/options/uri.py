@@ -1,5 +1,11 @@
 """
 URI option management for Cobbler items.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. Introduces ``URIOption``, exposed as ``uri`` on ``Template``, for resolving
+      template content location.
 """
 
 import types
