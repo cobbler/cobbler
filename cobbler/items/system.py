@@ -9,10 +9,27 @@ V4.0.0 (unreleased):
         * ``redhat_management_org``: enums.VALUE_INHERITED
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
+        * ``power`` property (``PowerOption``), consolidating the former ``power_*`` scalar properties.
+        * ``dns`` property (``DNSOption``).
+        * ``tftp`` property (``TFTPOption``).
+        * ``virt`` property (``VirtOption``), consolidating the former ``virt_cpus``, ``virt_ram``, ``virt_type``,
+          ``virt_auto_boot``, ``virt_disk_driver``, ``virt_pxe_boot``, and ``virt_path`` scalar properties
+          (``virt_bridge`` is unaffected and remains a standalone property).
+        * ``system_groups`` membership accessor.
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``from_dict()``: The method was moved to the base class.
         * ``parent``: The property was moved to the base class.
+    * Removed:
+        * All interface-ownership properties and methods, now that ``NetworkInterface`` is a first-class,
+          independently addressable item type (see ``cobbler.items.network_interface`` changelog):
+          ``interface_master``, ``interface_type``, ``ip_address``, ``ipv6_address``, ``ipv6_prefix``,
+          ``ipv6_secondaries``, ``ipv6_mtu``, ``ipv6_static_routes``, ``ipv6_default_gateway``, ``mac_address``,
+          ``bonding_opts``, ``bridge_opts``, ``cnames``, ``connected_mode``, ``dhcp_tag``, ``dns_name``,
+          ``if_gateway``, ``management``, ``mtu``, ``netmask``, ``static``, ``static_routes``, and the private
+          ``__create_interface``, ``delete_interface``, ``__get_interface``, ``modify_interface``,
+          ``rename_interface`` methods. ``ipv6_autoconfiguration`` and ``ipv6_default_device`` are unaffected and
+          remain on ``System`` as system-wide defaults.
 V3.3.4 (unreleased):
     * Changed:
         * The network interface ``default`` is not created on object creation.
