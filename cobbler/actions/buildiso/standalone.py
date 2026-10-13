@@ -38,6 +38,12 @@ class StandaloneBuildiso(buildiso.BuildIso):
     def _write_autoinstall_cfg(
         self, data: Dict[str, Autoinstall], output_dir: pathlib.Path
     ):
+        """
+        Write the rendered autoinstall config of each profile/system into its own ``<name>.cfg`` file.
+
+        :param data: Mapping of profile/system name to its rendered :class:`Autoinstall` data.
+        :param output_dir: The ``autoinstall`` directory inside the ISO build directory to write the files into.
+        """
         self.logger.info("Writing auto-installation config files")
         self.logger.debug(data)
         for file_name, autoinstall in data.items():
@@ -52,6 +58,15 @@ class StandaloneBuildiso(buildiso.BuildIso):
         distro: "Distro",
         append_line: str,
     ) -> Tuple[str, str, BootFilesCopyset]:
+        """
+        Generate the isolinux and GRUB menu entries, and boot files copyset, for a single profile or system.
+
+        :param descendant: The profile or system to generate the configuration for.
+        :param menu_indent: The isolinux menu indentation level (systems are nested under their profile).
+        :param distro: The distribution the descendant belongs to.
+        :param append_line: The kernel append line previously generated for this descendant.
+        :return: A tuple of the isolinux menu entry, the GRUB menu entry, and the boot files copyset.
+        """
         kernel_path = f"/{os.path.basename(distro.kernel)}"
         initrd_path = f"/{os.path.basename(distro.initrd)}"
         isolinux_cfg = self._render_isolinux_entry(
@@ -78,7 +93,12 @@ class StandaloneBuildiso(buildiso.BuildIso):
         """Sanity checks for repos to sync.
 
         This function checks that repos are known to cobbler and have a local mirror directory.
-        Raises ValueError if any repo fails the validation.
+
+        :param profile_name: The name of the profile/system referencing the repos, used in error messages.
+        :param repo_names: The names of the repositories to validate.
+        :param repo_mirrordir: The local ``repo_mirror`` directory to check for each repository's presence.
+        :raises ValueError: If a repo is unknown/ambiguous, not configured for local mirroring, or is missing its
+                            local mirror directory.
         """
         for repo_name in repo_names:
             repo_obj = self.api.find_repo(name=repo_name)
@@ -104,6 +124,21 @@ class StandaloneBuildiso(buildiso.BuildIso):
         repo_mirrordir: pathlib.Path,
         autoinstall_data: Dict[str, Any],
     ):
+        """
+        Generate the isolinux/GRUB configuration and rendered autoinstall config for a single profile or system,
+        and append the results to ``cfg_parts`` and ``autoinstall_data`` respectively (both are changed in-place).
+
+        :param descendant_obj: The profile or system to generate the configuration for.
+        :param distro_obj: The distribution the descendant belongs to.
+        :param airgapped: Whether the ISO being built is airgapped, in which case the referenced repos are
+                          validated and the autoinstall config is rewritten to point at the ISO-local repo mirror.
+        :param cfg_parts: Output parameter that the generated isolinux/grub configuration lines and bootfiles
+                          copyset are appended to.
+        :param repo_mirrordir: The local ``repo_mirror`` directory, used to validate referenced repos when
+                               ``airgapped`` is set.
+        :param autoinstall_data: Output parameter mapping the descendant's name to its rendered
+                                 :class:`Autoinstall` data.
+        """
         data: Dict[Any, Any] = utils.blender(self.api, False, descendant_obj)
         utils.kopts_overwrite(
             data["kernel_options"], self.api.settings().server, distro_obj.breed
@@ -155,6 +190,14 @@ class StandaloneBuildiso(buildiso.BuildIso):
     def _update_repos_in_autoinstall_data(
         self, autoinstall_data: str, repos_names: List[str]
     ) -> str:
+        """
+        Rewrite the ``repo --name=<repo> --baseurl=...`` lines of a rendered autoinstall config so that they point
+        at the repo mirrors copied onto the (airgapped) ISO instead of their original baseurl.
+
+        :param autoinstall_data: The rendered autoinstall config content to rewrite.
+        :param repos_names: The names of the repositories referenced by the autoinstall config.
+        :return: The rewritten autoinstall config content.
+        """
         for repo_name in repos_names:
             autoinstall_data = re.sub(
                 rf"^(\s*repo --name={repo_name} --baseurl=).*",

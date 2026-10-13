@@ -120,7 +120,7 @@ class Replicate:
         """
         Add objects locally which are not present on the slave but on the master.
 
-        :param obj_type:
+        :param obj_type: The type of object which should be synchronized.
         """
         local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remote_objects = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")

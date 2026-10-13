@@ -70,11 +70,11 @@ class NetbootBuildiso(buildiso.BuildIso):
     ) -> None:
         """Generate isolinux configuration for profiles.
 
-        The passed in isolinux_cfg_parts list is changed in-place.
+        The passed in loader_cfg_parts is changed in-place.
 
         :param profiles: List of profiles to prepare.
-        :param isolinux_cfg_parts: Output parameter for isolinux configuration.
-        :param bootfiles_copyset: Output parameter for bootfiles copyset.
+        :param loader_cfg_parts: Output parameter that the generated isolinux/grub configuration lines and
+                                 bootfiles copysets are appended to.
         """
         for profile in profiles:
             isolinux, grub, to_copy = self._generate_profile_config(profile)
@@ -134,11 +134,12 @@ class NetbootBuildiso(buildiso.BuildIso):
     ) -> None:
         """Generate isolinux configuration for systems.
 
-        The passed in isolinux_cfg_parts list is changed in-place.
+        The passed in loader_cfg_parts is changed in-place.
 
         :param systems: List of systems to prepare
-        :param isolinux_cfg_parts: Output parameter for isolinux configuration.
-        :param bootfiles_copyset: Output parameter for bootfiles copyset.
+        :param exclude_dns: Whether to include the DNS config in the generated kernel cmdline.
+        :param loader_cfg_parts: Output parameter that the generated isolinux/grub configuration lines and
+                                 bootfiles copysets are appended to.
         """
         for system in systems:
             isolinux, grub, to_copy = self._generate_system_config(
@@ -154,7 +155,7 @@ class NetbootBuildiso(buildiso.BuildIso):
         """Generate isolinux configuration for a single system.
 
         :param system: System object to generate the configuration for.
-        :exclude_dns: Control if DNS configuration is part of the kernel cmdline.
+        :param exclude_dns: Control if DNS configuration is part of the kernel cmdline.
         """
         profile = system.get_conceptual_parent()
         # FIXME: pass distro, it's known from CLI
