@@ -2350,6 +2350,51 @@ class CobblerAPI:
         """
         return signatures.get_raw_signatures()
 
+    @staticmethod
+    def get_valid_breeds() -> List[str]:
+        """
+        Return the list of valid breeds as read in from the distro signatures data.
+
+        :return: All valid OS-Breeds which are present in Cobbler.
+        """
+        result = signatures.get_valid_breeds()
+        result.sort()
+        return result
+
+    @staticmethod
+    def get_valid_os_versions_for_breed(breed: str) -> List[str]:
+        """
+        Return the list of valid os_versions for the given breed.
+
+        :param breed: The OS-Breed which is requested.
+        :return: All valid OS-versions for a certain breed.
+        """
+        result = signatures.get_valid_os_versions_for_breed(breed)
+        result.sort()
+        return result
+
+    @staticmethod
+    def get_valid_os_versions() -> List[str]:
+        """
+        Return the list of valid os_versions as read in from the distro signatures data.
+
+        :return: Get all valid OS-Versions.
+        """
+        result = signatures.get_valid_os_versions()
+        result.sort()
+        return result
+
+    @staticmethod
+    def get_valid_archs() -> List[str]:
+        """
+        Return the list of valid architectures as read in from the distro signatures data.
+
+        :return: Get a list of all valid architectures.
+        """
+        result = signatures.get_valid_archs()
+        result.sort()
+        return result
+
     def signature_update(self) -> None:
         """
         Update all signatures from the URL specified in the settings.

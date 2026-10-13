@@ -1,0 +1,1 @@
+Add get_valid_breeds, get_valid_os_versions, get_valid_os_versions_for_breed and get_valid_archs to CobblerAPI

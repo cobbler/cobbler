@@ -248,6 +248,15 @@ def test_get_valid_os_versions(remote: CobblerXMLRPCInterface, token: str):
     assert len(versions) > 0
 
 
+def test_get_valid_archs(remote: CobblerXMLRPCInterface, token: str):
+    """
+    Test: get valid architectures
+    """
+
+    archs = remote.get_valid_archs(token)
+    assert len(archs) > 0
+
+
 def test_get_random_mac(remote: CobblerXMLRPCInterface, token: str):
     """
     Test: get a random mac for a virtual network interface

@@ -183,7 +183,6 @@ from cobbler.items.abstract import base_item
 from cobbler.items.abstract import bootable_item as item
 from cobbler.items.abstract.inheritable_item import InheritableItem
 from cobbler.items.options import base as options_base
-from cobbler.utils import signatures
 from cobbler.utils.event import CobblerEvent
 from cobbler.utils.thread import CobblerThread
 from cobbler.validate import (
@@ -3855,8 +3854,7 @@ class CobblerXMLRPCInterface:
         :return: All valid OS-Breeds which are present in Cobbler.
         """
         self._log("get_valid_breeds", token=token)
-        results = signatures.get_valid_breeds()
-        results.sort()
+        results = self.api.get_valid_breeds()
         return self.xmlrpc_hacks(results)  # type: ignore
 
     def get_valid_os_versions_for_breed(
@@ -3871,8 +3869,7 @@ class CobblerXMLRPCInterface:
         :return: All valid OS-versions for a certain breed.
         """
         self._log("get_valid_os_versions_for_breed", token=token)
-        results = signatures.get_valid_os_versions_for_breed(breed)
-        results.sort()
+        results = self.api.get_valid_os_versions_for_breed(breed)
         return self.xmlrpc_hacks(results)  # type: ignore
 
     def get_valid_os_versions(
@@ -3886,8 +3883,7 @@ class CobblerXMLRPCInterface:
         :return: Get all valid OS-Versions
         """
         self._log("get_valid_os_versions", token=token)
-        results = signatures.get_valid_os_versions()
-        results.sort()
+        results = self.api.get_valid_os_versions()
         return self.xmlrpc_hacks(results)  # type: ignore
 
     def get_valid_archs(self, token: Optional[str] = None) -> List[str]:
@@ -3898,8 +3894,7 @@ class CobblerXMLRPCInterface:
         :return: Get a list of all valid architectures.
         """
         self._log("get_valid_archs", token=token)
-        results = signatures.get_valid_archs()
-        results.sort()
+        results = self.api.get_valid_archs()
         return self.xmlrpc_hacks(results)  # type: ignore
 
     def get_valid_distro_boot_loaders(
