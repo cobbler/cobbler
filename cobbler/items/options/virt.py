@@ -124,7 +124,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         """
         Setter for the file_size of the System class.
 
-        :param num:
+        :param num: The new file size in GB for the virtual disk.
         """
         self._file_size = validate.validate_virt_file_size(num)
 
@@ -166,7 +166,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         """
         Setter for the pxe_boot of the System class.
 
-        :param num:
+        :param num: Whether the VM should PXE boot instead of using a local boot loader.
         """
         self._pxe_boot = validate.validate_virt_pxe_boot(num)
 
