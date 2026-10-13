@@ -262,7 +262,12 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to version V3.3.1 settings
+    Migration of the settings ``settings`` to version V3.3.1 settings.
+
+    Adds the new ``ldap_tls_cacertdir``/``ldap_tls_reqcert``/``ldap_tls_cipher_suite`` and
+    ``bootloaders_shim_folder``/``bootloaders_shim_file``/``bootloaders_ipxe_folder``/
+    ``syslinux_memdisk_folder``/``syslinux_pxelinux_folder`` keys with their defaults. No keys are renamed or
+    removed.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

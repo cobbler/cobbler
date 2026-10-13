@@ -171,7 +171,10 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to the V3.2.0 settings
+    Migration of the settings ``settings`` to the V3.2.0 settings.
+
+    Adds the two new keys ``cache_enabled`` (default ``1``) and ``reposync_rsync_flags`` (default
+    ``"-rltDv --copy-unsafe-links"``).
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

@@ -236,7 +236,7 @@ schema = Schema(
 
 def validate(settings: Dict[str, Any]) -> bool:
     """
-    Checks that a given settings dict is valid according to the reference V3.3.1 schema ``schema``.
+    Checks that a given settings dict is valid according to the reference V3.3.3 schema ``schema``.
 
     :param settings: The settings dict to validate.
     :return: True if valid settings dict otherwise False.
@@ -261,7 +261,10 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to version V3.3.1 settings
+    Migration of the settings ``settings`` to version V3.3.3 settings.
+
+    The only change is coercing ``default_virt_file_size`` to a ``float`` (it defaults to ``5.0`` if unset),
+    since earlier versions could store it as an int.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

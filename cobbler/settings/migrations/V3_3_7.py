@@ -18,7 +18,7 @@ schema = V3_3_6.schema
 
 def validate(settings: Dict[str, Any]) -> bool:
     """
-    Checks that a given settings dict is valid according to the reference V3.3.6 schema ``schema``.
+    Checks that a given settings dict is valid according to the reference V3.3.7 schema ``schema``.
 
     :param settings: The settings dict to validate.
     :return: True if valid settings dict otherwise False.

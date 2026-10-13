@@ -174,7 +174,16 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to the V3.0.0 settings
+    Migration of the settings ``settings`` to the V3.0.0 settings.
+
+    Besides renaming ``default_kickstart`` to ``default_autoinstall`` and ``snippetsdir`` to
+    ``autoinstall_snippets_dir``, adding several new keys with their defaults (e.g. ``include``,
+    ``autoinstall_templates_dir``, ``tftpboot_location``) and deleting keys that no longer exist (e.g.
+    ``consoles``, ``pxe_template_dir``, ``redhat_management_type``), this also migrates the on-disk item
+    collections from their legacy V2 layout to the V3 one: ``kickstart``/``ks_meta`` item fields are renamed to
+    ``autoinstall``/``autoinstall_meta``, ``/ks_mirror/`` path fragments are rewritten to ``/distro_mirror/``, and
+    the ``*.d`` collection directories under ``/var/lib/cobbler/config/`` are rewritten as JSON files under
+    ``/var/lib/cobbler/collections/``.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict
