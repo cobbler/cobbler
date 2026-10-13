@@ -167,7 +167,8 @@ class NetworkInterface(BaseItem):
 
     def make_clone(self) -> "NetworkInterface":
         """
-        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+        Clone this network interface object. Please manually adjust all value yourself to make the cloned object
+        unique.
 
         :return: The cloned instance of this object.
         """
@@ -597,7 +598,7 @@ class NetworkInterface(BaseItem):
         ipv6_static_routes property.
 
         :getter: Returns the value for ``ipv6_static_routes``.
-        :setter: Sets the value for the property `ipv6_static_routes``.
+        :setter: Sets the value for the property ``ipv6_static_routes``.
         """
         return self._ipv6_static_routes
 
@@ -661,9 +662,9 @@ class NetworkInterface(BaseItem):
     @system_uid.setter
     def system_uid(self, system_uid: str):
         """
-        Setter for the system_name of the NetworkInterface class.
+        Setter for the system_uid of the NetworkInterface class.
 
-        :param system_name: The new system_name.
+        :param system_uid: The uid of the system that now owns this interface.
         """
         old_system_uid = self._system_uid
         self._system_uid = system_uid
