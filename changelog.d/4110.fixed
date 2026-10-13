@@ -1,0 +1,1 @@
+Items: Fixed the "owners" field (and other settings-inherited list/dict fields) accumulating duplicate entries over time by no longer handing out a live reference to the shared Settings object when resolving an inherited value.
