@@ -86,8 +86,6 @@ class CobblerThread(Thread):
     def run(self) -> None:
         """
         Run the thread.
-
-        :return: The return code of the action. This may a boolean or a Linux return code.
         """
         self.logger.info("start_task(%s); event_id(%s)", self.task_name, self.event_id)
         lock = "load_items_lock" in self.options and self.task_name != "load_items"
@@ -114,7 +112,7 @@ class CobblerThread(Thread):
                     globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/post/*",
                     additional=self.options if isinstance(self.options, list) else [],
                 )
-            return return_code
+            return
         except Exception:
             utils.log_exc()
             self._set_task_state(enums.EventStatus.FAILED)
