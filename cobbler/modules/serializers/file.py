@@ -28,6 +28,8 @@ logger = logging.getLogger()
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "serializer"
     """
     return "serializer"
 
@@ -35,6 +37,8 @@ def register() -> str:
 def what() -> str:
     """
     Module identification function
+
+    :return: Always "serializer/file"
     """
     return "serializer/file"
 
@@ -145,7 +149,10 @@ class FileSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> FileSerializer:
     """
-    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
-    serializer is initalized.
+    Factory method to allow the serializer interface to instantiate the concrete serializer without knowing which
+    serializer is initialized.
+
+    :param api: The main API instance which is used by the current running server.
+    :return: A new :class:`FileSerializer` instance.
     """
     return FileSerializer(api)

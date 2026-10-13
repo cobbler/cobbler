@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "serializer"
     """
     return "serializer"
 
@@ -30,6 +32,8 @@ def register() -> str:
 def what() -> str:
     """
     Module identification function
+
+    :return: Always "serializer/sqlite"
     """
     return "serializer/sqlite"
 
@@ -187,7 +191,7 @@ class SQLiteSerializer(StorageBase):
 
     def serialize(self, collection: "Collection[ITEM]") -> None:
         """
-        Save a collection to disk
+        Save a collection to the SQLite database, upserting each item's row in a single transaction.
 
         :param collection: The collection to serialize.
         """
@@ -309,7 +313,10 @@ class SQLiteSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> SQLiteSerializer:
     """
-    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
-    serializer is initalized.
+    Factory method to allow the serializer interface to instantiate the concrete serializer without knowing which
+    serializer is initialized.
+
+    :param api: The main API instance which is used by the current running server.
+    :return: A new :class:`SQLiteSerializer` instance.
     """
     return SQLiteSerializer(api)
