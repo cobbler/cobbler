@@ -27,6 +27,14 @@ class ItemOption(ABC, Generic[ITEM]):
     """
 
     def __init__(self, api: "CobblerAPI", item: ITEM, **kwargs: Any) -> None:
+        """
+        Constructor.
+
+        :param api: The Cobbler API object which is used for resolving information.
+        :param item: The item instance this option belongs to and whose data it extends.
+        :param kwargs: Accepted for a uniform constructor signature across subclasses; concrete subclasses use this
+                        to seed their own attributes via ``from_dict()``.
+        """
         # pylint: disable=unused-argument
         self._api = api
         self._item = item
