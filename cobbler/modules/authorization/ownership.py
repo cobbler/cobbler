@@ -35,7 +35,7 @@ def __parse_config() -> Dict[str, Dict[str, Any]]:
     Parse the "users.conf" of Cobbler and return all data in a dictionary.
 
     :return: The data separated by sections. Each section has a subdictionary with the key-value pairs.
-    :raises FileNotFoundError
+    :raises FileNotFoundError: Raised if ``/etc/cobbler/users.conf`` does not exist.
     """
     etcfile = "/etc/cobbler/users.conf"
     if not os.path.exists(etcfile):
