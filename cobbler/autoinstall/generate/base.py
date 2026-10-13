@@ -37,11 +37,12 @@ class AutoinstallBaseGenerator:
         """
         Generates an auto-installation file.
 
-        :param obj: The object to generate the file for.
-        :param template: The template that should be used for rendering the requested file.
-        :param requested_file: The name of the requested file.
-        :param autoinstaller_subfile: TODO
-        :return: The generated AutoYaST XML file.
+        :param obj: The object (profile or system) to generate the auto-installation file for.
+        :param requested_file: The template that should be used for rendering the requested file.
+        :param autoinstaller_subfile: The name of the secondary file to generate for formats that produce more than
+            one file (for example cloud-init's ``user-data``, ``meta-data``, ``network-config`` and
+            ``vendor-data``). Generators for formats that only ever produce a single file ignore this parameter.
+        :return: The generated auto-installation file content.
         """
         raise NotImplementedError()
 

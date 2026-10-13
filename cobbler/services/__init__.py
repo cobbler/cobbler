@@ -28,9 +28,9 @@ def application(
     is dispatched to :mod:`cobbler.services.sso`. Everything else falls through to the existing
     XML-RPC-backed :mod:`cobbler.services.svc` app, unchanged.
 
-    :param environ:
-    :param start_response:
-    :return:
+    :param environ: The WSGI environment dict for the incoming request, as provided by Gunicorn.
+    :param start_response: The WSGI ``start_response`` callable used to begin the HTTP response.
+    :return: The response body as an iterable of bytes, as required by the WSGI specification.
     """
     raw_uri = environ.get("RAW_URI", "")
     path = raw_uri.partition("?")[0]

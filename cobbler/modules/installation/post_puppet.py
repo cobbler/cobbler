@@ -23,6 +23,8 @@ logger = logging.getLogger()
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always ``/var/lib/cobbler/triggers/install/post/*``.
     """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
@@ -37,6 +39,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     :param args: This is an array with two items. The first must be ``system``, if the value is different we do an
                  early and the second is the name of this system or profile.
     :return: ``0`` or nothing.
+    :raises ValueError: Raised if the name given in ``args`` matches more than one system.
     """
     objtype = args[0]
     name = args[1]

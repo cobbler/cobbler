@@ -19,7 +19,7 @@ class CobblerEvent:
         Default Constructor that initializes the event id.
 
         :param name: The human-readable name of the event
-        :statetime: The time the event was created.
+        :param statetime: The time the event was created.
         """
         self.__event_id = ""
         self.statetime = statetime

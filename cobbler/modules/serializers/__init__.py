@@ -93,6 +93,8 @@ class StorageBase:
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "StorageBase"
     """
     return "StorageBase"
 
@@ -100,13 +102,20 @@ def register() -> str:
 def what() -> str:
     """
     Module identification function
+
+    :return: Always "serializer/base"
     """
     return "serializer/base"
 
 
 def storage_factory(api: "CobblerAPI") -> StorageBase:
     """
-    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
-    serializer is initalized.
+    Factory method to allow the serializer interface to instantiate the concrete serializer without knowing which
+    serializer is initialized.
+
+    :param api: The main API instance which is used by the current running server.
+    :return: A new :class:`StorageBase` instance. This base implementation is abstract and every method raises
+             ``NotImplementedError``; concrete serializers (e.g. ``file``, ``mongodb``, ``sqlite``) override this
+             factory to return their own storage class instead.
     """
     return StorageBase(api)

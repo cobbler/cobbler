@@ -28,6 +28,11 @@ class AgamaGenerator(AutoinstallBaseGenerator):
         requested_file: "Template",
         autoinstaller_subfile: str = "",
     ) -> str:
+        """
+        Renders ``requested_file`` into an Agama installation profile. Agama profiles may be written in JSON or
+        Jsonnet, so the output is produced purely via templating rather than constructed with the JSON library,
+        which would corrupt a Jsonnet document.
+        """
         if obj.TYPE_NAME not in ("profile", "system"):  # type: ignore
             raise ValueError("obj must be either a system or profile!")
 
@@ -42,4 +47,7 @@ class AgamaGenerator(AutoinstallBaseGenerator):
     def generate_autoinstall_metadata(
         self, obj: "BootableItem", key: str
     ) -> Optional[Any]:
+        """
+        This format does not define any auxiliary metadata keys; always returns ``None``.
+        """
         return None

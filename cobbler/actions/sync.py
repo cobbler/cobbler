@@ -350,7 +350,8 @@ class CobblerSync:
         """
         Sync adding a single distro.
 
-        :param name: The name of the distribution.
+        :param distro_obj: The distribution to add.
+        :param rebuild_menu: Whether to rebuild the grub/... menu or not.
         """
         # copy image files to images/$name in webdir & tftpboot:
         self.api.tftpgen.copy_single_distro_files(
@@ -396,7 +397,8 @@ class CobblerSync:
         """
         Sync adding a single image.
 
-        :param name: The name of the image.
+        :param image_obj: The image to add.
+        :param rebuild_menu: Whether to rebuild the grub/... menu or not.
         """
         self.tftpd.add_single_image(image_obj)
         kids = self.api.find_system(return_list=True, image=image_obj.name)
@@ -411,7 +413,7 @@ class CobblerSync:
         """
         Sync removing a single distro.
 
-        :param name: The name of the distribution.
+        :param distro_obj: The distribution to remove.
         """
         bootloc = self.settings.tftpboot_location
         # delete contents of images/$name directory in webdir
@@ -434,7 +436,7 @@ class CobblerSync:
         """
         Sync removing a single image.
 
-        :param image_obj: The name of the image.
+        :param image_obj: The image to remove.
         """
         bootloc = self.settings.tftpboot_location
         filesystem_helpers.rmfile(os.path.join(bootloc, "images2", image_obj.name))
@@ -445,7 +447,7 @@ class CobblerSync:
         """
         Sync adding a single profile.
 
-        :param name: The name of the profile.
+        :param profile: The profile to add.
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
         :return: ``True`` if this succeeded.
         """
@@ -473,7 +475,7 @@ class CobblerSync:
         """
         Sync removing a single profile.
 
-        :param name: The name of the profile.
+        :param profile_obj: The profile to remove.
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
         """
         # delete profiles/$name file in webdir
@@ -491,7 +493,7 @@ class CobblerSync:
         """
         Update the netboot status of a system.
 
-        :param name: The name of the system.
+        :param obj: The system to update.
         """
         self.tftpd.sync_single_system(obj)
 
@@ -499,7 +501,7 @@ class CobblerSync:
         """
         Sync adding a single system.
 
-        :param name: The name of the system.
+        :param system_obj: The system to add.
         """
         # rebuild system_list file in webdir
         if self.settings.manage_dhcp:
@@ -513,7 +515,7 @@ class CobblerSync:
         """
         Sync removing a single system.
 
-        :param name: The name of the system.
+        :param system_obj: The system to remove.
         """
         bootloc = self.settings.tftpboot_location
         # delete contents of autoinsts_sys/$name in webdir

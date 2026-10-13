@@ -28,6 +28,10 @@ logger = logging.getLogger()
 def main() -> int:
     """
     Main entrypoint for the Cobbler daemon.
+
+    :return: The process exit code. This is ``0`` on normal operation, the exit code carried by a ``SystemExit``
+             raised while initializing the :class:`~cobbler.api.CobblerAPI` or ``1`` if that initialization fails
+             with any other exception.
     """
     op = cli_generate_main_parser()
     options = op.parse_args()

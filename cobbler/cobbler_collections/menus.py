@@ -40,4 +40,13 @@ class Menus(collection.Collection[menu.Menu]):
         return menu.Menu(self.api, **seed_data)
 
     def remove_quick_pxe_sync(self, ref: menu.Menu, rebuild_menu: bool = True) -> None:
+        """
+        Rebuild the PXE boot menu after a menu has been removed.
+
+        .. note:: ``rebuild_menu`` is currently not forwarded to the underlying sync call, so the PXE menu is
+                   always rebuilt regardless of this flag's value.
+
+        :param ref: Unused; the removed menu object itself is not needed to rebuild the PXE menu.
+        :param rebuild_menu: Intended to control whether the PXE menu is rebuilt (see note above).
+        """
         self.api.get_sync().remove_single_menu()

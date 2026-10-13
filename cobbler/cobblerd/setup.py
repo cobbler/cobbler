@@ -31,6 +31,9 @@ if TYPE_CHECKING:
 def get_path_no_root(path: pathlib.Path) -> pathlib.Path:
     """
     Strip the leading slash in case one exists.
+
+    :param path: The path to strip a potential leading slash from.
+    :return: The path without a leading slash.
     """
     my_path = str(path)
     if my_path.startswith("/"):
@@ -41,6 +44,10 @@ def get_path_no_root(path: pathlib.Path) -> pathlib.Path:
 def get_prefixed_path(path: pathlib.Path, prefix: pathlib.Path) -> pathlib.Path:
     """
     Prefix the given path with a prefix.
+
+    :param path: The path to prefix. A leading slash, if present, is stripped before prefixing.
+    :param prefix: The base directory to prepend.
+    :return: ``prefix`` joined with the root-stripped ``path``.
     """
     return prefix / get_path_no_root(path)
 
@@ -48,6 +55,10 @@ def get_prefixed_path(path: pathlib.Path, prefix: pathlib.Path) -> pathlib.Path:
 def template_file(path: pathlib.Path, context: "DistroOptions"):
     """
     This method takes a file and templates it with the magic "@@name@@" syntax.
+
+    :param path: The path of the file to template in place.
+    :param context: The options whose field values (via :meth:`DistroOptions.to_context`) are substituted for the
+                     matching "@@name@@" placeholders in the file.
     """
     file_content = path.read_text(encoding="UTF-8")
     dict_context = context.to_context()
@@ -88,6 +99,10 @@ def setup_cobblerd_manpages(
 ) -> None:
     """
     Use the embedded manpages and install them into the system.
+
+    :param base_path: The directory under which the ``man5`` and ``man8`` subdirectories are created.
+    :param resource_files: The root of the embedded data package (``cobbler.data``) that the manpages are copied
+                            from.
     """
     man_directory = base_path
     man5_files = resource_files.joinpath("man").joinpath("man5")
@@ -107,6 +122,10 @@ def setup_cobblerd_logrotate(
 ) -> None:
     """
     Use the embedded logrotate configuration and install it into the system.
+
+    :param base_path: The root directory under which the ``etc/logrotate.d`` directory is created.
+    :param resource_files: The root of the embedded data package (``cobbler.data``) that the logrotate configuration
+                            is copied from.
     """
     logrotate_config_file = (
         resource_files.joinpath("config").joinpath("rotate").joinpath("cobblerd_rotate")
@@ -121,6 +140,10 @@ def setup_cobblerd_systemd(
 ) -> None:
     """
     Use the embedded systemd service file and install it into the system.
+
+    :param base_path: The directory the systemd service file(s) are installed into directly.
+    :param resource_files: The root of the embedded data package (``cobbler.data``) that the service file(s) are
+                            copied from.
     """
     systemd_service_files = resource_files.joinpath("config").joinpath("service")
     systemd_service_directory = base_path
@@ -133,6 +156,10 @@ def setup_cobblerd_apache(
 ) -> None:
     """
     Use the embedded Apache configuration and install it into the system.
+
+    :param base_path: The directory the Apache configuration is installed into directly.
+    :param resource_files: The root of the embedded data package (``cobbler.data``) that the Apache configuration is
+                            copied from.
     """
     apache_config_files = resource_files.joinpath("config").joinpath("apache")
     apache_config_directory = base_path
@@ -145,6 +172,10 @@ def setup_cobblerd_nginx(
 ) -> None:
     """
     Use the embedded Nginx configuration and install it into the system.
+
+    :param base_path: The root directory under which the ``etc/nginx/cobbler`` directory is created.
+    :param resource_files: The root of the embedded data package (``cobbler.data``) that the Nginx configuration is
+                            copied from.
     """
     nginx_config_files = resource_files.joinpath("config").joinpath("nginx")
     nginx_config_directory = base_path / "etc" / "nginx" / "cobbler"
@@ -155,6 +186,10 @@ def setup_cobblerd_nginx(
 def setup_cobblerd_log_directories(base_path: pathlib.Path, apache_user: str) -> None:
     """
     Create all the directories needed for logging in the Cobbler daemon.
+
+    :param base_path: The root log directory under which the ``cobbler`` log subdirectories (``kicklog``,
+                       ``sysyslog``, ``anamon``, ``tasks``) and the web server user's own log directory are created.
+    :param apache_user: The user name of the web server process; used to name its per-user log directory.
     """
     log_path = base_path / "cobbler"
     log_path.mkdir(parents=True, exist_ok=True)
@@ -170,6 +205,14 @@ def setup_cobblerd(
 ) -> None:
     """
     Setup all required directories and files for the Cobbler daemon.
+
+    :param base_path: The root directory under which all files and directories are installed (e.g. ``/`` for a
+                       normal install, or a staging directory for packaging).
+    :param distro_options: The distribution-specific paths and settings used to resolve destination directories and
+                            to fill in templated configuration files.
+    :param scope: The list of setup scopes to install (see ``SETUP_SCOPES`` in :mod:`cobbler.cobblerd.cli`, e.g.
+                  ``"apache"``, ``"nginx"``, ``"systemd"``, ``"man"``); core directories and files are always
+                  installed, and ``"full"`` additionally installs every optional scope.
     """
     # Directories
     # Create /etc/cobbler

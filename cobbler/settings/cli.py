@@ -24,6 +24,12 @@ from cobbler.utils import input_converters
 
 # TODO: Transform this into a lamda/list comprehension
 def __generate_version_choices() -> List[str]:
+    """
+    Build the list of "major.minor.patch" version strings accepted by the ``--version``/``--new`` CLI arguments,
+    one per discovered migration module.
+
+    :return: The list of version strings, e.g. ``["3.3.7", "4.0.0"]``.
+    """
     versions = migrations.VERSION_LIST.keys()
     result: List[str] = []
     for version in versions:
@@ -33,6 +39,14 @@ def __generate_version_choices() -> List[str]:
 
 
 def __check_settings(filepath: str, settings_to_preserve: List[str]) -> Dict[str, Any]:
+    """
+    Read the settings file at ``filepath`` and print the detected version, or an error if it could not be read or
+    its version could not be determined.
+
+    :param filepath: The path to the settings file to read.
+    :param settings_to_preserve: The list of settings keys to exclude from version detection.
+    :return: The settings dict, or an empty dict if the file could not be read or its version is undiscoverable.
+    """
     try:
         result = settings.read_yaml_file(filepath)
     except (FileNotFoundError, yaml.YAMLError) as error:
@@ -52,6 +66,14 @@ def __check_settings(filepath: str, settings_to_preserve: List[str]) -> Dict[str
 def __update_settings(
     yaml_dict: Dict[str, Any], filepath: str, settings_to_preserve: List[str]
 ) -> int:
+    """
+    Write ``yaml_dict`` to the settings file at ``filepath``, printing success or failure.
+
+    :param yaml_dict: The settings dict to write.
+    :param filepath: The path of the settings file to write.
+    :param settings_to_preserve: The list of settings keys to exclude from validation.
+    :return: 0 on success, 1 if the resulting settings would be invalid.
+    """
     if not settings.update_settings_file(yaml_dict, filepath, settings_to_preserve):
         print("Modification would make settings invalid!")
         return 1
@@ -64,6 +86,7 @@ def validate(args: argparse.Namespace) -> int:
     Validates the Cobbler settings file against the specified version schema.
 
     :param args: argparse.Namespace containing the required attributes.
+    :return: 0 if the settings file is valid, 1 otherwise.
     """
     try:
         result = settings.read_yaml_file(args.config)
@@ -92,6 +115,7 @@ def migrate(args: argparse.Namespace) -> int:
     Migrate settings file to a specified version, optionally updating the target file.
 
     :param args: argparse.Namespace containing migration options and arguments.
+    :return: 0 on success, 1 if the settings file or its version could not be determined.
     """
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
@@ -124,6 +148,7 @@ def automigrate(args: argparse.Namespace) -> int:
     Automigrates settings based on provided arguments.
 
     :param args: argparse.Namespace containing configuration and migration options.
+    :return: 0 on success, 1 if the settings file could not be read.
     """
     settings_dict = __check_settings(args.config, args.preserve_settings)
     if not settings_dict:
@@ -140,6 +165,8 @@ def modify(args: argparse.Namespace) -> int:
     Modify a single configuration setting based on the provided arguments.
 
     :param args: argparse.Namespace containing configuration and migration options.
+    :return: 0 on success, 1 if the settings file could not be read, the key was not found, or its type is
+             unsupported.
     """
     # pylint: disable=protected-access
     # Disable protected-access because we can't use the property that is available in newer versions of the schema
@@ -280,7 +307,10 @@ parser_modify.add_argument(
 
 def main(args: TOptional[List[str]] = None) -> int:
     """
-    Main entrypoint for the the ``cobbler-settings`` script.
+    Main entrypoint for the ``cobbler-settings`` script.
+
+    :param args: The command line arguments to parse, defaults to ``sys.argv[1:]`` when ``None``.
+    :return: The exit code of the invoked subcommand, or 0 if none was given (the help text is printed instead).
     """
     parsed_args = parser.parse_args(args=args)
     if hasattr(parsed_args, "func"):

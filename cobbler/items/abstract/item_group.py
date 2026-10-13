@@ -3,7 +3,10 @@
 
 Changelog:
     * V4.0.0 (unreleased):
-        * Initial creation of the class
+        * Initial creation of the class; abstract base for group-of-items types (see ``DistroGroup``,
+          ``ProfileGroup``, ``SystemGroup``).
+        * Added:
+            * ``members`` property
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -113,6 +116,9 @@ class ItemGroup(InheritableItem, ABC):
     @LazyProperty
     def members(self) -> List[str]:
         """
+        The uids of the items that belong to this group. The referenced item type is derived from the group's
+        ``COLLECTION_TYPE`` (e.g. a ``distro_group`` only accepts distro uids).
+
         :getter: The members of this group.
         :setter: Set the members of this group.
         """

@@ -50,7 +50,10 @@ class TFTPGen:
 
     def __init__(self, api: "CobblerAPI"):
         """
-        Constructor
+        Constructor. Caches references to the Cobbler API and its collections (distros, profiles, systems, repos,
+        images, menus) and settings, which are used throughout this class to generate TFTP boot configuration.
+
+        :param api: The main API instance which is used by the current running server.
         """
         self.logger = logging.getLogger()
         self.api = api
@@ -91,6 +94,8 @@ class TFTPGen:
         """
         Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in our settings file.
+
+        :param dest: This parameter is unused; the destination is always the configured tftpboot location.
         """
         src = self.settings.bootloaders_dir
         dest = self.bootloc
@@ -123,7 +128,7 @@ class TFTPGen:
 
     def copy_images(self) -> None:
         """
-        Like copy_distros except for images.
+        Copies all image files to the TFTP root, logging (but not raising) an error for any image that fails.
         """
         errors: List[CX] = []
         for i in self.images:
@@ -139,9 +144,9 @@ class TFTPGen:
         """
         Copy a single file (kernel/initrd) to distro's images directory
 
-        :param d_file:     distro's kernel/initrd absolut or remote file path value
+        :param d_file:     distro's kernel/initrd absolute or remote file path value
         :param distro_dir: directory (typically in {www,tftp}/images) where to copy the file
-        :param symlink_ok: whethere it is ok to symlink the file. Typically false in case the file is used by daemons
+        :param symlink_ok: whether it is ok to symlink the file. Typically false in case the file is used by daemons
                             run in chroot environments (tftpd,..)
         :raises FileNotFoundError: Raised in case no kernel was found.
         """
@@ -347,6 +352,9 @@ class TFTPGen:
                    system_link/
                        <system_name>
 
+        This method is also responsible for removing stale boot loader artefacts when support for PXE/GRUB is disabled
+        or management is no longer supported for the system.
+
         :param system: The system to generate files for.
         :param menu_items: The list of labels that are used for displaying the menu entry.
         :param meta_blended: A pre-computed ``utils.blender(self.api, False, system)`` result to reuse
@@ -354,8 +362,6 @@ class TFTPGen:
         :return: The ``utils.blender(self.api, False, system)`` result used to generate these files
                  (``None`` for S390/S390x systems, which use a separate code path that doesn't need it),
                  so callers that also need it (e.g. for :meth:`write_templates`) can reuse it.
-        This method is also responsible for removing stale boot loader artefacts when support for PXE/GRUB is disabled
-        or management is no longer supported for the system.
         """
         system_parent: Optional[
             Union["Profile", "Image"]
@@ -623,6 +629,9 @@ class TFTPGen:
     def make_pxe_menu(self) -> Dict[str, Union[str, Dict[str, str]]]:
         """
         Generates pxe, ipxe and grub boot menus.
+
+        :return: A dictionary with the "pxe", "ipxe" and "grub" keys, mapping to their respective rendered menu
+                 content.
         """
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
@@ -753,6 +762,8 @@ class TFTPGen:
 
         :param path: Path to the menu file.
         :param metadata: Menu items and other metadata for the generator.
+        :returns: The rendered content of the requested menu file, or ``None`` if ``path`` does not match any of the
+                  known PXE/iPXE/GRUB menu file paths.
         """
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
@@ -1237,7 +1248,9 @@ class TFTPGen:
         :param bootloader_format: Can be any of those returned by utils.get_supported_system_boot_loaders().
         :param meta_blended: A pre-computed ``utils.blender(self.api, False, system|profile|image)`` result
                               to reuse instead of recomputing it, for callers that already have one.
-        :return: The generated file-content for the required item.
+        :return: The generated file-content for the required item, or ``None`` if the image file does not exist on
+                 disk, or ``bootloader_format`` is not amongst the boot loaders supported by the given
+                 system/profile/image.
         """
 
         if arch is None:
@@ -1755,7 +1768,8 @@ class TFTPGen:
 
         :param obj: The object to write the template files for.
         :param write_file: If the generated template should be written to the disk.
-        :param path: TODO: A useless parameter?
+        :param path: If given, only the template whose rendered destination path matches this value is processed; all
+                     other templates in ``obj.template_files`` are skipped.
         :param blended: A pre-computed ``utils.blender(self.api, False, obj)`` result to reuse instead
                         of recomputing it, for callers that already have one for this same object.
         :return: A dict of the destination file names (after variable substitution is done) and the data in the file.

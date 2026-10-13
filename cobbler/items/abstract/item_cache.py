@@ -3,6 +3,11 @@ Module that contains the logic for Cobbler to cache an item.
 
 The cache significantly speeds up Cobbler. This effect is achieved thanks to the reduced amount of lookups that are
 required to be done.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * No functional changes; relocated from the former monolithic ``cobbler/items/item.py``.
 """
 
 from typing import TYPE_CHECKING, Any, Dict, Optional
@@ -41,7 +46,7 @@ class ItemCache:
 
     def get_dict_cache(self, resolved: bool) -> Optional[Dict[str, Any]]:
         """
-        Gettinging the dict cache.
+        Getting the dict cache.
 
         :param resolved: "resolved" parameter for BaseItem.to_dict().
         :return: The cache value for the object, or None if not set.
@@ -62,7 +67,7 @@ class ItemCache:
 
     def clean_dict_cache(self):
         """
-        Cleaninig the dict cache.
+        Cleaning the dict cache.
         """
         if self.settings.cache_enabled:
             self.set_dict_cache(None, True)

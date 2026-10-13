@@ -105,4 +105,11 @@ class Distros(collection.Collection[distro.Distro]):
     def remove_quick_pxe_sync(
         self, ref: distro.Distro, rebuild_menu: bool = True
     ) -> None:
+        """
+        Delete the distro's mirrored kernel/initrd images, TFTP boot images, the distro symlink and any generated
+        distro repo config files.
+
+        :param ref: The distro that was removed.
+        :param rebuild_menu: Unused; removing a distro does not trigger a PXE menu rebuild.
+        """
         self.api.get_sync().remove_single_distro(ref)

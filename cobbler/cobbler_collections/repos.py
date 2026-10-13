@@ -34,7 +34,7 @@ class Repos(collection.Collection[repo.Repo]):
 
     def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Distro forged from seed_data
+        Return a Repo forged from seed_data
 
         :param api: Parameter is skipped.
         :param seed_data: The data the object is initalized with.

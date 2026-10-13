@@ -29,6 +29,14 @@ class LegacyGenerator(AutoinstallBaseGenerator):
         requested_file: "Template",
         autoinstaller_subfile: str = "",
     ) -> str:
+        """
+        Renders the auto-installation file using the legacy code path that predates the per-format generators. This
+        combines logic that is otherwise split across the AutoYaST, Kickstart and Preseed generators: it resolves
+        the autoinstall tree path, flattens ``kernel_options``/``kernel_options_post`` into a string, injects the
+        ``yum_repo_stanza`` and ``yum_config_stanza`` metavariables for Red Hat based distros, and derives
+        ``install_source_directory`` for Debian/Ubuntu based distros. No new features will be added to this code
+        path; only bugs will be fixed.
+        """
         meta = utils.blender(self.api, False, obj)
         autoinstall_rel_path = meta["autoinstall"]
 
@@ -77,6 +85,14 @@ class LegacyGenerator(AutoinstallBaseGenerator):
     def generate_autoinstall_metadata(
         self, obj: "BootableItem", key: str
     ) -> Optional[Any]:
+        """
+        Generates the legacy ``$yum_repo_stanza`` and ``$yum_config_stanza`` substitutions used by Red Hat based
+        automatic installation files.
+
+        :param obj: The profile or system to generate the metadata for.
+        :param key: Either ``"yum_repo_stanza"`` or ``"yum_config_stanza"``.
+        :return: The generated stanza, or None if ``key`` is neither of the two supported values.
+        """
         if key == "yum_repo_stanza":
             return self.__generate_repo_stanza(obj, (obj.TYPE_NAME == "system"))  # type: ignore
         if key == "yum_repo_stanza":

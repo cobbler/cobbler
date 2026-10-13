@@ -30,6 +30,13 @@ negotiation itself, natively in Python, using the ``gssapi`` library:
 the package isn't necessarily installed (or a keytab configured) in every Cobbler deployment, and
 this module must degrade to a clean ``501 Not Implemented`` rather than making Cobbler
 unimportable/unstartable when it's absent.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. New Kerberos/GSSAPI SPNEGO single-sign-on WSGI endpoint (``/sso_login``),
+      exchanging the negotiated principal for a Cobbler session token via
+      ``cobbler.modules.authentication.passthru``.
 """
 
 import base64

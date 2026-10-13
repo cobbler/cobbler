@@ -272,7 +272,10 @@ class CobblerStatusReport:
 
     def run(self) -> Union[Dict[Any, Any], str]:
         """
-        Calculate and print a automatic installation status report.
+        Calculate an automatic installation status report by scanning the Cobbler installation log files.
+
+        :return: A human-readable string if ``self.mode`` is ``"text"``, otherwise the raw per-IP install status
+                 data.
         """
         self.scan_logfiles()
         results = self.process_results()

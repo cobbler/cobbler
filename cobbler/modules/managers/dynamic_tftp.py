@@ -22,6 +22,8 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage".
     """
     return "manage"
 

@@ -8,6 +8,10 @@ V4.0.0 (unreleased):
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
+    * Added:
+        * ``apt`` property (``APTOption``).
+    * Removed:
+        * ``apt_components``, ``apt_dists`` (-> ``apt.components``/``apt.dists``).
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -155,7 +159,7 @@ class Repo(BootableItem):
 
     def make_clone(self) -> "Repo":
         """
-        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+        Clone this repo object. Please manually adjust all value yourself to make the cloned object unique.
 
         :return: The cloned instance of this object.
         """

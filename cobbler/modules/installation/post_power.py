@@ -20,11 +20,21 @@ class RebootSystemThread(Thread):
     """
 
     def __init__(self, api: "CobblerAPI", target: "System"):
+        """
+        Constructor.
+
+        :param api: The API instance used to issue the reboot once the delay has elapsed.
+        :param target: The system that should be rebooted.
+        """
         Thread.__init__(self)
         self.api = api
         self.target = target
 
     def run(self) -> None:
+        """
+        Thread body: wait 30 seconds (to give the installer time to finish and unmount the filesystem) and then
+        power-cycle ``self.target`` via ``self.api.power_system()``.
+        """
         time.sleep(30)
         self.api.power_system(self.target, "reboot")
 
@@ -32,6 +42,8 @@ class RebootSystemThread(Thread):
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always ``/var/lib/cobbler/triggers/install/post/*``.
     """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
@@ -47,6 +59,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
                  0: The str "system". All other content will result in an early exit of the trigger.
                  1: The name of the target system.
     :return: ``0`` on success.
+    :raises ValueError: Raised if the name given in ``args`` matches more than one system.
     """
     objtype = args[0]
     name = args[1]

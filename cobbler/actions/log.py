@@ -26,6 +26,9 @@ class LogTool:
     def __init__(self, system: "System", api: "CobblerAPI"):
         """
         Log library constructor requires a Cobbler system object.
+
+        :param system: The system whose logs this instance manages.
+        :param api: The API which holds all information about Cobbler.
         """
         self.system = system
         self.api = api

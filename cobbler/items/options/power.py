@@ -1,5 +1,11 @@
 """
 This module defines the `Option` classes for managing power control settings of Cobbler items.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. Introduces ``PowerOption``, exposed as ``power`` on ``System``, consolidating
+      the former ``power_*`` scalar properties.
 """
 
 from typing import TYPE_CHECKING, Any

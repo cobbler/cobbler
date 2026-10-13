@@ -43,6 +43,11 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def __migrate_modules_conf() -> None:
+    """
+    Rewrite ``/etc/cobbler/modules.conf`` in place, replacing the legacy ``authn_``, ``authz_`` and ``manage_``
+    module name prefixes with their new dotted-path equivalents (``authentication.``, ``authorization.`` and
+    ``managers.`` respectively), matching the module layout introduced under :mod:`cobbler.modules` in V3.0.0.
+    """
     modules_conf_path = "/etc/cobbler/modules.conf"
     with open(modules_conf_path, "r", encoding="UTF-8") as modules_conf_file:
         result: List[str] = []
@@ -75,7 +80,10 @@ def __migrate_modules_conf() -> None:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to the V3.0.1 settings
+    Migration of the settings ``settings`` to the V3.0.1 settings.
+
+    The settings schema itself is unchanged from V3.0.0; this only rewrites ``/etc/cobbler/modules.conf`` via
+    :func:`__migrate_modules_conf`.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

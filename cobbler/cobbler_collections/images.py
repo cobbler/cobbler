@@ -31,7 +31,7 @@ class Images(collection.Collection[image.Image]):
 
     def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]):
         """
-        Return a Distro forged from seed_data
+        Return an Image forged from seed_data
 
         :param api: Parameter is skipped.
         :param seed_data: Data to seed the object with.
@@ -42,4 +42,10 @@ class Images(collection.Collection[image.Image]):
     def remove_quick_pxe_sync(
         self, ref: image.Image, rebuild_menu: bool = True
     ) -> None:
+        """
+        Delete the image's TFTP boot image.
+
+        :param ref: The image that was removed.
+        :param rebuild_menu: Unused; removing an image does not trigger a PXE menu rebuild.
+        """
         self.api.get_sync().remove_single_image(ref)

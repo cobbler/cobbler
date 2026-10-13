@@ -21,6 +21,14 @@ class AppendLineBuilder:
     """
 
     def __init__(self, api: "CobblerAPI", distro_name: str, data: Dict[str, Any]):
+        """
+        Constructor.
+
+        :param api: The API which holds all information about Cobbler, used to render the kernel command line.
+        :param distro_name: The (possibly shortened) name of the distro the append line is generated for.
+        :param data: The blended data (e.g. as returned by :func:`cobbler.utils.blender`) used to generate the
+                     append line content.
+        """
         self.append_line = kernel_command_line.KernelCommandLine(api)
         self.data = data
         self.distro_name = distro_name

@@ -1,5 +1,13 @@
 """
 Virtualization option management for Cobbler items.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the module. Introduces ``VirtOption``, exposed as ``virt`` on ``Image``/``Profile``/
+      ``System``, consolidating the former ``virt_auto_boot``, ``virt_cpus``, ``virt_disk_driver``, ``virt_file_size``,
+      ``virt_path``, ``virt_pxe_boot``, ``virt_ram``, and ``virt_type`` scalar properties. ``virt_bridge`` is
+      explicitly excluded from this consolidation and remains a standalone property on the parent item.
 """
 
 from typing import TYPE_CHECKING, Any, Union
@@ -116,7 +124,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         """
         Setter for the file_size of the System class.
 
-        :param num:
+        :param num: The new file size in GB for the virtual disk.
         """
         self._file_size = validate.validate_virt_file_size(num)
 
@@ -158,7 +166,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         """
         Setter for the pxe_boot of the System class.
 
-        :param num:
+        :param num: Whether the VM should PXE boot instead of using a local boot loader.
         """
         self._pxe_boot = validate.validate_virt_pxe_boot(num)
 

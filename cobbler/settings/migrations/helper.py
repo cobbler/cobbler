@@ -20,7 +20,12 @@ class Setting:
 
     def __init__(self, location: Union[str, List[str]], value: Any):
         """
-        Conutructor
+        Constructor.
+
+        :param location: The location of the setting, either as a dotted string (e.g. "manage.dhcp_v4") or as an
+                          already split list of keys (e.g. ``["manage", "dhcp_v4"]``).
+        :param value: The value of the setting.
+        :raises TypeError: If ``location`` is neither a str nor a list.
         """
         if isinstance(location, str):
             self.location = self.split_str_location(location)
@@ -32,7 +37,7 @@ class Setting:
 
     def __eq__(self, other: Any) -> bool:
         """
-        Compares 2 Setting objects for equality. Necesarry for the tests.
+        Compares 2 Setting objects for equality. Necessary for the tests.
         """
         if not isinstance(other, Setting):
             return False
@@ -64,7 +69,7 @@ def key_add(new: Setting, settings: Dict[str, Any]) -> None:
     Add a new settings key.
 
     :param new: The new setting to add.
-    :param settings: [description]
+    :param settings: The settings dict to add the key to.
     """
     nested = new.location
     for key in nested[:-1]:

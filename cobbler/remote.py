@@ -9,7 +9,8 @@ Current Schema: Please refer to the documentation visible of the individual meth
 
 V4.0.0 (unreleased)
     * Added:
-        * Create, Read, Update & Delete methods for the NetworkInterface class
+        * Create, Read, Update & Delete methods for the new item types: ``NetworkInterface``, ``Template``,
+          ``DistroGroup``, ``ProfileGroup``, ``SystemGroup``
         * ``set_item_resolved_value``
         * ``input_string_or_list_no_inherit``
         * ``input_string_or_list``
@@ -17,8 +18,14 @@ V4.0.0 (unreleased)
         * ``input_string_or_dict_no_inherit``
         * ``input_boolean``
         * ``input_int``
+        * New transactional API: ``transaction_begin``, ``transaction_commit``, ``transaction_abort``, plus
+          supporting ``TransactionItemModifications``, ``TransactionTuple``, ``UnsavedItemsTuple`` named tuples
+        * Generic template RPCs: ``new_template``,
+          ``get_template``/``get_template_content``/``get_template_handle``, ``save_template``, ``modify_template``,
+          ``templates_refresh_content``, ``background_templates_refresh_content``
+        * ``background_signature_reload``, ``get_tftp_file``
     * Changed:
-        * ```get_random_mac``: Change default `virt_type`` to ``kvm``
+        * ``get_random_mac``: Change default ``virt_type`` to ``kvm``
         * ``remove_item`` and all ``remove_<type>`` methods: Require an item handle (object id) instead of the name
           of the item, matching the contract of ``modify_item``. Clients that only know the name of an item have to
           retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
@@ -27,6 +34,17 @@ V4.0.0 (unreleased)
           retrieve a handle via ``get_item_handle`` or ``get_<type>_handle`` first.
     * Removed:
         * ``xapi_object_edit``: Remove all-in-one edit method for the CLI
+        * ``copy_file``/``copy_mgmtclass``/``copy_package``/``copy_resource``, corresponding
+          ``remove_*``/``rename_*``/``new_*``/``add_*``/``find_*``/``get_*_since`` methods, and
+          ``files``/``mgmtclasses``/``packages`` collection properties (File/Mgmtclass/Package/Resource item types
+          removed entirely, see ``cobbler.items.abstract.bootable_item`` changelog)
+        * Autoinstall-snippet/template-specific RPCs replaced by the generic ``*_template`` methods above:
+          ``generate_profile_autoinstall``, ``generate_system_autoinstall``, ``get_autoinstall_snippets``,
+          ``get_autoinstall_templates``, ``read_autoinstall_snippet``, ``read_autoinstall_template``,
+          ``remove_autoinstall_snippet``, ``remove_autoinstall_template``, ``write_autoinstall_snippet``,
+          ``write_autoinstall_template``
+        * ``__interface_edits``, ``__is_interface_field``: Removed along with ``System``'s direct ownership of
+          interface fields; see ``cobbler.items.network_interface`` changelog
 
 V3.3.4 (unreleased)
     * No changes
@@ -256,7 +274,7 @@ class CobblerXMLRPCInterface:
         configuration of the Cobbler server. This has nothing to do with "check_access" which is an auth/authz function
         in the XMLRPC API.
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: A list of things to address.
         """
         self.check_access(token, "check")
@@ -268,7 +286,7 @@ class CobblerXMLRPCInterface:
 
         :param options: This parameter does contain the options passed from the CLI or remote API who called this.
                          "profiles"/"systems" are lists of uids, "distro" is a uid.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
         webdir = self.api.settings().webdir
@@ -327,8 +345,9 @@ class CobblerXMLRPCInterface:
         """
         Get the acl configuration from the config and set the acls in the backgroud.
 
-        :param options: Not known what this parameter does.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param options: A dict which may contain the "adduser", "addgroup", "removeuser" and "removegroup" keys, all
+            of which are forwarded as-is to :meth:`cobbler.api.CobblerAPI.acl_config`.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -349,7 +368,7 @@ class CobblerXMLRPCInterface:
         Run a full Cobbler sync in the background.
 
         :param options: Possible options: verbose, dhcp, dns
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -396,8 +415,8 @@ class CobblerXMLRPCInterface:
         """
         Hardlink all files as a background task.
 
-        :param options: Not known what this parameter does.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param options: No additional parameters needed.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -412,8 +431,8 @@ class CobblerXMLRPCInterface:
         """
         Validate all autoinstall files in the background.
 
-        :param options: Not known what this parameter does.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param options: No additional parameters needed.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -432,8 +451,10 @@ class CobblerXMLRPCInterface:
         """
         Replicate Cobbler in the background to another Cobbler instance.
 
-        :param options: Not known what this parameter does.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param options: A dict which may contain the "master", "port", "distro_patterns", "profile_patterns",
+            "system_patterns", "repo_patterns", "image_patterns", "prune", "omit_data", "sync_all" and "use_ssl"
+            keys, all of which are forwarded as-is to :meth:`cobbler.api.CobblerAPI.replicate`.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -461,8 +482,10 @@ class CobblerXMLRPCInterface:
         """
         Import an ISO image in the background.
 
-        :param options: Not known what this parameter does.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param options: A dict which may contain the "path", "name", "available_as", "autoinstall_file",
+            "rsync_flags", "arch", "breed" and "os_version" keys, all of which are forwarded as-is to
+            :meth:`cobbler.api.CobblerAPI.import_tree`.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -488,7 +511,7 @@ class CobblerXMLRPCInterface:
 
         :param options: A dict with a "repos" key (list of repo uids) or an "only" key (a single repo uid), and
                          optional "tries"/"nofail" keys.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -526,7 +549,7 @@ class CobblerXMLRPCInterface:
         Power a system asynchronously in the background.
 
         :param options: A dict with a "systems" key (list of system uids) and a "power" key (on/off/status/reboot).
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -562,7 +585,7 @@ class CobblerXMLRPCInterface:
         Returns true if the operation succeeded or if the system is powered on (in case of status).
         False otherwise.
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method. All
+        :param token: The API-token obtained via the login() method. All
                       tasks require tokens.
         :param system_id: system handle
         :param power: power operation (on/off/status/reboot)
@@ -578,8 +601,8 @@ class CobblerXMLRPCInterface:
         """
         Run a signature update in the background.
 
-        :param options: Not known what this parameter does.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param options: No additional parameters needed.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -596,7 +619,7 @@ class CobblerXMLRPCInterface:
         Run a signature reload in the background.
 
         :param options: No additional parameters needed.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
 
@@ -626,7 +649,11 @@ class CobblerXMLRPCInterface:
 
     def background_load_items(self) -> str:
         """
-        Loading items
+        Deserialize all collection items (repos, distros, menus, images, profiles, systems) into memory as a
+        background task, if lazy loading of items is enabled via the ``lazy_start`` setting. If lazy loading is
+        disabled, this method is a no-op and returns an empty string.
+
+        :return: The id of the task which was started, or an empty string if lazy loading is disabled.
         """
 
         def runner(self: "CobblerThread"):
@@ -670,9 +697,14 @@ class CobblerXMLRPCInterface:
         self, objects: List[str]
     ) -> Optional[List["Template"]]:
         """
-        TODO
+        Resolve a list of template names and/or UIDs to the corresponding :class:`~cobbler.items.template.Template`
+        objects. Entries that cannot be resolved unambiguously (no match, or a match on both name and UID) are
+        skipped with a log message rather than raising an error.
 
-        :param objects: TODO
+        :param objects: A list of strings containing template names or UIDs. A single list may contain a mix of
+            names and UIDs.
+        :returns: The resolved list of Template objects, or ``None`` if none of the given objects could be resolved.
+        :raises TypeError: In case ``objects`` is not a list of strings.
         """
         if not (isinstance(objects, list) and all([isinstance(obj, str) for obj in objects])):  # type: ignore
             raise TypeError("objects must be a list of strings!")
@@ -812,7 +844,7 @@ class CobblerXMLRPCInterface:
         Starts a new background task.
 
         :param thr_obj_fn: function handle to run in a background thread
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method. All
+        :param token: The API-token obtained via the login() method. All
                       tasks require tokens.
         :param role_name: used to check token against authn/authz layers
         :param name: display name to show in logs/events
@@ -851,7 +883,7 @@ class CobblerXMLRPCInterface:
         Return the time of the last modification to any object. Used to verify from a calling application that no
         Cobbler objects have changed since last check. This method is implemented in the module api under the same name.
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: 0 if there is no file where the information required for this method is saved.
         """
         return self.api.last_modified_time()
@@ -868,7 +900,7 @@ class CobblerXMLRPCInterface:
         """
         Given a token returned from login, return the username that logged in with it.
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: The username if the token was valid.
         :raises CX: If the token supplied to the function is invalid.
         :raises ValueError: In case "token" did not fulfil the requirements to be a token.
@@ -894,7 +926,7 @@ class CobblerXMLRPCInterface:
         Takes various optional parameters that should be supplied when known.
 
         :param msg: The message to log.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param name: The name of the object should be supplied when it is known.
         :param object_id: The object id should be supplied when it is known.
         :param attribute: Additional attributes should be supplied if known.
@@ -1221,7 +1253,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1244,7 +1276,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1267,7 +1299,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1290,7 +1322,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1313,7 +1345,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1336,7 +1368,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1359,7 +1391,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1386,7 +1418,7 @@ class CobblerXMLRPCInterface:
         :param flatten: If the item should be flattened.
         :param resolved: If this is True, Cobbler will resolve the values to its final form, rather than give you the
                          objects raw value.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: Not used with this method currently.
         :return: The item or None.
         """
@@ -1475,7 +1507,7 @@ class CobblerXMLRPCInterface:
         something has changes that the in-memory representation isn't showing.
 
         :param uid: The UID of the desired template.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :returns: The content of the autoinstallation template that is currently available in-memory.
         """
         if not isinstance(uid, str) or not isinstance(token, str):  # type: ignore[reportUnnecessaryComparison]
@@ -1515,7 +1547,7 @@ class CobblerXMLRPCInterface:
 
         :param page: This parameter is not used currently.
         :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: The list with all distros.
         """
@@ -1533,7 +1565,7 @@ class CobblerXMLRPCInterface:
 
         :param page: This parameter is not used currently.
         :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: The list with all profiles.
         """
@@ -1551,7 +1583,7 @@ class CobblerXMLRPCInterface:
 
         :param page: This parameter is not used currently.
         :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: The list of all systems.
         """
@@ -1569,7 +1601,7 @@ class CobblerXMLRPCInterface:
 
         :param page: This parameter is not used currently.
         :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: The list of all repositories.
         """
@@ -1587,7 +1619,7 @@ class CobblerXMLRPCInterface:
 
         :param page: This parameter is not used currently.
         :param results_per_page: This parameter is not used currently.
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
         :return: The list of all images.
         """
@@ -1607,7 +1639,7 @@ class CobblerXMLRPCInterface:
         :param results_per_page: This parameter is not used currently.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
-        :return: The list of all files.
+        :return: The list of all menus.
         """
         return self.get_items("menu")
 
@@ -1625,7 +1657,7 @@ class CobblerXMLRPCInterface:
         :param results_per_page: This parameter is not used currently.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
-        :return: The list of all files.
+        :return: The list of all network interfaces.
         """
         return self.get_items("network_interface")
 
@@ -1643,7 +1675,7 @@ class CobblerXMLRPCInterface:
         :param results_per_page: This parameter is not used currently.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
-        :return: The list of all files.
+        :return: The list of all templates.
         """
         return self.get_items("template")
 
@@ -1723,6 +1755,8 @@ class CobblerXMLRPCInterface:
         :param expand: Not only get the names but also the complete object in form of a dict.
         :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
                          object instead of the raw data.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
         :returns: A list of dicts.
         """
         if criteria is None:
@@ -1770,7 +1804,7 @@ class CobblerXMLRPCInterface:
         """
         Find a profile matching certain criteria.
 
-        :param criteria: The criteria a distribution needs to match.
+        :param criteria: The criteria a profile needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
         :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
                          object instead of the raw data.
@@ -1791,7 +1825,7 @@ class CobblerXMLRPCInterface:
         """
         Find a system matching certain criteria.
 
-        :param criteria: The criteria a distribution needs to match.
+        :param criteria: The criteria a system needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
         :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
                          object instead of the raw data.
@@ -1812,7 +1846,7 @@ class CobblerXMLRPCInterface:
         """
         Find a repository matching certain criteria.
 
-        :param criteria: The criteria a distribution needs to match.
+        :param criteria: The criteria a repository needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
         :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
                          object instead of the raw data.
@@ -1833,7 +1867,7 @@ class CobblerXMLRPCInterface:
         """
         Find an image matching certain criteria.
 
-        :param criteria: The criteria a distribution needs to match.
+        :param criteria: The criteria an image needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
         :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
                          object instead of the raw data.
@@ -1854,13 +1888,13 @@ class CobblerXMLRPCInterface:
         """
         Find a menu matching certain criteria.
 
-        :param criteria: The criteria a distribution needs to match.
+        :param criteria: The criteria a menu needs to match.
         :param expand: Not only get the names but also the complete object in form of a dict.
         :param resolved: This only has an effect when ``expand = True``. It returns the resolved representation of the
                          object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
-        :return: All files which have matched the criteria.
+        :return: All menus which have matched the criteria.
         """
         return self.find_items("menu", criteria, expand=expand, resolved=resolved)
 
@@ -1881,7 +1915,7 @@ class CobblerXMLRPCInterface:
                          object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
-        :return: All files which have matched the criteria.
+        :return: All network interfaces which have matched the criteria.
         """
         return self.find_items(
             "network_interface", criteria, expand=expand, resolved=resolved
@@ -1904,7 +1938,7 @@ class CobblerXMLRPCInterface:
                          object instead of the raw data.
         :param token: The API-token obtained via the login() method.
         :param rest: This parameter is not used currently.
-        :return: All files which have matched the criteria.
+        :return: All templates which have matched the criteria.
         """
         return self.find_items("template", criteria, expand=expand, resolved=resolved)
 
@@ -1992,7 +2026,7 @@ class CobblerXMLRPCInterface:
         list, for instance in supporting a web app that wants to show a limited amount of items per page.
 
         :param what: The object type to find.
-        :param criteria: The criteria a distribution needs to match.
+        :param criteria: The criteria the items need to match.
         :param sort_field: The field to sort the results after.
         :param page: The page to return
         :param items_per_page: The number of items per page.
@@ -2038,6 +2072,8 @@ class CobblerXMLRPCInterface:
 
         :param what: The collection where the item is living in.
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the transaction-local view of
+            the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
         if not validate_obj_type(what):
@@ -3245,6 +3281,9 @@ class CobblerXMLRPCInterface:
 
     def auto_add_repos(self, token: str):
         """
+        Import any repos this server's distros know about and mirror them. Calls
+        :meth:`cobbler.api.CobblerAPI.auto_add_repos`.
+
         :param token: The API-token obtained via the login() method.
         """
         self.check_access(token, "new_repo", token)
@@ -3634,10 +3673,11 @@ class CobblerXMLRPCInterface:
         :param obj_identifier: The identifier of the object to generate the file for.
         :param obj_type: Must be either the str "profile" or "system".
         :param obj_field: Must be either the str "name" or "uid".
-        :param autoinstaller_type: All currently available types can be found at
-            :class:`cobbler.enums.AutoinstallerType`. Please use the string values as an argument to this endpoint.
-        :param autoinstaller_file: TODO
-        :param autoinstaller_subfile: TODO
+        :param autoinstaller_file: The name or UID (per ``obj_field``) of the autoinstall template to render. If
+            empty, the autoinstall template assigned to the resolved object is used instead.
+        :param autoinstaller_subfile: For autoinstallation types that are made up of several files (currently only
+            cloud-init, with "user-data", "vendor-data", "meta-data" and "network-config"), this selects which of
+            those sub-files to generate. Unused for single-file autoinstallation types.
         :return: The str representation of the file.
         """
         self._log("generate_autoinstall")
@@ -3925,7 +3965,7 @@ class CobblerXMLRPCInterface:
 
         :param token: The API-token obtained via the login() method.
         :param system_uid: The id of the system for which the boot loaders should be looked up.
-        :return: Get a list of all valid boot loaders.get_valid_archs
+        :return: Get a list of all valid boot loaders.
         """
         self._log("get_valid_system_boot_loaders", token=token)
         if system_uid is None:
@@ -4520,7 +4560,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the distro to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a distribution.
+        :return: The resolved (blended) representation of the distro.
         """
 
         self._log("get_distro_as_rendered", object_id=object_id, token=token)
@@ -4538,7 +4578,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the profile to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a profile.
+        :return: The resolved (blended) representation of the profile.
         """
 
         self._log("get_profile_as_rendered", object_id=object_id, token=token)
@@ -4551,12 +4591,13 @@ class CobblerXMLRPCInterface:
         self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
-        Get profile after passing through Cobbler's inheritance engine.
+        Get system after passing through Cobbler's inheritance engine.
 
         :param object_id: The id of the system to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a system.
+        :return: The resolved (blended) representation of the system, including a rendered ``pxelinux.cfg`` entry if
+            the system is management-supported.
         """
 
         self._log("get_system_as_rendered", object_id=object_id, token=token)
@@ -4599,7 +4640,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the repository to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a repository.
+        :return: The resolved (blended) representation of the repository.
         """
 
         self._log("get_repo_as_rendered", object_id=object_id, token=token)
@@ -4612,12 +4653,12 @@ class CobblerXMLRPCInterface:
         self, object_id: str, token: Optional[str] = None, **rest: Any
     ) -> Union[List[Any], Dict[Any, Any], int, str, float]:
         """
-        Get repository after passing through Cobbler's inheritance engine.
+        Get image after passing through Cobbler's inheritance engine.
 
         :param object_id: The id of the image to get.
         :param token: authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as an image.
+        :return: The resolved (blended) representation of the image.
         """
 
         self._log("get_image_as_rendered", object_id=object_id, token=token)
@@ -4635,7 +4676,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the menu to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
+        :return: The resolved (blended) representation of the menu.
         """
 
         self._log("get_menu_as_rendered", object_id=object_id, token=token)
@@ -4653,7 +4694,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the DistroGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
+        :return: The resolved (blended) representation of the distro group.
         """
 
         self._log("get_distro_group_as_rendered", object_id=object_id, token=token)
@@ -4671,7 +4712,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the ProfileGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
+        :return: The resolved (blended) representation of the profile group.
         """
 
         self._log("get_profile_group_as_rendered", object_id=object_id, token=token)
@@ -4689,7 +4730,7 @@ class CobblerXMLRPCInterface:
         :param object_id: The id of the SystemGroup to get.
         :param token: Authentication token
         :param rest: This is dropped in this method since it is not needed here.
-        :return: Get a template rendered as a file.
+        :return: The resolved (blended) representation of the system group.
         """
 
         self._log("get_system_group_as_rendered", object_id=object_id, token=token)
@@ -4745,7 +4786,7 @@ class CobblerXMLRPCInterface:
         """
         Get a random string of a desired length.
 
-        :param length: The length of the
+        :param length: The length (in bytes read from ``/dev/urandom`` before base64-encoding) of the random string.
         :return: A random string of the desired length from ``/dev/urandom``.
         """
         b64 = base64.b64encode(os.urandom(length))
@@ -5104,7 +5145,7 @@ class CobblerXMLRPCInterface:
         made within a transaction are isolated until committed.
         Other clients won't see changes until the transaction is committed.
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: bool if operation was successful
         """
         self.transactions[token] = {}
@@ -5123,7 +5164,7 @@ class CobblerXMLRPCInterface:
         3. Objects are added/modified in dependency order (e.g. Distro - Profile)
         4. Rebuilds the PXE configuration once at the end
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: bool if operation was successful
         """
         try:
@@ -5136,7 +5177,7 @@ class CobblerXMLRPCInterface:
         """
         Aborts current transaction, all changes are discarded.
 
-        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param token: The API-token obtained via the login() method.
         :return: bool if operation was successful
         """
         del self.transactions[token]

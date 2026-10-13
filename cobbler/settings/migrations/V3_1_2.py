@@ -169,7 +169,9 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to the V3.1.2 settings
+    Migration of the settings ``settings`` to the V3.1.2 settings.
+
+    The only change is dropping the ``power_template_dir`` key, which is no longer part of the schema.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

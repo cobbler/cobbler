@@ -27,12 +27,23 @@ if TYPE_CHECKING:
 
 
 class BootFilesCopyset(NamedTuple):  # pylint: disable=missing-class-docstring
+    """
+    Describes a single kernel/initrd pair that needs to be copied into the ISO build directory, together with the
+    filename (without extension) the copies should be given.
+    """
+
     src_kernel: str
     src_initrd: str
     new_filename: str
 
 
 class LoaderCfgsParts(NamedTuple):  # pylint: disable=missing-class-docstring
+    """
+    Accumulates the in-progress parts of the isolinux and GRUB boot loader configuration files while iterating over
+    the profiles/systems that are put onto the ISO, together with the list of kernel/initrd pairs that still need to
+    be copied into the build directory.
+    """
+
     isolinux: List[str]
     grub: List[str]
     bootfiles_copysets: List[BootFilesCopyset]
@@ -41,6 +52,11 @@ class LoaderCfgsParts(NamedTuple):  # pylint: disable=missing-class-docstring
 class BuildisoDirsX86_64(
     NamedTuple
 ):  # noqa: N801 pylint: disable=invalid-name,missing-class-docstring
+    """
+    Holds the paths of the directory tree created for an x86_64 ISO build: the ISO build root and its ``isolinux``,
+    ``EFI/BOOT``, ``autoinstall``, and ``repo_mirror`` subdirectories.
+    """
+
     root: pathlib.Path
     isolinux: pathlib.Path
     grub: pathlib.Path
@@ -49,6 +65,11 @@ class BuildisoDirsX86_64(
 
 
 class BuildisoDirsPPC64LE(NamedTuple):  # pylint: disable=missing-class-docstring
+    """
+    Holds the paths of the directory tree created for a ppc64le ISO build: the ISO build root and its ``boot``,
+    ``ppc``, ``autoinstall``, and ``repo_mirror`` subdirectories.
+    """
+
     root: pathlib.Path
     grub: pathlib.Path
     ppc: pathlib.Path
@@ -57,6 +78,12 @@ class BuildisoDirsPPC64LE(NamedTuple):  # pylint: disable=missing-class-docstrin
 
 
 class Autoinstall(NamedTuple):  # pylint: disable=missing-class-docstring
+    """
+    Holds the rendered autoinstall configuration content generated for a single profile or system, together with
+    the names of the repositories it references. Used when writing out the standalone/airgapped ISO's autoinstall
+    files and, for airgapped ISOs, to know which repo mirrors need to be copied onto the ISO.
+    """
+
     config: str
     repos: List[str]
 
@@ -175,7 +202,9 @@ class BuildIso:
 
         :param known_file: Path to a file that's known to be part of the distribution,
             commonly the path to the kernel.
-        :raises ValueError: When no installation source was not found.
+        :param distro_mirror: The directory under which locally mirrored distro trees live
+            (normally ``<webdir>/distro_mirror``).
+        :raises ValueError: When no installation source is found.
         :return: Root of the distribution's source tree.
         """
         self.logger.debug("Trying to locate source.")
@@ -376,7 +405,10 @@ class BuildIso:
         """
         This function checks the bootloaders_formats in our settings and then checks if there is a match between the
         architectures and the distribution architecture.
-        :param distro: The distribution to get the GRUB2 loader name for.
+
+        :param desired_arch: The Cobbler architecture to get the GRUB2 loader binary name for.
+        :raises ValueError: If no bootloader format matches ``desired_arch``, or if the match is ambiguous.
+        :return: The GRUB2 bootloader binary name to use for the requested architecture.
         """
         loader_formats = self.api.settings().bootloaders_formats
         grub_binary_names: Dict[str, str] = {}
@@ -517,6 +549,9 @@ class BuildIso:
         │   └── BOOT
         ├── isolinux
         └── repo_mirror
+
+        :param buildiso_root: The directory in which the ISO is being built.
+        :return: The created directory paths.
         """
         root = pathlib.Path(buildiso_root)
         isolinuxdir = root / "isolinux"
@@ -543,6 +578,9 @@ class BuildIso:
         ├── boot
         ├── ppc
         └── repo_mirror
+
+        :param buildiso_root: The directory in which the ISO is being built.
+        :return: The created directory paths.
         """
         root = pathlib.Path(buildiso_root)
         grubdir = root / "boot"

@@ -255,7 +255,9 @@ class RepoSync:
 
         :param repo: The repository object to run for.
         :param dirname: The directory to run in.
-        :param fnames: Not known what this is for.
+        :param fnames: The names of the files/subdirectories inside ``dirname``, as passed in by
+                       :func:`repo_walker`. This list is cleared in-place once ``createrepo`` has been run so that
+                       ``repo_walker`` does not recurse further into the already-processed directory.
         """
         if os.path.exists(dirname) or repo.breed == RepoBreeds.RSYNC:
             utils.remove_yum_olddata(dirname)

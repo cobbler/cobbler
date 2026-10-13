@@ -71,7 +71,7 @@ class Menu(BootableItem):
 
     def make_clone(self) -> "Menu":
         """
-        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+        Clone this menu object. Please manually adjust all value yourself to make the cloned object unique.
 
         :return: The cloned instance of this object.
         """

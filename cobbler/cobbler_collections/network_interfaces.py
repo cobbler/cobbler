@@ -33,7 +33,7 @@ class NetworkInterfaces(collection.Collection[network_interface.NetworkInterface
 
         :param api: Parameter is skipped.
         :param seed_data: The data the object is initalized with.
-        :returns: The created repository.
+        :returns: The created network interface.
         """
         system_uid = seed_data.pop("system_uid")
         return network_interface.NetworkInterface(
@@ -45,6 +45,15 @@ class NetworkInterfaces(collection.Collection[network_interface.NetworkInterface
     def check_for_duplicate_names(
         self, ref: network_interface.NetworkInterface
     ) -> None:
+        """
+        This method verifies if the name of a network interface is a duplicate within the scope of its owning
+        system. Unlike the base implementation, which checks for name uniqueness across the whole collection, two
+        network interfaces with the same name are allowed as long as they belong to different systems.
+
+        :param ref: The network interface to check for a duplicate name.
+        :raises TypeError: In case the search result had an incorrect type.
+        :raises CX: In case a network interface with that name already exists on the same system.
+        """
         search_result = self.find(True, system_uid=ref.system_uid, name=ref.name)
         if not isinstance(search_result, list):
             raise TypeError("Search result must be of type list!")

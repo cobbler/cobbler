@@ -33,8 +33,12 @@ if TYPE_CHECKING:
 
 class CollectionManager:
     """
-    Manages a definitive copy of all data cobbler_collections with weakrefs pointing back into the class so they can
-    understand each other's contents.
+    Manages a definitive copy of all the item collections (distros, profiles, systems, etc.), each of which holds a
+    weak reference back to this class so they can resolve information from one another.
+
+    This class implements the Borg/shared-state pattern: every instance shares the same underlying ``__dict__``, so
+    there is effectively only one set of collections for the whole process, regardless of how many
+    ``CollectionManager`` objects are constructed.
     """
 
     has_loaded = False
@@ -42,7 +46,10 @@ class CollectionManager:
 
     def __init__(self, api: "CobblerAPI") -> None:
         """
-        Constructor which loads all content if this action was not performed before.
+        Constructor. Due to the shared-state pattern, the actual collection objects are only created once per
+        process; subsequent instantiations reuse the previously created state and skip :meth:`__load`.
+
+        :param api: The api to resolve information with.
         """
         self.__dict__ = CollectionManager.__shared_state
         if not CollectionManager.has_loaded:
@@ -50,7 +57,8 @@ class CollectionManager:
 
     def __load(self, api: "CobblerAPI") -> None:
         """
-        Load all collections from the disk into Cobbler.
+        Create the (initially empty) collection objects and the serializer used to persist them. This does not load
+        any item data from disk; call :meth:`deserialize` afterwards to populate the collections from storage.
 
         :param api: The api to resolve information with.
         """

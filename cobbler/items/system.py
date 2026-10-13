@@ -9,10 +9,27 @@ V4.0.0 (unreleased):
         * ``redhat_management_org``: enums.VALUE_INHERITED
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
+        * ``power`` property (``PowerOption``), consolidating the former ``power_*`` scalar properties.
+        * ``dns`` property (``DNSOption``).
+        * ``tftp`` property (``TFTPOption``).
+        * ``virt`` property (``VirtOption``), consolidating the former ``virt_cpus``, ``virt_ram``, ``virt_type``,
+          ``virt_auto_boot``, ``virt_disk_driver``, ``virt_pxe_boot``, and ``virt_path`` scalar properties
+          (``virt_bridge`` is unaffected and remains a standalone property).
+        * ``system_groups`` membership accessor.
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``from_dict()``: The method was moved to the base class.
         * ``parent``: The property was moved to the base class.
+    * Removed:
+        * All interface-ownership properties and methods, now that ``NetworkInterface`` is a first-class,
+          independently addressable item type (see ``cobbler.items.network_interface`` changelog):
+          ``interface_master``, ``interface_type``, ``ip_address``, ``ipv6_address``, ``ipv6_prefix``,
+          ``ipv6_secondaries``, ``ipv6_mtu``, ``ipv6_static_routes``, ``ipv6_default_gateway``, ``mac_address``,
+          ``bonding_opts``, ``bridge_opts``, ``cnames``, ``connected_mode``, ``dhcp_tag``, ``dns_name``,
+          ``if_gateway``, ``management``, ``mtu``, ``netmask``, ``static``, ``static_routes``, and the private
+          ``__create_interface``, ``delete_interface``, ``__get_interface``, ``modify_interface``,
+          ``rename_interface`` methods. ``ipv6_autoconfiguration`` and ``ipv6_default_device`` are unaffected and
+          remain on ``System`` as system-wide defaults.
 V3.3.4 (unreleased):
     * Changed:
         * The network interface ``default`` is not created on object creation.
@@ -301,6 +318,11 @@ class System(BootableItem):
     #
 
     def make_clone(self):
+        """
+        Clone this system object. Please manually adjust all value yourself to make the cloned object unique.
+
+        :return: The cloned instance of this object.
+        """
         _dict = copy.deepcopy(self.to_dict())
         _dict.pop("uid", None)
         if isinstance(_dict.get("autoinstall"), dict):
@@ -867,7 +889,7 @@ class System(BootableItem):
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
 
-        :param uid: The uid of the profile which the system is underneath.
+        :param profile_uid: The uid of the profile which the system is underneath.
         :raises TypeError: In case profile_uid is no string.
         :raises ValueError: In case profile_uid does not exist.
         """
@@ -962,7 +984,7 @@ class System(BootableItem):
         Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
         after local boot fails, this option isn't even relevant.
 
-        :param: netboot_enabled:
+        :param netboot_enabled: Whether per-system PXE files should be generated on sync.
         :raises TypeError: In case netboot_enabled is not a boolean.
         """
         netboot_enabled = input_converters.input_boolean(netboot_enabled)
@@ -1043,7 +1065,7 @@ class System(BootableItem):
         """
         Setter for the serial_device of the System class.
 
-        :param device_number: The number of the device which is going
+        :param device_number: The number of the serial device to use, or ``-1`` to disable it.
         """
         self._serial_device = validate.validate_serial_device(device_number)
 

@@ -26,6 +26,18 @@ class CloudInitGenerator(AutoinstallBaseGenerator):
         requested_file: "Template",
         autoinstaller_subfile: str = "",
     ) -> str:
+        """
+        Renders one of the cloud-init ``nocloud`` data source files: ``user-data``, ``meta-data``,
+        ``network-config`` or ``vendor-data``, selected via ``autoinstaller_subfile``. ``vendor-data`` is always
+        rendered as an empty string since Cobbler folds all provisioning data into ``user-data``/``meta-data``
+        instead. If ``requested_file`` is not already tagged with the requested subfile type, a sibling template
+        that is tagged with ``requested_file``'s name or UID and with the requested subfile type is looked up and
+        used instead.
+
+        :raises ValueError: If ``obj`` is not a profile or system, if ``autoinstaller_subfile`` is not one of the
+            four known values, if no matching sibling template can be found, or if the resolved template carries
+            none of the known subfile tags.
+        """
         if obj.TYPE_NAME not in ("profile", "system"):  # type: ignore
             raise ValueError("obj must be either a system or profile!")
 
@@ -94,7 +106,7 @@ class CloudInitGenerator(AutoinstallBaseGenerator):
         """
         This generates the requested meta-data in the YAML format.
 
-        :returns: TODO
+        :returns: The rendered cloud-init ``meta-data`` file content as a string.
         """
         return self.api.templar.render(requested_file.content, meta, None)
 
@@ -102,13 +114,16 @@ class CloudInitGenerator(AutoinstallBaseGenerator):
         self, obj: "BootableItem", requested_file: "Template", meta: Dict[str, Any]
     ) -> str:
         """
-        TODO
+        Generates the network-config file that tells cloud-init how to configure networking on first boot.
 
-        :returns: TODO
+        :returns: The rendered cloud-init ``network-config`` content as a string.
         """
         return self.api.templar.render(requested_file.content, meta, None)
 
     def generate_autoinstall_metadata(
         self, obj: "BootableItem", key: str
     ) -> Optional[Any]:
+        """
+        This format does not define any auxiliary metadata keys; always returns ``None``.
+        """
         return None

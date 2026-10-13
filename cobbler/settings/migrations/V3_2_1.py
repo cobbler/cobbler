@@ -169,7 +169,12 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to the V3.2.1 settings
+    Migration of the settings ``settings`` to the V3.2.1 settings.
+
+    Converts every former "int bool" setting (e.g. ``enable_menu``, ``manage_dns``, ...) and
+    ``mgmt_parameters.from_cobbler`` to a real boolean, changes a ``None`` ``proxy_url_ext`` to ``""``, drops the
+    removed ``manage_tftp`` key, and renames an on-disk ``/etc/cobbler/settings`` file to ``/etc/cobbler/settings.yaml``
+    if present.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

@@ -30,9 +30,12 @@ class ConfigGen:
 
     def __init__(self, cobbler_api: "CobblerAPI", hostname: str):
         """
-        Constructor. Requires a Cobbler API handle.
+        Constructor. Resolves the system identified by ``hostname`` and caches its blended ``autoinstall_meta`` data
+        so it can be used for variable substitution by the other methods of this class.
 
+        :param cobbler_api: The Cobbler API handle to use for looking up the system and its blended data.
         :param hostname: The hostname to run config-generation for.
+        :raises ValueError: If no system, or more than one system, matches ``hostname``.
         """
         # FIXME: This should work via the system name or system record and if that doesn't exist it should not fail.
         self.hostname = hostname
@@ -67,7 +70,8 @@ class ConfigGen:
         """
         Wrapper around Cobbler blender method
 
-        :param resource_key: Not known what this actually is doing.
+        :param resource_key: The key to look up in the blended data of the system associated with this generator
+            (e.g. "autoinstall_meta" or "repos_enabled").
         :return: The blendered data. In some cases this is a str, in others it is a list or it might be a dict. In case
                  the key is not found it will return an empty string.
         """

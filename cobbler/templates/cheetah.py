@@ -266,6 +266,11 @@ class CheetahTemplateProvider(BaseTemplateProvider):
 
     @property
     def template_type_available(self) -> bool:
+        """
+        Returns whether the Cheetah templating engine is available.
+
+        :return: ``True`` if the ``Cheetah3`` package could be imported, ``False`` otherwise.
+        """
         return CHEETAH_AVAILABLE
 
     @property
@@ -294,6 +299,30 @@ class CheetahTemplateProvider(BaseTemplateProvider):
                     raise CX(f"Potentially insecure import in template: {rest}")
 
     def render(self, raw_data: str, search_table: Dict[str, Any]) -> str:
+        """
+        Render a Cheetah template into its final output.
+
+        In addition to the generic contract described by :meth:`~cobbler.templates.BaseTemplateProvider.render`,
+        this implementation:
+
+        - Rejects templates that ``#import``/``#from`` a module not listed in the ``cheetah_import_whitelist``
+          setting.
+        - Supports Cobbler's legacy ``TEMPLATE::`` syntax as an alias for Cheetah's ``$`` variable syntax.
+        - Rewrites ``nfs://`` values of the ``tree`` search table entry into kickstart's ``nfs --server --dir``
+          directive syntax.
+        - Enables Cheetah's ``errorCatcher`` so that missing variables are collected instead of aborting the
+          render, exposing them afterwards through :attr:`last_errors`.
+        - Adds a ``template_universe`` entry to ``search_table`` so templates can access all variables as a single
+          dictionary.
+
+        :param raw_data: The Cheetah template source to render.
+        :param search_table: The dict of metadata keys and values available to the template.
+        :return: The rendered template.
+        :raises CX: If the template contains a disallowed import, or if compiling/rendering the template fails for
+            any other reason.
+        :raises SyntaxError: If the ``tree`` search table entry starts with ``nfs://`` but cannot be split into a
+            server and directory for an ``--url``/``url`` line in the template.
+        """
         self.check_for_invalid_imports(raw_data)
 
         # Backward support for Cobbler's legacy (and slightly more readable) template syntax.

@@ -381,7 +381,8 @@ class AutoinstallValidationError(ConvertableEnum):
 
 class CloudInitFileTypes(ConvertableEnum):
     """
-    TODO
+    This enum represents the different cloud-init configuration files that Cobbler can render and serve for the
+    "cloud-init" autoinstallation type. Each value corresponds to one of the well-known cloud-init data source files.
     """
 
     USER_DATA = "user-data"

@@ -1,5 +1,12 @@
 """
 Module for the base Option type. It represents an abstract type that cannot be directly used.
+
+Changelog:
+
+V4.0.0 (unreleased):
+    * Initial creation of the class. Introduces the generic ``ItemOption[ITEM]`` abstract base all concrete option
+      classes inherit from, enabling composition of related settings (DNS, IP, power, etc.) onto item classes
+      instead of flat property lists.
 """
 
 from abc import ABC, abstractmethod
@@ -20,6 +27,14 @@ class ItemOption(ABC, Generic[ITEM]):
     """
 
     def __init__(self, api: "CobblerAPI", item: ITEM, **kwargs: Any) -> None:
+        """
+        Constructor.
+
+        :param api: The Cobbler API object which is used for resolving information.
+        :param item: The item instance this option belongs to and whose data it extends.
+        :param kwargs: Accepted for a uniform constructor signature across subclasses; concrete subclasses use this
+                        to seed their own attributes via ``from_dict()``.
+        """
         # pylint: disable=unused-argument
         self._api = api
         self._item = item

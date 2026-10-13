@@ -1,5 +1,5 @@
 """
-Migration from V3.3.3 to V4.0.0
+Migration from V3.3.7 to V4.0.0
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -460,9 +460,22 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to version V4.0.0 settings
+    Migration of the settings ``settings`` to version V4.0.0 settings.
+
+    Drops ``include``, ``mgmt_classes``, ``mgmt_parameters``, ``manage_dhcp``, ``jinja2_includedir``,
+    ``iso_template_dir``, ``boot_loader_conf_template_dir``, ``autoinstall_snippets_dir`` and
+    ``windows_template_dir``; replaces the standalone ``mongodb.conf``/``modules.conf`` files with the
+    ``mongodb``/``modules`` settings keys; and migrates the stored item collections to the V4.0.0 item model (see
+    :func:`determine_and_migrate_collections_data`). As a side effect, this writes the migrated settings to disk
+    via :func:`cobbler.settings.update_settings_file` before returning.
 
     :param settings: The settings dict to migrate
+    :raises SchemaError: If ``settings`` does not validate against the V3.3.7 schema.
+    :raises configparser.Error: If ``mongodb.conf`` or ``modules.conf`` cannot be read.
+    :raises AmbiguousDataSourceError: If more than one of the file/sqlite/mongodb collection backends appears to
+                                       hold data.
+    :raises RuntimeError: If the declared serializer is ``serializers.mongodb`` but no MongoDB server can be
+                           reached.
     :return: The migrated dict
     """
 

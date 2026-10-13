@@ -227,7 +227,7 @@ def copyfile(src: str, dst: str, symlink: bool = False) -> None:
 
 def copyremotefile(src: str, dst1: str, api: Optional["CobblerAPI"] = None) -> None:
     """
-    Copys a file from a remote place to the local destionation.
+    Copies a file from a remote place to the local destination.
 
     :param src: The remote file URI.
     :param dst1: The copy destination on the local filesystem.
@@ -294,7 +294,8 @@ def rmtree(path: str) -> None:
     Delete a complete directory or just a single file.
 
     :param path: The directory or folder to delete.
-    :raises CX: Raised in case ``path`` does not exist.
+    :raises CX: Raised if deleting ``path`` fails for any reason other than ``path`` not existing; if ``path`` does
+                not exist this is silently ignored.
     """
     try:
         if pathlib.Path(path).is_file():

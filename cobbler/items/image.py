@@ -6,15 +6,16 @@ Changelog:
 V4.0.0 (unreleased):
     * Added:
         * ``display_name``
+        * ``virt`` property (``VirtOption``).
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``autoinstall``: Restored inheritance of the property.
-        * ``children``: The proqperty was moved to the base class.
+        * ``children``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
-        * ``virt_disk_driver``: Restored inheritance of the property.
-        * ``virt_ram``: Restored inheritance of the property.
-        * ``virt_type``: Restored inheritance of the property.
         * ``virt_bridge``: Restored inheritance of the property.
+    * Removed:
+        * ``virt_disk_driver``, ``virt_ram``, ``virt_type`` (-> ``virt``; these no longer exist as standalone
+          properties, they are not merely "restored" as the inheritance fix originally implied).
 V3.3.4 (unreleased):
     * No changes
 V3.3.3:
@@ -486,8 +487,8 @@ class Image(BootableItem):
         """
         Property to represent the menu which this image should be put into.
 
-        :getter: The name of the menu or an emtpy str.
-        :setter: Should only be the name of the menu not the object. May raise ``CX`` in case the menu does not exist.
+        :getter: The uid of the menu or an emtpy str.
+        :setter: Should only be the uid of the menu not the object. May raise ``CX`` in case the menu does not exist.
         """
         return self._menu
 

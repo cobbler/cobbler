@@ -64,6 +64,8 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage/import".
     """
     return "manage/import"
 
@@ -102,6 +104,12 @@ def import_walker(
 
 
 class _ImportSignatureManager(ManagerModule):
+    """
+    Implements ``cobbler import``: scans a mirrored (or, for dynamic HTTP serving, original) distro tree for a
+    matching OS signature from ``libcobblersignatures``, then creates the resulting Distro/Profile (and, where
+    applicable, Repo) objects.
+    """
+
     @staticmethod
     def what() -> str:
         """
@@ -112,6 +120,12 @@ class _ImportSignatureManager(ManagerModule):
         return "import/signatures"
 
     def __init__(self, api: "CobblerAPI") -> None:
+        """
+        Constructor. Per-``run()`` state (the matched signature, path, breed, etc.) is set up separately in
+        :meth:`run`, not here.
+
+        :param api: The API instance to resolve all information with.
+        """
         super().__init__(api)
 
         self.signature: Optional[Osversion] = None
@@ -201,7 +215,7 @@ class _ImportSignatureManager(ManagerModule):
         :param os_version: user-specified OS version
         :param direct_source: whether ``path`` is the original, uncopied source tree (dynamic_httpd direct mode)
                                rather than a location that was just rsync-copied into the Cobbler webdir.
-        :raises CX
+        :raises CX: Raised if no signature matched the scanned path.
         """
         self.name = name
         self.network_root = network_root
@@ -341,9 +355,10 @@ class _ImportSignatureManager(ManagerModule):
         """
         This is an import_walker routine that finds distributions in the directory to be scanned and then creates them.
 
-        :param distros_added: Unknown what this currently does.
-        :param dirname: Unknown what this currently does.
-        :param filenames: Unknown what this currently does.
+        :param distros_added: The accumulator list passed through by :func:`import_walker` as ``arg``; newly
+                               created Distro objects (via :meth:`add_entry`) are appended to it in place.
+        :param dirname: The directory currently being visited by :func:`import_walker`.
+        :param filenames: The names of the files and subdirectories found directly in ``dirname``.
         """
         if self.signature is None:
             raise CX("No signature has been matched yet")
@@ -405,10 +420,11 @@ class _ImportSignatureManager(ManagerModule):
         When we find a directory with a valid kernel/initrd in it, create the distribution objects as appropriate and
         save them. This includes creating xen and rescue distros/profiles if possible.
 
-        :param dirname: Unkown what this currently does.
-        :param kernel: Unkown what this currently does.
-        :param initrd: Unkown what this currently does.
-        :return: Unkown what this currently does.
+        :param dirname: The directory the kernel/initrd pair was found in; used to derive the proposed distro name.
+        :param kernel: Path to the matched kernel file.
+        :param initrd: Path to the matched initrd file.
+        :return: The list of newly created Distro objects, one per detected architecture (empty if none could be
+                 created, e.g. because no architecture could be detected or the name is already in use).
         """
         if self.signature is None:
             raise CX("No signature has been matched yet")
@@ -792,7 +808,8 @@ class _ImportSignatureManager(ManagerModule):
 
         :param distro: The distribution object to check for.
         :param dirname: The folder with repositories to check.
-        :param fnames: Unkown what this does exactly.
+        :param fnames: The names of the files and subdirectories found directly in ``dirname``, as passed through
+                       by :func:`import_walker`; used to spot ``base``/``repodata`` directories.
         """
 
         matches = {}
@@ -1048,7 +1065,7 @@ class _ImportSignatureManager(ManagerModule):
 
         :param distro_path: The directory where the Windows distro is located.
         :return: The path to the extracted WinPE image.
-        :raises CX
+        :raises CX: Raised if ``boot.wim`` is missing or ``wimexport`` fails to extract the WinPE image.
         """
         bootwim_path = os.path.join(distro_path, "sources", "boot.wim")
         dest_path = os.path.join(distro_path, "boot")
@@ -1082,7 +1099,7 @@ class _ImportSignatureManager(ManagerModule):
 
         :param winpe_path: The path to WinPE image.
         :param win_registry: The path to the Windows registry in the WinPE image.
-        :raises CX
+        :raises CX: Raised if the optional ``hivex`` Python package is not installed.
         """
         if not HAS_HIVEX:
             error_msg = (
@@ -1159,7 +1176,7 @@ class _ImportSignatureManager(ManagerModule):
 
         :param winpe_path: The path to the WinPE image.
         :param wim_files: The list of files to extract.
-        :raises CX
+        :raises CX: Raised if ``wimextract`` fails to extract the requested files.
         """
         dest_path = os.path.dirname(winpe_path)
         cmd_args = [

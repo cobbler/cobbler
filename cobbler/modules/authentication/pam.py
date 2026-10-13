@@ -67,6 +67,8 @@ PAM_TEXT_INFO = 4
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "authn"
     """
     return "authn"
 

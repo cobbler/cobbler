@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "authn"
     """
     return "authn"
 

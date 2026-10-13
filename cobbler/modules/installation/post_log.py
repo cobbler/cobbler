@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always ``/var/lib/cobbler/triggers/install/post/*``.
     """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type

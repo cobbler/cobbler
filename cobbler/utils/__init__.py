@@ -614,6 +614,7 @@ def __consolidate(node: Union["ITEM", "Settings"], results: Dict[Any, Any]) -> D
     treated specially.
 
     :param node: The object to merge data into. The data from the node always wins.
+    :param results: The aggregate of all data from past scanned nodes. This dictionary is updated in place.
     :return: A dictionary with the consolidated data.
     """
     node_data = node.to_dict(resolved=True)
@@ -1187,7 +1188,7 @@ def lod_sort_by_key(list_to_sort: List[Any], indexkey: Hashable) -> List[Any]:
     """
     Sorts a list of dictionaries by a given key in the dictionaries.
 
-    Note: This is a destructive operation and does not sort the dictionaries.
+    Note: This returns a new, sorted list; ``list_to_sort`` and the dictionaries it contains are not modified.
 
     :param list_to_sort: The list of dictionaries to sort.
     :param indexkey: The key to index to dicts in the list.
@@ -1303,6 +1304,7 @@ def kopts_overwrite(
     :param cobbler_server_hostname: The server setting from our Settings.
     :param distro_breed: The distro for the system to change to kopts for.
     :param system_name: The system to overwrite the kopts for.
+    :raises TypeError: Raised if any of the arguments is not of the expected type.
     """
     # Type checks
     if not isinstance(kopts, dict):  # type: ignore
@@ -1394,7 +1396,7 @@ def merge_dicts_recursive(
     :param updating_dict: Updating dict, overrides base_dict.
     :param str_append: Append the updating_dict String values to the base_dict
                        with the same key instead of overwriting the original value.
-    :returns dict: Merged dict"""
+    :returns: Merged dict"""
     ret = base_dict.copy()
     for k, v in updating_dict.items():
         if (
@@ -1416,7 +1418,7 @@ def create_files_if_not_existing(files: List[str]) -> None:
 
     :param files: A list of the files to create. If the base directory doesn't
         exist, create it too.
-    raises OSError: In case the file cannot be created.
+    :raises OSError: In case the file cannot be created.
     """
     for file in files:
         if not file:
@@ -1442,7 +1444,7 @@ def remove_lines_in_file(filepath: str, remove_keywords: List[str]) -> None:
     :param remove_keywords: A list of keywords. Any line in filepath that contains
                          any of the keywords will be removed.
 
-    raises OSError: In case the file cannot be read or modified.
+    :raises OSError: In case the file cannot be read or modified.
     """
     new_content_lines: List[str] = []
     with open(filepath, "r", encoding="UTF-8") as fh:

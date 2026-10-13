@@ -19,11 +19,19 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage".
     """
     return "manage"
 
 
 class _InHttpdManager(HttpdManagerModule):
+    """
+    Marker manager for the default (copying) HTTP-serving mode, where the distro source tree is copied into the
+    webroot. Like its base class, this adds no actual sync-time behavior of its own; it only exists so it can be
+    selected via ``modules.httpd.module`` and detected through its :meth:`what` return value.
+    """
+
     @staticmethod
     def what() -> str:
         """

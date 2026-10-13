@@ -260,7 +260,14 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to version V3.3.0 settings
+    Migration of the settings ``settings`` to version V3.3.0 settings.
+
+    Renames ``enable_gpxe`` to ``enable_ipxe``, ``default_autoinstall`` to ``autoinstall`` (also resetting its
+    value to the bare filename ``default.ks``), and ``next_server`` to ``next_server_v4``; switches
+    ``power_management_default_type`` from ``ipmitool`` to ``ipmilanplus`` if set; adds several new keys with
+    their defaults (e.g. ``bootloaders_formats``, ``bootloaders_modules``, ``manage_dhcp_v4``/``manage_dhcp_v6``,
+    ``next_server_v6``); drops the ``cache_enabled`` key; and migrates the on-disk item collections (see
+    :func:`migrate_cobbler_collections`).
 
     :param settings: The settings dict to migrate
     :return: The migrated dict

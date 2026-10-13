@@ -37,6 +37,9 @@ except ModuleNotFoundError:
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: "serializer" if the optional ``pymongo`` dependency is installed, otherwise an empty string so this
+             module is not registered as an available serializer.
     """
     # FIXME: only run this if enabled.
     if not PYMONGO_LOADED:
@@ -47,6 +50,8 @@ def register() -> str:
 def what() -> str:
     """
     Module identification function
+
+    :return: Always "serializer/mongodb"
     """
     return "serializer/mongodb"
 
@@ -96,7 +101,7 @@ class MongoDBSerializer(StorageBase):
         Rename a collection in database.
 
         :param old_collection: Previous collection name.
-        :param old_collection: New collection name.
+        :param new_collection: New collection name.
         """
         if OperationFailure is None:
             raise ImportError("MongoDB not correctly imported!")
@@ -200,7 +205,10 @@ class MongoDBSerializer(StorageBase):
 
 def storage_factory(api: "CobblerAPI") -> MongoDBSerializer:
     """
-    Factory method to allow the serializer interface to instaniate the concrete serializer without knowing which
-    serializer is initalized.
+    Factory method to allow the serializer interface to instantiate the concrete serializer without knowing which
+    serializer is initialized.
+
+    :param api: The main API instance which is used by the current running server.
+    :return: A new :class:`MongoDBSerializer` instance. Instantiating it connects to the configured MongoDB server.
     """
     return MongoDBSerializer(api)

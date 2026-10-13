@@ -1,6 +1,7 @@
 # coding=utf-8
 """
-This is some of the code behind 'cobbler sync'.
+This is some of the code behind 'cobbler sync': it manages a djbdns (``tinydns``) server by rendering its data
+file from a template and regenerating the compiled ``data.cdb`` database via ``tinydns-data``.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -26,6 +27,8 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage".
     """
     return "manage"
 
@@ -48,6 +51,12 @@ class _NDjbDnsManager(DnsManagerModule):
         return "ndjbdns"
 
     def regen_hosts(self) -> None:
+        """
+        Satisfies the abstract ``regen_hosts()`` method :class:`DnsManagerModule` requires so ``cobbler sync`` can
+        call it unconditionally before ``write_configs()``. ndjbdns has no separate hosts-file regeneration step,
+        so this simply delegates to :meth:`write_configs`, which already (re)renders the full tinydns data file -
+        and thus all host records - from the current system list on every sync.
+        """
         self.write_configs()
 
     def write_configs(self) -> None:
@@ -106,7 +115,7 @@ class _NDjbDnsManager(DnsManagerModule):
 
 def get_manager(api: "CobblerAPI") -> _NDjbDnsManager:
     """
-    Creates a manager object to manage an isc dhcp server.
+    Creates a manager object to manage a djbdns (tinydns) DNS server.
 
     :param api: The API which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.

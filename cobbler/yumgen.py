@@ -32,7 +32,8 @@ class YumGen:
 
     def __init__(self, api: "CobblerAPI"):
         """
-        Constructor
+        Constructor. Stores a reference to the Cobbler API and its settings, which are used to resolve repository
+        sources and templating data when yum configuration is generated.
 
         :param api: The main API instance which is used by the current running server.
         """

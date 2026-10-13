@@ -41,7 +41,9 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
 
     :param api: The api to resolve external information with.
     :param args: Already described above.
-    :return: "0" on success. If unsuccessful this raises an exception.
+    :return: "0" in all cases except when an ambiguous match is raised. Failures to execute/locate ``puppetca``
+             are only logged, not raised.
+    :raises ValueError: Raised if the name given in ``args`` matches more than one system.
     """
     objtype = args[0]
     name = args[1]

@@ -3,7 +3,13 @@
 
 Changelog:
     * V4.0.0 (unreleased):
-        * Initial creation of the class
+        * Initial creation of the class; absorbed the parent/child/inheritance logic formerly on ``Item`` (now
+          ``BootableItem``) so that non-bootable grouping types (``ItemGroup`` and subclasses) can also participate
+          in the hierarchy.
+        * Added:
+            * ``depth``, ``parent``, ``get_parent()``, ``get_conceptual_parent()``, ``logical_parent``
+            * ``children``, ``tree_walk()``, ``descendants``, ``is_subobject``, ``grab_tree()``
+            * ``HierarchyItem`` and ``LogicalHierarchy`` named tuples
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -294,8 +300,11 @@ class InheritableItem(BaseItem, ABC):
     @LazyProperty
     def get_parent(self) -> str:
         """
-        This method returns the name of the parent for the object. In case there is not parent this return
-        empty string.
+        The raw uid reference to the parent, as opposed to ``parent`` which resolves and returns the parent object.
+
+        .. note:: This is a read only property.
+
+        :getter: The uid of the parent, or an empty string if there is none.
         """
         return self._parent
 
