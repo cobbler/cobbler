@@ -217,7 +217,7 @@ class Distro(BootableItem):
     @classmethod
     def _remove_depreacted_dict_keys(cls, dictionary: Dict[Any, Any]):
         r"""
-        See :meth:`~cobbler.items.item.BootableItem._remove_deprecated_dict_keys`.
+        See :meth:`~cobbler.items.abstract.base_item.BaseItem._remove_depreacted_dict_keys`.
 
         :param dictionary: The dict to update
         """
@@ -253,7 +253,7 @@ class Distro(BootableItem):
         """
         Setter for the parent property.
 
-        :param value: Is ignored.
+        :param parent: Is ignored.
         """
         # pylint: disable=unused-argument
         self.logger.warning(
@@ -337,8 +337,8 @@ class Distro(BootableItem):
         """
         Represents the import time of the distro. If not imported, this field is not meaningful.
 
-        :getter:
-        :setter:
+        :getter: The time the distro tree was imported, as a UNIX timestamp.
+        :setter: The new import time. May raise a ``TypeError`` in case the value is not of type ``float``.
         """
         return self._tree_build_time
 
@@ -741,7 +741,6 @@ class Distro(BootableItem):
     def redhat_management_password(self, management_password: str):
         """
         Set the redhat management password. This is only needed if you are registering via Red Hat subscription-manager.
-        running.
 
         :param management_password: The redhat management password.
         """
