@@ -357,14 +357,20 @@ class Item:
             if logical_parent is not None and hasattr(logical_parent, property_name):
                 return getattr(logical_parent, property_name)
             if hasattr(settings, settings_name):
-                return getattr(settings, settings_name)
+                settings_value = getattr(settings, settings_name)
             elif hasattr(settings, "default_%s" % settings_name):
-                return getattr(settings, "default_%s" % settings_name)
+                settings_value = getattr(settings, "default_%s" % settings_name)
             else:
                 raise AttributeError(
                     '%s "%s" inherits property "%s", but neither its parent nor settings have it'
                     % (type(self), self.name, property_name)
                 )
+            # Settings attributes are mutable and shared process-wide; hand out a copy so
+            # callers (e.g. utils.blender()'s merge logic) can't mutate the live settings
+            # value in place. See GH issue 3872.
+            if isinstance(settings_value, (list, dict)):
+                return settings_value.copy()
+            return settings_value
 
         return attribute_value
 

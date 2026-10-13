@@ -273,6 +273,37 @@ def test_blender(cobbler_api):
     assert "boot_loaders" in result
 
 
+def test_blender_owners_does_not_corrupt_shared_settings(
+    cobbler_api, create_distro, create_profile, create_system
+):
+    """
+    Regression test for https://github.com/cobbler/cobbler/issues/3872: "owners" accumulating
+    duplicate entries. The real trigger is a mixed inheritance chain: a distro/profile with
+    inherited (default) owners, plus one system with an *explicit* owners value (the normal way to
+    grant a user ownership of a single system). __consolidate() used to alias the first inherited
+    "owners" result directly to the live Settings.default_ownership list, then permanently extend
+    that shared list in place when merging in the explicit system owners. A second, fully-inherited
+    system dumped afterwards would then show the corrupted, ever-growing list.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(distro_name=test_distro.name)
+    test_system = create_system(profile_name=test_profile.name)
+    test_system.owners = ["admin"]
+
+    # Act
+    for _ in range(3):
+        utils.blender(cobbler_api, False, test_system)
+    other_system = create_system(
+        profile_name=test_profile.name, name="test_blender_owners_other"
+    )
+    result = utils.blender(cobbler_api, False, other_system)
+
+    # Assert
+    assert cobbler_api.settings().default_ownership == ["admin"]
+    assert result["owners"] == ["admin"]
+
+
 @pytest.mark.parametrize("testinput,expected_result,expected_exception", [
     (None, None, does_not_raise()),
     ("data", None, does_not_raise()),
