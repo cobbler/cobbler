@@ -1,5 +1,6 @@
 """
-This is some of the code behind 'cobbler sync'.
+This is some of the code behind 'cobbler sync': it manages an ISC DHCP server (v4 and/or v6) by rendering
+``dhcpd.conf``/``dhcpd6.conf`` from a template, built from the per-system/per-interface DHCP host declarations.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -29,11 +30,18 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage".
     """
     return "manage"
 
 
 class _IscManager(DhcpManagerModule):
+    """
+    Manages an ISC DHCP server by writing ``dhcpd.conf``/``dhcpd6.conf`` rendered from a template and restarting
+    the ``dhcpd`` service(s).
+    """
+
     @staticmethod
     def what() -> str:
         """
@@ -44,6 +52,11 @@ class _IscManager(DhcpManagerModule):
         return "isc"
 
     def __init__(self, api: "CobblerAPI"):
+        """
+        Constructor.
+
+        :param api: The API instance to resolve all information with.
+        """
         super().__init__(api)
 
         self.settings_file_v4 = utils.dhcpconf_location(enums.DHCP.V4)
@@ -87,6 +100,13 @@ class _IscManager(DhcpManagerModule):
         return self.restart_service()
 
     def remove_single_system(self, system_obj: "System") -> None:
+        """
+        Remove a single system's DHCP host declarations from the cached config, write the result to disk and
+        restart the DHCP service(s). Unlike the base implementation, this does not trigger a full sync: it edits
+        the already-generated config in place for performance.
+
+        :param system_obj: The system to be removed.
+        """
         if not self.config:
             self.write_configs()
             return
@@ -326,7 +346,7 @@ class _IscManager(DhcpManagerModule):
         """Write DHCP files for IPv4.
 
         :param config_data: DHCP data to write.
-        :param settings_file: The location of the final config file.
+        :raises ValueError: Raised if ``config_data`` is empty or no DHCPv4 template could be found.
         """
         if not config_data:
             raise ValueError("No config to write.")
@@ -343,8 +363,7 @@ class _IscManager(DhcpManagerModule):
         """Write DHCP files for IPv6.
 
         :param config_data: DHCP data to write.
-        :param template_file: The location of the DHCP template.
-        :param settings_file: The location of the final config file.
+        :raises ValueError: Raised if ``config_data`` is empty or no DHCPv6 template could be found.
         """
         if not config_data:
             raise ValueError("No config to write.")
@@ -359,7 +378,12 @@ class _IscManager(DhcpManagerModule):
         This syncs the dhcp server with it's new config files.
         Basically this restarts the service to apply the changes.
 
-        :param service_name: The name of the DHCP service.
+        :param service_name: The name of the DHCP service (e.g. ``dhcpd``).
+        :param version: The IP version to restart the DHCP service for, either ``4`` or ``6``. For ``6``, the
+                         service name passed to the process management module has the version appended (e.g.
+                         ``dhcpd6``).
+        :return: ``0`` on success. ``-1`` if the ``service_name`` executable could not be found; any other non-zero
+                 value indicates a failed config test or service restart.
         """
         dhcpd_path = shutil.which(service_name)
         if dhcpd_path is None:
@@ -387,14 +411,20 @@ class _IscManager(DhcpManagerModule):
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
 
-        :raises OSError
-        :raises ValueError
+        :raises OSError: Raised if a rendered config file could not be written.
+        :raises ValueError: Raised if no DHCP template could be found.
         """
         self.generic_entry_cnt = 0
         self.config = self.gen_full_config()
         self._write_configs(self.config)
 
     def _write_configs(self, data: Optional[Dict[Any, Any]] = None) -> None:
+        """
+        Write the IPv4 and/or IPv6 DHCP config files, depending on ``manage_dhcp_v4``/``manage_dhcp_v6``.
+
+        :param data: The full DHCP config data, shared between the v4 and v6 templates.
+        :raises ValueError: Raised if ``data`` is empty.
+        """
         if not data:
             raise ValueError("No config to write.")
 
@@ -404,6 +434,13 @@ class _IscManager(DhcpManagerModule):
             self.write_v6_config(data)
 
     def restart_service(self) -> int:
+        """
+        Restart whichever of the IPv4/IPv6 DHCP services are enabled via ``manage_dhcp_v4``/``manage_dhcp_v6``. A
+        no-op (returning ``0``) if ``restart_dhcp`` is disabled in the settings.
+
+        :return: ``0`` on success. If restarting fails for v4, v6, or both, the (bitwise-OR'd) non-zero return
+                 codes of the individual :meth:`restart_dhcp` calls.
+        """
         if not self.settings.restart_dhcp:
             return 0
 

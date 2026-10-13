@@ -1,5 +1,7 @@
 """
-This is some of the code behind 'cobbler sync'.
+This is some of the code behind 'cobbler sync': it manages a dnsmasq instance providing DHCP and/or DNS by
+rendering its config file from a template and maintaining the ``ethers``/hosts files dnsmasq reads its
+MAC-to-IP and host records from.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -47,6 +49,12 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         return "dnsmasq"
 
     def __init__(self, api: "CobblerAPI"):
+        """
+        Constructor. Also creates the configured hosts/ethers files on disk if they don't already exist, since
+        dnsmasq expects to be able to read them even before the first sync.
+
+        :param api: The API instance to resolve all information with.
+        """
         super().__init__(api)
         self.config: Dict[str, Any] = {}
         self.cobbler_hosts_file = self.api.settings().dnsmasq_hosts_file
@@ -58,8 +66,8 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
 
-        :raises OSError
-        :raises ValueError
+        :raises OSError: Raised if the rendered config file could not be written.
+        :raises ValueError: Raised if no dnsmasq template could be found.
         """
         self.config = self.gen_full_config()
         self._write_configs(self.config)
@@ -68,8 +76,8 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         """
         Internal function to write DHCP files.
 
-        :raises OSError
-        :raises ValueError
+        :raises OSError: Raised if the rendered config file could not be written.
+        :raises ValueError: Raised if ``config_data`` is empty or no dnsmasq template could be found.
         """
         if not config_data:
             raise ValueError("No config to write.")

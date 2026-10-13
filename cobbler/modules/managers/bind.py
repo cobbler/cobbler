@@ -1,5 +1,6 @@
 """
-This is some of the code behind 'cobbler sync'.
+This is some of the code behind 'cobbler sync': it manages an ISC BIND nameserver by rendering ``named.conf``,
+``secondary.conf`` and the forward/reverse zone files from templates, based on the systems Cobbler knows about.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -27,6 +28,8 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage".
     """
     return "manage"
 
@@ -42,6 +45,14 @@ class MetadataZoneHelper:
         reverse_zones: List[Tuple[str, str]],
         zone_include: str,
     ):
+        """
+        Constructor.
+
+        :param forward_zones: The names of all configured forward zones.
+        :param reverse_zones: The configured reverse zones as ``(zone, in-addr.arpa/ip6.arpa name)`` pairs.
+        :param zone_include: The rendered ``zone { ... };`` blocks to embed in the template, one per (forward or
+                              reverse) zone.
+        """
         self.forward_zones: List[str] = forward_zones
         self.reverse_zones: List[Tuple[str, str]] = reverse_zones
         self.zone_include = zone_include
@@ -50,6 +61,11 @@ class MetadataZoneHelper:
 
 
 class _BindManager(DnsManagerModule):
+    """
+    Manages an ISC BIND nameserver by writing ``named.conf``, ``secondary.conf`` and zone files rendered from
+    templates and restarting the ``named``/``bind`` service.
+    """
+
     @staticmethod
     def what() -> str:
         """
@@ -60,6 +76,11 @@ class _BindManager(DnsManagerModule):
         return "bind"
 
     def __init__(self, api: "CobblerAPI"):
+        """
+        Constructor.
+
+        :param api: The API instance to resolve all information with.
+        """
         super().__init__(api)
 
         self.settings_file = utils.namedconf_location()
@@ -67,7 +88,13 @@ class _BindManager(DnsManagerModule):
 
     def regen_hosts(self) -> None:
         """
-        Not used.
+        No-op for BIND.
+
+        ``DnsManagerModule`` declares this as an abstract method so ``cobbler sync`` can call it unconditionally
+        before ``write_configs()``, regardless of which DNS manager is active. BIND has no separate hosts-file
+        regeneration step, though: :meth:`write_configs` (via the private ``__write_zone_files``) renders the zone
+        files - which serve the same purpose for BIND as a hosts file does for dnsmasq/ndjbdns - directly from the
+        current system list on every sync, so there is nothing for this method to do.
         """
 
     def __find_named_template(self, tag: str, error_message: str) -> "Template":
@@ -298,7 +325,7 @@ class _BindManager(DnsManagerModule):
         """
         Write out the named.conf main config file from the template.
 
-        :raises OSError
+        :raises OSError: Raised if the rendered config file could not be written.
         """
         settings_file = self.settings.bind_chroot_path + self.settings_file
 

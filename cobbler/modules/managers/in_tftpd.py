@@ -1,5 +1,7 @@
 """
-This is some of the code behind 'cobbler sync'.
+This is some of the code behind 'cobbler sync' for the default TFTP-serving mode, where bootloaders, distro
+kernels/initrds, images and per-system boot configuration are all materialized into the TFTP root directory
+(e.g. ``/srv/tftp``) for an ``in.tftpd``-style server to read directly from disk.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -27,11 +29,18 @@ MANAGER = None
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "manage".
     """
     return "manage"
 
 
 class _InTftpdManager(TftpManagerModule):
+    """
+    Manages TFTP content by copying bootloaders, distro/image files and rendered per-system boot configuration
+    into the TFTP root directory, for a classic ``in.tftpd``-style server to serve directly from disk.
+    """
+
     @staticmethod
     def what() -> str:
         """
@@ -42,6 +51,11 @@ class _InTftpdManager(TftpManagerModule):
         return "in_tftpd"
 
     def __init__(self, api: "CobblerAPI"):
+        """
+        Constructor.
+
+        :param api: The API instance to resolve all information with.
+        """
         super().__init__(api)
 
         self.bootloc = api.settings().tftpboot_location
