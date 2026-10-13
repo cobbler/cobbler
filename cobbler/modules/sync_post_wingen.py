@@ -88,8 +88,11 @@ logger = logging.getLogger()
 def register() -> Optional[str]:
     """
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
-    indicates the trigger type
-    :return: Always ``/var/lib/cobbler/triggers/sync/post/*``
+    indicates the trigger type.
+
+    :return: ``/var/lib/cobbler/triggers/sync/post/*`` if the optional ``hivex`` and ``pefile`` dependencies are
+             both importable, otherwise ``None`` so the trigger is not registered and Windows boot file generation
+             stays disabled.
     """
     if not HAS_HIVEX:
         logging.info(
@@ -117,7 +120,6 @@ def bcdedit(
     :param wim: Path to the WIM image
     :param sdi: Path to the System Deployment Image (SDI)
     :param startoptions: Other BCD options
-    :return:
     """
 
     def winpath_length(wp: str, add: int):
