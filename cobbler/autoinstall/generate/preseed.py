@@ -26,6 +26,10 @@ class PreseedGenerator(AutoinstallBaseGenerator):
         requested_file: "Template",
         autoinstaller_subfile: str = "",
     ) -> str:
+        """
+        Renders the object's Preseed file (``obj.autoinstall``), flattening the ``kernel_options`` and
+        ``kernel_options_post`` metavariables into a string before templating.
+        """
         if obj.TYPE_NAME not in ("profile", "system"):  # type: ignore
             raise ValueError("obj must be either a system or profile!")
 
@@ -49,4 +53,7 @@ class PreseedGenerator(AutoinstallBaseGenerator):
     def generate_autoinstall_metadata(
         self, obj: "BootableItem", key: str
     ) -> Optional[Any]:
+        """
+        This format does not define any auxiliary metadata keys; always returns ``None``.
+        """
         return None
