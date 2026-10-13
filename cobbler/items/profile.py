@@ -669,6 +669,7 @@ class Profile(BootableItem):
             raise TypeError("Field management_key of object profile is of type str!")
         if not management_key:
             self._redhat_management_key = enums.VALUE_INHERITED
+            return
         self._redhat_management_key = management_key
 
     @InheritableProperty
@@ -694,6 +695,7 @@ class Profile(BootableItem):
             raise TypeError("Field management_org of object profile is of type str!")
         if not management_org:
             self._redhat_management_org = enums.VALUE_INHERITED
+            return
         self._redhat_management_org = management_org
 
     @InheritableProperty
@@ -719,6 +721,7 @@ class Profile(BootableItem):
             raise TypeError("Field management_user of object profile is of type str!")
         if not management_user:
             self._redhat_management_user = enums.VALUE_INHERITED
+            return
         self._redhat_management_user = management_user
 
     @InheritableProperty
@@ -746,6 +749,7 @@ class Profile(BootableItem):
             )
         if not management_password:
             self._redhat_management_password = enums.VALUE_INHERITED
+            return
         self._redhat_management_password = management_password
 
     @InheritableProperty
