@@ -318,6 +318,11 @@ class System(BootableItem):
     #
 
     def make_clone(self):
+        """
+        Clone this system object. Please manually adjust all value yourself to make the cloned object unique.
+
+        :return: The cloned instance of this object.
+        """
         _dict = copy.deepcopy(self.to_dict())
         _dict.pop("uid", None)
         if isinstance(_dict.get("autoinstall"), dict):
@@ -884,7 +889,7 @@ class System(BootableItem):
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
 
-        :param uid: The uid of the profile which the system is underneath.
+        :param profile_uid: The uid of the profile which the system is underneath.
         :raises TypeError: In case profile_uid is no string.
         :raises ValueError: In case profile_uid does not exist.
         """
@@ -979,7 +984,7 @@ class System(BootableItem):
         Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
         after local boot fails, this option isn't even relevant.
 
-        :param: netboot_enabled:
+        :param netboot_enabled: Whether per-system PXE files should be generated on sync.
         :raises TypeError: In case netboot_enabled is not a boolean.
         """
         netboot_enabled = input_converters.input_boolean(netboot_enabled)
@@ -1060,7 +1065,7 @@ class System(BootableItem):
         """
         Setter for the serial_device of the System class.
 
-        :param device_number: The number of the device which is going
+        :param device_number: The number of the serial device to use, or ``-1`` to disable it.
         """
         self._serial_device = validate.validate_serial_device(device_number)
 
