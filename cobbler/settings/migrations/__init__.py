@@ -58,7 +58,7 @@ class CobblerVersion:
 
     def __eq__(self, other: object) -> bool:
         """
-        Compares 2 CobblerVersion objects for equality. Necesarry for the tests.
+        Compares 2 CobblerVersion objects for equality. Necessary for the tests.
         """
         if not isinstance(other, CobblerVersion):
             return False
@@ -192,7 +192,7 @@ def get_settings_file_version(
     yaml_dict: Dict[str, Any], ignore_keys: Optional[List[str]] = None
 ) -> CobblerVersion:
     """
-    Return the correspondig version of the given settings dict.
+    Return the corresponding version of the given settings dict.
 
     :param yaml_dict: The settings dict to get the version from.
     :param ignore_keys: The list of ignore keys to exclude from validation.
@@ -322,8 +322,8 @@ def migrate(
     :param settings_path: The path of the settings dict.
     :param old: The version to migrate from, defaults to EMPTY_VERSION.
     :param new: The version to migrate to, defaults to EMPTY_VERSION.
-    :param ignore_keys: The list of settings ot be excluded from migration.
-    :raises ValueError: Raised if attempting to downgraade.
+    :param ignore_keys: The list of settings to be excluded from migration.
+    :raises ValueError: Raised if attempting to downgrade.
     :return: The migrated dict.
     """
     if not ignore_keys:
@@ -376,7 +376,7 @@ def validate(
 
     :param settings: The settings dict to validate.
     :param settings_path: TODO: not used at the moment
-    :param ignore_keys: The list of settings ot be excluded from validation.
+    :param ignore_keys: The list of settings to be excluded from validation.
     :return: True if settings are valid, otherwise False.
     """
     if not ignore_keys:
@@ -398,7 +398,7 @@ def normalize(
     If data in ``settings`` is valid the validated data is returned.
 
     :param settings: The settings dict to validate.
-    :param ignore_keys: The list of settings ot be excluded from normalization.
+    :param ignore_keys: The list of settings to be excluded from normalization.
     :return: The validated dict.
     """
     if not ignore_keys:
