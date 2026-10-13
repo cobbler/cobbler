@@ -487,8 +487,8 @@ class Image(BootableItem):
         """
         Property to represent the menu which this image should be put into.
 
-        :getter: The name of the menu or an emtpy str.
-        :setter: Should only be the name of the menu not the object. May raise ``CX`` in case the menu does not exist.
+        :getter: The uid of the menu or an emtpy str.
+        :setter: Should only be the uid of the menu not the object. May raise ``CX`` in case the menu does not exist.
         """
         return self._menu
 
