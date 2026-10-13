@@ -60,7 +60,7 @@ class BaseItem(ABC):
         """
         Whether the attribute is part of the item's to_dict or not
 
-        :name: The attribute name.
+        :param name: The attribute name.
         """
         return (
             name[:1] == "_"
@@ -166,8 +166,8 @@ class BaseItem(ABC):
         """
         Intercepting an attempt to assign a value to an attribute.
 
-        :name: The attribute name.
-        :value: The attribute value.
+        :param name: The attribute name.
+        :param value: The attribute value.
         """
         if (
             BaseItem._is_dict_key(name)
