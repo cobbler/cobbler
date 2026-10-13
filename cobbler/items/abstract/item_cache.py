@@ -46,7 +46,7 @@ class ItemCache:
 
     def get_dict_cache(self, resolved: bool) -> Optional[Dict[str, Any]]:
         """
-        Gettinging the dict cache.
+        Getting the dict cache.
 
         :param resolved: "resolved" parameter for BaseItem.to_dict().
         :return: The cache value for the object, or None if not set.
@@ -67,7 +67,7 @@ class ItemCache:
 
     def clean_dict_cache(self):
         """
-        Cleaninig the dict cache.
+        Cleaning the dict cache.
         """
         if self.settings.cache_enabled:
             self.set_dict_cache(None, True)
