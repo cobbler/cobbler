@@ -98,7 +98,7 @@ def __cache_mtab__(mtab: str = "/etc/mtab") -> List[MntEntObj]:
     """
     Open the mtab and cache it inside Cobbler. If it is guessed that the mtab hasn't changed the cache data is used.
 
-    :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
+    :param mtab: The location of the mtab. Argument can be omitted if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
     """
     with open(mtab, encoding="UTF-8") as mtab_fd:

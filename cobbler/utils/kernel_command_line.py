@@ -19,6 +19,13 @@ class KernelCommandLine:
     """
 
     def __init__(self, api: "CobblerAPI"):
+        """
+        Constructor that initializes an empty Kernel Command Line. Options are added afterwards via
+        :meth:`append_key_value`, :meth:`append_key` or :meth:`append_raw` and the result can be rendered with
+        :meth:`render`.
+
+        :param api: The Cobbler API object that is used to render the templated command line.
+        """
         self.__api = api
         self.__append_line: List[Union[Tuple[str, str], Tuple[str]]] = []
 
