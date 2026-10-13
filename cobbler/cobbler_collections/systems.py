@@ -43,4 +43,10 @@ class Systems(collection.Collection[system.System]):
     def remove_quick_pxe_sync(
         self, ref: system.System, rebuild_menu: bool = True
     ) -> None:
+        """
+        Delete the system's PXE/GRUB boot configuration files and, if managed, remove its DHCP and DNS entries.
+
+        :param ref: The system that was removed.
+        :param rebuild_menu: Unused; removing a system does not trigger a PXE menu rebuild.
+        """
         self.api.get_sync().remove_single_system(ref)
