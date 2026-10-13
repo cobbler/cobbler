@@ -143,7 +143,7 @@ class BaseTemplateProvider:
         :getter: The string with the file-extensions without the dot.
         """
         raise NotImplementedError(
-            '"template_file_extneion" must be implemented to be a valid template provider!'
+            '"template_file_extension" must be implemented to be a valid template provider!'
         )
 
     @property
