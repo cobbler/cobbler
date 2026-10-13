@@ -159,7 +159,7 @@ class Repo(BootableItem):
 
     def make_clone(self) -> "Repo":
         """
-        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+        Clone this repo object. Please manually adjust all value yourself to make the cloned object unique.
 
         :return: The cloned instance of this object.
         """
