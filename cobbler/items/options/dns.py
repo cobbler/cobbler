@@ -55,10 +55,12 @@ class DNSOption(ItemOption[Union["Profile", "System"]]):
     @InheritableProperty
     def name_servers(self) -> List[str]:
         """
-        name_servers property.
-        FIXME: Differentiate between IPv4/6
+        The list of DNS servers that should be handed out to this item via DHCP/the generated resolv.conf. Values
+        from the parent item are merged with this item's own list.
 
-        :getter: Returns the value for ``name_servers``.
+        .. note:: This property can be set to ``<<inherit>>``.
+
+        :getter: The merged list of name server addresses.
         :setter: Sets the value for the property ``name_servers``.
         """
         return self._resolve_list([self.parent_name, "name_servers"])
@@ -67,10 +69,10 @@ class DNSOption(ItemOption[Union["Profile", "System"]]):
     def name_servers(self, data: Union[str, List[str]]):
         """
         Set the DNS servers.
-        FIXME: Differentiate between IPv4/6
 
-        :param data: string or list of nameservers
-        :returns: True or CX
+        :param data: A space delimited string or a list of nameserver addresses.
+        :raises TypeError: In case the value could not be converted into a list.
+        :raises AddressValueError: In case one of the given addresses is not a valid IPv4 or IPv6 address.
         """
         self._name_servers = validate.name_servers(data)
 
