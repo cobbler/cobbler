@@ -85,7 +85,7 @@ V2.8.5:
 
 import copy
 from ipaddress import AddressValueError
-from typing import TYPE_CHECKING, Any, List, Type, Union
+from typing import TYPE_CHECKING, Any, List, Type, Union, cast
 
 from cobbler import enums, utils, validate
 from cobbler.cexceptions import CX
@@ -194,7 +194,12 @@ class NetworkInterface(BaseItem):
             settings_name = "default_ownership"
         raw_value = self.__get_raw_value(self, property_name)
         if raw_value == enums.VALUE_INHERITED:
-            return getattr(self.api.settings(), settings_name)
+            value = getattr(self.api.settings(), settings_name)
+            # Settings attributes are mutable and shared process-wide; hand out a copy so
+            # callers can't mutate the live settings value in place.
+            if isinstance(value, (list, dict)):
+                return cast(Any, value.copy())
+            return value
         else:
             return raw_value
 

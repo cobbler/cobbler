@@ -1,0 +1,1 @@
+Items: Stop handing out a live reference to shared ``Settings`` list/dict attributes (e.g. ``default_ownership``) when resolving an inherited property, to prevent accidental mutation of global settings state.

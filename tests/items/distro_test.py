@@ -363,6 +363,24 @@ def test_owners(cobbler_api: CobblerAPI, value: Any):
     assert distro.owners == value
 
 
+def test_owners_inherited_does_not_alias_settings(cobbler_api: CobblerAPI):
+    """
+    Regression test for https://github.com/cobbler/cobbler/issues/3872: resolving an inherited
+    "owners" value must hand out a copy, not a live reference to ``Settings.default_ownership``.
+    Mutating the resolved value (as e.g. ``utils.blender()``'s merge logic does for other items in
+    the same tree) must not corrupt the shared, process-wide settings list for every other item.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    resolved_owners = distro.owners
+    resolved_owners.append("extra-owner")
+
+    # Assert
+    assert cobbler_api.settings().default_ownership == ["admin"]
+
+
 @pytest.mark.parametrize(
     "value,expected_exception,expected_result",
     [
