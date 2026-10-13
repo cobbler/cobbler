@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 class AutoinstallValidationResult(NamedTuple):
     """
-    This named tuple makes it easier to work with the results of a validating a single template.
+    This named tuple makes it easier to work with the results of validating a single template.
     """
 
     success: bool
@@ -203,12 +203,12 @@ class AutoInstallationManager:
         This is an internal method for generating an auto-installation config/script. Please use the
         ``generate_autoinstall_for_*`` methods.
 
-        :param obj: The profile to use for generating the auto-installation config/script.
-        :param autoinstaller_type: All currently available types can be found at
-            :class:`cobbler.enums.AutoinstallerType`.
-        :param autoinstall_template: If empty, the default file is returned. Specific flavors may use this variable to
-            generate secondary files (e.g. cloud-init & the different metadata files).
-        :param autoinstaller_subfile: TODO
+        :param obj: The profile or system to use for generating the auto-installation config/script.
+        :param autoinstall_template: The template to render. Its tags must identify one of the known
+            :class:`~cobbler.enums.AutoinstallerType` values, otherwise a ``ValueError`` is raised.
+        :param autoinstaller_subfile: The name of the secondary file to request from the underlying generator.
+            This is only meaningful for formats that produce more than one file (e.g. cloud-init's ``user-data``,
+            ``meta-data`` and ``network-config``); it is ignored by generators that only produce a single file.
         :return: The auto-installation script or configuration file as a string.
         """
         target_autoinstall_type: Optional[enums.AutoinstallerType] = None
