@@ -116,6 +116,9 @@ class ItemGroup(InheritableItem, ABC):
     @LazyProperty
     def members(self) -> List[str]:
         """
+        The uids of the items that belong to this group. The referenced item type is derived from the group's
+        ``COLLECTION_TYPE`` (e.g. a ``distro_group`` only accepts distro uids).
+
         :getter: The members of this group.
         :setter: Set the members of this group.
         """
