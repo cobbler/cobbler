@@ -408,6 +408,7 @@ class Image(BootableItem):
             if not image_type:
                 # FIXME: Add None Image type
                 self._image_type = enums.ImageTypes.DIRECT
+                return
             try:
                 # Match by value first ("virt-clone") since that is what the enum's own
                 # docstring documents and what callers (e.g. XML-RPC clients) actually send;
