@@ -47,13 +47,20 @@ class Settings:
     @staticmethod
     def collection_types() -> str:
         """
-        return the collection plural name
+        This is a hardcoded string which represents the collection type in its plural form.
+
+        :return: "settings"
         """
         return "settings"
 
     def __init__(self) -> None:
         """
-        Constructor.
+        Constructor. Initializes every app-wide Cobbler setting to its built-in default value.
+
+        This object takes no arguments: all of its state is the collection of default values assigned below, one
+        attribute per setting (e.g. ``manage_dns``, ``xmlrpc_port``, ...). Callers that need to load the settings
+        persisted on disk should subsequently call :meth:`from_dict` with the dictionary read from the settings
+        file; any key not present in that dictionary keeps the default set here.
         """
         self.auto_migrate_settings = False
         self.autoinstall_scheme = "http"
@@ -554,7 +561,7 @@ def read_settings_file(
 
     :param filepath: The path to the settings file.
     :param ignore_keys: The list of ignore keys to exclude from validation.
-    :raises SchemaMissingKeyError: In case keys are minssing.
+    :raises SchemaMissingKeyError: In case keys are missing.
     :raises SchemaWrongKeyError: In case keys are not listed in the schema.
     :raises SchemaError: In case the schema is wrong.
     :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
