@@ -268,7 +268,7 @@ class Profile(BootableItem):
 
     def make_clone(self):
         """
-        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+        Clone this profile object. Please manually adjust all value yourself to make the cloned object unique.
 
         :return: The cloned instance of this object.
         """
@@ -663,7 +663,7 @@ class Profile(BootableItem):
         """
         Setter of the redhat management key.
 
-        :param management_key: The value may be reset by setting it to None.
+        :param management_key: The value may be reset to inherit by setting it to an empty string.
         """
         if not isinstance(management_key, str):  # type: ignore
             raise TypeError("Field management_key of object profile is of type str!")
@@ -688,7 +688,7 @@ class Profile(BootableItem):
         """
         Setter of the redhat management organization.
 
-        :param management_org: The value may be reset by setting it to None.
+        :param management_org: The value may be reset to inherit by setting it to an empty string.
         """
         if not isinstance(management_org, str):  # type: ignore
             raise TypeError("Field management_org of object profile is of type str!")
@@ -713,7 +713,7 @@ class Profile(BootableItem):
         """
         Setter of the redhat management user.
 
-        :param management_user: The value may be reset by setting it to None.
+        :param management_user: The value may be reset to inherit by setting it to an empty string.
         """
         if not isinstance(management_user, str):  # type: ignore
             raise TypeError("Field management_user of object profile is of type str!")
@@ -738,7 +738,7 @@ class Profile(BootableItem):
         """
         Setter of the redhat management password.
 
-        :param management_password: The value may be reset by setting it to None.
+        :param management_password: The value may be reset to inherit by setting it to an empty string.
         """
         if not isinstance(management_password, str):  # type: ignore
             raise TypeError(
@@ -827,7 +827,7 @@ class Profile(BootableItem):
     @LazyProperty
     def menu(self) -> str:
         r"""
-        Property to represent the menu which this image should be put into.
+        Property to represent the menu which this profile should be put into.
 
         :getter: The uid of the menu or an emtpy str.
         :setter: Should only be the uid of the menu not the object. May raise ``CX`` in case the menu does not exist.
@@ -839,7 +839,7 @@ class Profile(BootableItem):
         """
         Setter for the menu property.
 
-        :param menu: The menu for the image.
+        :param menu: The menu for the profile.
         :raises CX: In case the menu to be set could not be found.
         """
         if not isinstance(menu, str):  # type: ignore
