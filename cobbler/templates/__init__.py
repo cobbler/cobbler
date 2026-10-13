@@ -330,7 +330,10 @@ class Templar:
         """
         Method to detect the kind of template.
 
-        :param template_type: The requested template type. In case "default" is given, auto-detection is attempted.
+        :param template_type: The requested template type. If "default" is given, the server-configured
+            ``default_template_type`` setting is used, falling back to "cheetah" if that is unset. Regardless of
+            this value, a ``#template=<type>`` header on the first line of ``lines`` overrides the final type that
+            is returned (and the header line is removed from the content).
         :param lines: The lines of the template.
         :returns: A Tuple with the template type as the first element and the content of the template.
         """
