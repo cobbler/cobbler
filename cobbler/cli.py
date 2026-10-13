@@ -1286,38 +1286,74 @@ class CobblerCLI:
         atime = time.asctime(time.localtime(etime))
         print("task started (id=%s, time=%s)" % (name, atime))
 
-    def follow_task(self, task_id):
+    def follow_task(self, task_id, logfile="/var/log/cobbler/cobbler.log", status_poll_interval=1):
         """
-        Parse out this task's specific messages from the global log
+        Stream this task's progress messages from the global log. Whether the task has finished (and
+        whether it succeeded) is decided solely by polling its authoritative state via XML-RPC, not by
+        anything found in the log: the in-memory task state is always updated before the corresponding log
+        line is written, so the log can never be ahead of the API, only behind or wrong (e.g. mangled by
+        interleaved writes from another task). The log is only used here to mirror progress output.
 
         :param task_id: The id of the task to follow.
+        :param logfile: The Cobbler log file to tail for progress output (overridable for testing).
+        :param status_poll_interval: How often (in seconds) to check the task's state via XML-RPC. This is
+                                      what determines when follow_task notices the task finished or was
+                                      aborted (e.g. because cobblerd was restarted by a logrotate postrotate
+                                      hook mid-task).
         """
-        logfile = "/var/log/cobbler/cobbler.log"
         # adapted from:  http://code.activestate.com/recipes/157035/
-        with open(logfile, 'r') as file:
-            # Find the size of the file and move to the end
-            # st_results = os.stat(filename)
-            # st_size = st_results[6]
-            # file.seek(st_size)
-
+        file = open(logfile, 'r')
+        last_status_check = time.time()
+        try:
             while 1:
                 where = file.tell()
                 line = file.readline()
-                if not line.startswith("[" + task_id + "]"):
-                    continue
-                if line.find("### TASK COMPLETE ###") != -1:
-                    print("*** TASK COMPLETE ***")
-                    return 0
-                if line.find("### TASK FAILED ###") != -1:
-                    print("!!! TASK FAILED !!!")
-                    return 1
                 if not line:
+                    # No new data yet. Check whether the log got rotated out from under us (the file at
+                    # `logfile` is now a different inode) and reopen it if so, instead of reading forever
+                    # from an orphaned, never-again-written-to file handle.
+                    try:
+                        rotated = os.stat(logfile).st_ino != os.fstat(file.fileno()).st_ino
+                    except FileNotFoundError:
+                        rotated = False
+                    if rotated:
+                        file.close()
+                        file = open(logfile, 'r')
+                        continue
+                    now = time.time()
+                    if now - last_status_check >= status_poll_interval:
+                        last_status_check = now
+                        try:
+                            (_etime, _name, status, _who) = self.remote.get_task_status(task_id)
+                        except xmlrpc.client.Fault:
+                            print("!!! TASK ABORTED (cobblerd no longer knows about this task, it may have "
+                                  "restarted while the task was running) !!!", file=sys.stderr)
+                            return 1
+                        except OSError:
+                            # cobblerd may be mid-restart; treat as transient and retry next tick.
+                            pass
+                        else:
+                            if status == enums.EventStatus.COMPLETE.value:
+                                print("*** TASK COMPLETE ***")
+                                return 0
+                            if status == enums.EventStatus.FAILED.value:
+                                print("!!! TASK FAILED !!!")
+                                return 1
                     time.sleep(1)
                     file.seek(where)
-                else:
-                    if line.find(" | "):
-                        line = line.split(" | ")[-1]
-                    print(line, end='')
+                    continue
+                if not line.startswith("[" + task_id + "]"):
+                    continue
+                if "### TASK COMPLETE ###" in line or "### TASK FAILED ###" in line:
+                    # These are an internal signal for cobblerd's own bookkeeping, not progress output for
+                    # the user; the status poll above is what actually reports completion/failure, so just
+                    # skip the raw marker line here instead of printing it a second time, oddly.
+                    continue
+                if line.find(" | "):
+                    line = line.split(" | ")[-1]
+                print(line, end='')
+        finally:
+            file.close()
 
     def print_object_help(self, object_type) -> int:
         """

@@ -1,0 +1,1 @@
+CLI: Fixed `follow_task()` busy-looping at 100% CPU and hanging forever when `/var/log/cobbler/cobbler.log` was rotated mid-task, by reopening the rotated log and deciding task completion/failure via the authoritative XML-RPC task status instead of the log text.
