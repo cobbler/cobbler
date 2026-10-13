@@ -55,6 +55,8 @@ def hashfun(api: "CobblerAPI", text: str) -> str:
 def register() -> str:
     """
     The mandatory Cobbler module registration hook.
+
+    :return: Always "authn"
     """
     return "authn"
 
