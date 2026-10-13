@@ -14,6 +14,8 @@ DISTRO_OPTIONS = get_distro_options()
 def cli_generate_main_parser() -> argparse.ArgumentParser:
     """
     Generates the main CLI parser for the Cobbler daemon.
+
+    :return: The parser, with the ``setup`` subcommand already attached, ready to have ``parse_args()`` called on it.
     """
     op = argparse.ArgumentParser()
     subparsers = op.add_subparsers(dest="subparser_name")
@@ -69,7 +71,10 @@ def cli_generate_setup_parser(
     parent_parser: "argparse._SubParsersAction[argparse.ArgumentParser]",  # type: ignore[reportPrivateUsage]
 ) -> None:
     """
-    Generates the setup parser.
+    Generates the setup parser and attaches it to the given subparsers action as the ``setup`` subcommand.
+
+    :param parent_parser: The subparsers action of the main parser (as returned by ``add_subparsers()``) to attach
+                           the ``setup`` subcommand to.
     """
     setup_parser = parent_parser.add_parser(
         "setup",
