@@ -1052,3 +1052,32 @@ def test_service_restart_service(mocker):
     # Assert
     assert result == 0
     utils.subprocess_call.assert_called_with(["service", "testservice", "restart"], shell=False)
+
+
+def test_cobbler_thread_calls_on_done_with_the_thread_instance(mocker):
+    # Regression test: "on_done" (e.g. the one background_buildiso() in remote.py passes in) is a plain
+    # function stored as an instance attribute, not a real bound method, so it is never auto-bound to the
+    # thread - it must be called the same way self._run(self) is, with the thread passed explicitly, or any
+    # on_done that expects it (like buildiso's) raises "missing 1 required positional argument".
+    # Arrange
+    api = mocker.Mock()
+    api.get_modules_in_category.return_value = []
+    event_id = "test_event"
+    remote = mocker.Mock()
+    remote.events = {event_id: mocker.Mock(state=None, read_by_who=[])}
+
+    received = []
+
+    def run(thread):
+        return True
+
+    def on_done(thread):
+        received.append(thread)
+
+    thread = utils.CobblerThread(event_id, remote, {}, "testtask", api, run, on_done)
+
+    # Act
+    thread.run()
+
+    # Assert
+    assert received == [thread]

@@ -2260,7 +2260,7 @@ class CobblerThread(Thread):
             else:
                 self._set_task_state(enums.EventStatus.COMPLETE)
                 if self.on_done is not None:
-                    self.on_done()
+                    self.on_done(self)
                 run_triggers(
                     api=self.api,
                     globber=f"/var/lib/cobbler/triggers/task/{self.task_name}/post/*",
