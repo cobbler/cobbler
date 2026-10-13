@@ -1136,7 +1136,7 @@ class CobblerAPI:
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
-            "network_interface",
+            "template",
             ref,
             recursive=recursive,
             delete=delete,
