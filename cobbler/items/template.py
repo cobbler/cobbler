@@ -56,7 +56,7 @@ class Template(BaseItem):
             """
             Autoinstall Path validation hook that allows to validate if the path is a valid one.
 
-            :param api: The Cobbler API object to search for data.
+            :param cobbler_api: The Cobbler API object to search for data.
             :param value: The new value for the path component.
             :returns: True in case the path is valid, False otherwhise.
             """
@@ -88,6 +88,14 @@ class Template(BaseItem):
             self._has_initialized = True
 
     def make_clone(self) -> "Template":
+        """
+        Clone this template object. Please manually adjust all value yourself to make the cloned object unique.
+
+        The ``built_in`` flag is always dropped on the clone, since a clone of a built-in template is a regular,
+        editable and persistable template rather than the read-only original.
+
+        :return: The cloned instance of this object.
+        """
         seed_dict = copy.deepcopy(self.to_dict())
         seed_dict.pop("uid", None)
         seed_dict.pop("built_in", None)
@@ -176,6 +184,7 @@ class Template(BaseItem):
         """
         The setter for the content of a given template. Accept a string.
 
+        :param val: The new content that should be written to the template's target URI.
         :raises ValueError: In case the URI is empty, the schema is of type improtlib or the template schema is
             unsupported.
         """
