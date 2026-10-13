@@ -71,7 +71,10 @@ def regen_ss_file() -> None:
 
 def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     """
-    This trys to bring up the Cobbler xmlrpc_api and restart it if it fails.
+    This tries to bring up the Cobbler xmlrpc_api and restart it if it fails.
+
+    This method serves requests in an endless loop (restarting the server whenever ``serve_forever()`` raises an
+    ``IOError``) and only returns if interrupted by a different exception.
 
     :param cobbler_api: The cobbler_api instance which is used for this method.
     :param port: The port where the xmlrpc api should run on.
@@ -107,7 +110,7 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
 
 def daemonize_self() -> None:
     """
-    Deamonizes the current process.
+    Daemonizes the current process.
     """
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
     logger.info("cobblerd started")
