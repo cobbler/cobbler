@@ -65,6 +65,10 @@ class DistroOptions:
     def to_context(self) -> Dict[str, str]:
         """
         This creates a context dictionary that can be used to template a given file.
+
+        :return: A dictionary mapping each field name of this dataclass (plus ``cobblerd_location``, the resolved
+                 path to the ``cobblerd`` executable) to its string value, for substitution via the "@@name@@"
+                 placeholder syntax.
         """
         result: Dict[str, str] = {}
         for key, value in vars(self).items():
@@ -78,8 +82,11 @@ class DistroOptions:
 
 def get_distro_options() -> DistroOptions:
     """
-    Detects the Linux distribution and sets up environment variables accordingly.
-    Returns an instance of DistroOptions with the appropriate settings.
+    Detects the Linux distribution family and builds a :class:`DistroOptions` instance with the paths and settings
+    appropriate for that family.
+
+    :return: A :class:`DistroOptions` instance populated with distribution-specific defaults.
+    :raises ValueError: If the detected distribution family is neither ``debian``, ``redhat`` nor ``suse``.
     """
     distro_options = DistroOptions()
     distro = get_family()
