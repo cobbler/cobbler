@@ -188,13 +188,13 @@ def setup_cobblerd_log_directories(base_path: pathlib.Path, apache_user: str) ->
     Create all the directories needed for logging in the Cobbler daemon.
 
     :param base_path: The root log directory under which the ``cobbler`` log subdirectories (``kicklog``,
-                       ``sysyslog``, ``anamon``, ``tasks``) and the web server user's own log directory are created.
+                       ``syslog``, ``anamon``, ``tasks``) and the web server user's own log directory are created.
     :param apache_user: The user name of the web server process; used to name its per-user log directory.
     """
     log_path = base_path / "cobbler"
     log_path.mkdir(parents=True, exist_ok=True)
     (log_path / "kicklog").mkdir(parents=True, exist_ok=True)
-    (log_path / "sysyslog").mkdir(parents=True, exist_ok=True)
+    (log_path / "syslog").mkdir(parents=True, exist_ok=True)
     (log_path / "anamon").mkdir(parents=True, exist_ok=True)
     (log_path / "tasks").mkdir(parents=True, exist_ok=True)
     (base_path / apache_user / "cobbler").mkdir(parents=True, exist_ok=True)

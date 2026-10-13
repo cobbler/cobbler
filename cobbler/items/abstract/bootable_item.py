@@ -212,7 +212,7 @@ class BootableItem(InheritableItem, ABC):
 
     def __resolve_get_parent_or_settings(
         self, property_name: List[str], settings_name: str
-    ):
+    ) -> Any:
         settings = self.api.settings()
         conceptual_parent = self.get_conceptual_parent()
 
@@ -227,10 +227,16 @@ class BootableItem(InheritableItem, ABC):
             # Does not have the requested attribute
             pass
         if hasattr(settings, settings_name):
-            return getattr(settings, settings_name)
+            value = getattr(settings, settings_name)
         elif hasattr(settings, f"default_{settings_name}"):
-            return getattr(settings, f"default_{settings_name}")
-        return None
+            value = getattr(settings, f"default_{settings_name}")
+        else:
+            return None
+        # Settings attributes are mutable and shared process-wide; hand out a copy so callers
+        # (e.g. utils.blender()'s merge logic) can't mutate the live settings value in place.
+        if isinstance(value, (list, dict)):
+            return cast(Any, value.copy())
+        return value
 
     def __get_raw_value(self, obj: Any, property_name: List[str]) -> Any:
         """

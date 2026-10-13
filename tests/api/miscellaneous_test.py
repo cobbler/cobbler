@@ -177,22 +177,34 @@ def test_get_item_resolved_value(
             pytest.raises(AttributeError),
             "",
         ),  # Attribute not existing
-        ("", ["redhat_management_key"], "", does_not_raise(), ""),  # str attribute test
-        ("", ["redhat_management_org"], "", does_not_raise(), ""),  # str attribute test
+        (
+            "",
+            ["redhat_management_key"],
+            "",
+            does_not_raise(),
+            enums.VALUE_INHERITED,
+        ),  # str attribute test, reset to inherit
+        (
+            "",
+            ["redhat_management_org"],
+            "",
+            does_not_raise(),
+            enums.VALUE_INHERITED,
+        ),  # str attribute test, reset to inherit
         (
             "",
             ["redhat_management_user"],
             "",
             does_not_raise(),
-            "",
-        ),  # str attribute test
+            enums.VALUE_INHERITED,
+        ),  # str attribute test, reset to inherit
         (
             "",
             ["redhat_management_password"],
             "",
             does_not_raise(),
-            "",
-        ),  # str attribute test
+            enums.VALUE_INHERITED,
+        ),  # str attribute test, reset to inherit
         ("", ["enable_ipxe"], "", does_not_raise(), False),  # bool attribute
         ("", ["virt", "ram"], "", does_not_raise(), 0),  # int attribute
         (

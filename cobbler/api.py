@@ -1136,7 +1136,7 @@ class CobblerAPI:
         :param with_sync: In case a Cobbler Sync should be executed after the action.
         """
         self.remove_item(
-            "network_interface",
+            "template",
             ref,
             recursive=recursive,
             delete=delete,
@@ -1308,7 +1308,7 @@ class CobblerAPI:
         :param ref: The internal unique handle for the item.
         :param newname: The new name for the item.
         """
-        self.rename_item("network_interface", ref, newname)
+        self.rename_item("template", ref, newname)
 
     def rename_distro_group(
         self, ref: "distro_group.DistroGroup", newname: str
@@ -1457,7 +1457,7 @@ class CobblerAPI:
 
         :return: An empty Template object.
         """
-        self.log("new_network_interface", kwargs)
+        self.log("new_template", kwargs)
         return template.Template(self, **kwargs)
 
     def new_distro_group(

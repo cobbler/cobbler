@@ -279,5 +279,5 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     if not validate(settings):
-        raise SchemaError("V3.3.1: Schema error while validating")
+        raise SchemaError("V3.3.3: Schema error while validating")
     return normalize(settings)
