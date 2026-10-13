@@ -95,7 +95,7 @@ class LegacyGenerator(AutoinstallBaseGenerator):
         """
         if key == "yum_repo_stanza":
             return self.__generate_repo_stanza(obj, (obj.TYPE_NAME == "system"))  # type: ignore
-        if key == "yum_repo_stanza":
+        if key == "yum_config_stanza":
             return self.__generate_config_stanza(obj, (obj.TYPE_NAME == "system"))  # type: ignore
         return None
 
