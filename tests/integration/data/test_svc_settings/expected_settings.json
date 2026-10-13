@@ -132,7 +132,10 @@
     "client_use_https": false,
     "client_use_localhost": false,
     "cobbler_master": "",
-    "convert_server_to_ip": false,
+    "convert_server_to_ip": {
+        "enabled": false,
+        "protocol": "ipv4"
+    },
     "createrepo_flags": "-c cache -s sha",
     "autoinstall": "built-in-default.ks",
     "default_name_servers": [],

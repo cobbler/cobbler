@@ -6,6 +6,7 @@ import glob
 import os
 import pathlib
 import shutil
+import socket
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 from unittest.mock import PropertyMock
 
@@ -726,6 +727,140 @@ def test_build_kernel_options_autoinstall(
 
     # Assert
     assert result == expected_result
+
+
+def test_build_kernel_options_convert_server_to_ip_disabled(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for GH #2853: with "convert_server_to_ip" disabled (the
+    default), the autoinstall URL keeps using the "http_server" hostname/IP
+    as-is.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "redhat"
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-default.ks"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert "http://192.168.1.1/cblr/svc/op/autoinstall/" in result
+
+
+def test_build_kernel_options_convert_server_to_ip_ipv4(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for GH #2853: with "convert_server_to_ip" enabled and
+    "protocol" set to "ipv4", the resolved IPv4 address is used unbracketed.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "redhat"
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-default.ks"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    cobbler_api.settings().convert_server_to_ip = {
+        "enabled": True,
+        "protocol": "ipv4",
+    }
+    mocker.patch(
+        "socket.getaddrinfo",
+        return_value=[(None, None, None, "", ("203.0.113.5", 0))],
+    )
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert "http://203.0.113.5/cblr/svc/op/autoinstall/" in result
+
+
+def test_build_kernel_options_convert_server_to_ip_ipv6(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for GH #2853: with "convert_server_to_ip" enabled and
+    "protocol" set to "ipv6", the resolved IPv6 address is used, bracketed
+    per RFC 3986 so the generated URL stays well-formed.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "redhat"
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-default.ks"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    cobbler_api.settings().convert_server_to_ip = {
+        "enabled": True,
+        "protocol": "ipv6",
+    }
+    mocker.patch(
+        "socket.getaddrinfo",
+        return_value=[(None, None, None, "", ("2001:db8::1", 0, 0, 0))],
+    )
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert "http://[2001:db8::1]/cblr/svc/op/autoinstall/" in result
+
+
+def test_build_kernel_options_convert_server_to_ip_resolution_failure_falls_back(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    If resolution fails (e.g. the hostname can't be looked up), fall back to
+    the original "http_server" value instead of raising.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "redhat"
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-default.ks"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    cobbler_api.settings().convert_server_to_ip = {
+        "enabled": True,
+        "protocol": "ipv4",
+    }
+    mocker.patch("socket.getaddrinfo", side_effect=socket.gaierror("nope"))
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert "http://192.168.1.1/cblr/svc/op/autoinstall/" in result
 
 
 @pytest.mark.skip("Test broken atm.")

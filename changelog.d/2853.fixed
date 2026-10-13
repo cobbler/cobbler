@@ -1,0 +1,1 @@
+Settings: ``convert_server_to_ip`` is now an object with ``enabled``/``protocol`` subkeys, allowing the autoinstall URL's server address to be resolved to an IPv6 address instead of always IPv4.

@@ -573,7 +573,9 @@ proxy_url_int: ""
 # This behavior can have negative impact on installs with multi-homed Cobbler servers, because
 # not all of the IP addresses may be reachable during system install.
 # This behavior was now made conditional, with default being "off".
-convert_server_to_ip: false
+convert_server_to_ip:
+  enabled: false
+  protocol: ipv4
 
 # Used for caching the intermediate files for ISO-Building
 buildisodir: "/var/cache/cobbler/buildiso"

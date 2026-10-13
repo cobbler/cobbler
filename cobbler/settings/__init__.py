@@ -169,7 +169,10 @@ class Settings:
         self.client_use_https = False
         self.client_use_localhost = False
         self.cobbler_master = ""
-        self.convert_server_to_ip = False
+        self.convert_server_to_ip: Dict[str, Any] = {
+            "enabled": False,
+            "protocol": "ipv4",
+        }
         self.createrepo_flags = "-c cache -s sha"
         self.autoinstall = "built-in-default.ks"
         self.default_name_servers: List[str] = []

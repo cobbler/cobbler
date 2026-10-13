@@ -149,6 +149,40 @@ def test_migrate_v4_0_0_mongodb_conf_propagation():
     }
 
 
+def test_migrate_v4_0_0_convert_server_to_ip_bool_to_object():
+    """
+    Regression test for GH #2853: the legacy ``convert_server_to_ip`` boolean
+    must be converted into the new ``{"enabled": ..., "protocol": "ipv4"}``
+    object shape, not silently dropped or left as a bool.
+
+    "protocol" ends up dropped from the written-out dict by
+    key_drop_if_default() since it equals the default ("ipv4") - this matches
+    the existing, pre-established behavior for other nested-dict settings
+    (e.g. "modules.*"), and is safe here because tftpgen.py treats a missing
+    "protocol" the same as "ipv4" (see test_build_kernel_options_convert_server_to_ip_ipv4).
+    """
+    # Arrange
+    with open(
+        "/code/tests/test_data/V3_3_7/settings.yaml", encoding="UTF-8"
+    ) as old_settings:
+        old_settings_dict = yaml.safe_load(old_settings.read())
+    old_settings_dict["convert_server_to_ip"] = True
+    shutil.copy("/code/tests/test_data/V3_3_7/modules.conf", modules_conf_location)
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/mongodb.conf", "/etc/cobbler/mongodb.conf"
+    )
+    shutil.copy(
+        "/code/tests/test_data/V3_3_7/collections/systems/host.example.org.json",
+        "/var/lib/cobbler/collections/systems/host.example.org.json",
+    )
+
+    # Act
+    new_settings = V4_0_0.migrate(old_settings_dict)
+
+    # Assert
+    assert new_settings["convert_server_to_ip"] == {"enabled": True}
+
+
 def test_migrate_v4_0_0_interface_type_na(tmp_path: pathlib.Path):
     # Arrange
     systems_dir = tmp_path / "systems"
@@ -1255,6 +1289,40 @@ def test_schema_v4_0_0_xmlrpc_split_container_settings_reject_non_str(
 ):
     # Arrange
     settings_dict = {setting_name: 25151}
+
+    # Act & Assert
+    assert not V4_0_0.validate(settings_dict)
+
+
+@pytest.mark.parametrize("protocol", ["ipv4", "ipv6"])
+def test_schema_v4_0_0_convert_server_to_ip_object_valid(protocol: str):
+    """
+    The new ``convert_server_to_ip`` object shape (GH #2853) must validate
+    with either supported protocol.
+    """
+    # Arrange
+    settings_dict = {"convert_server_to_ip": {"enabled": True, "protocol": protocol}}
+
+    # Act & Assert
+    assert V4_0_0.validate(settings_dict)
+
+
+def test_schema_v4_0_0_convert_server_to_ip_bool_no_longer_valid():
+    """
+    The legacy bare-boolean ``convert_server_to_ip`` shape must no longer
+    validate directly against the V4.0.0 schema - it must go through
+    migrate() first (see test_migrate_v4_0_0_convert_server_to_ip_bool_to_object).
+    """
+    # Arrange
+    settings_dict = {"convert_server_to_ip": True}
+
+    # Act & Assert
+    assert not V4_0_0.validate(settings_dict)
+
+
+def test_schema_v4_0_0_convert_server_to_ip_invalid_protocol_rejected():
+    # Arrange
+    settings_dict = {"convert_server_to_ip": {"enabled": True, "protocol": "ipv5"}}
 
     # Act & Assert
     assert not V4_0_0.validate(settings_dict)

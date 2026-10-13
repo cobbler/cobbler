@@ -321,7 +321,17 @@ convert_server_to_ip
 
 Convert hostnames to IP addresses (where possible) so DNS isn't a requirement for various tasks to work correctly.
 
-default: ``False``
+This is an object with two subkeys:
+
+``enabled``
+    Whether the conversion is performed at all.
+
+    default: ``False``
+
+``protocol``
+    Which address family to resolve the hostname to: ``"ipv4"`` or ``"ipv6"``.
+
+    default: ``"ipv4"``
 
 createrepo_flags
 ################
