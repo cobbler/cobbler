@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List
 from typing import Optional as TOptional
 from typing import Tuple
 
-from schema import Optional, Schema, SchemaError  # type: ignore
+from schema import Optional, Or, Schema, SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_3_7, helper
 
@@ -108,7 +108,10 @@ schema = Schema(
         Optional("client_use_https"): bool,
         Optional("client_use_localhost"): bool,
         Optional("cobbler_master"): str,
-        Optional("convert_server_to_ip"): bool,
+        Optional("convert_server_to_ip"): {
+            Optional("enabled"): bool,
+            Optional("protocol"): Or("ipv4", "ipv6"),  # type: ignore
+        },
         Optional("createrepo_flags"): str,
         Optional("autoinstall"): str,
         Optional("default_name_servers"): [str],
@@ -481,6 +484,13 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
 
     if not V3_3_7.validate(settings):
         raise SchemaError("V3.3.7: Schema error while validating")
+
+    # convert_server_to_ip: bool -> {"enabled": bool, "protocol": "ipv4"}
+    if isinstance(settings.get("convert_server_to_ip"), bool):
+        settings["convert_server_to_ip"] = {
+            "enabled": settings["convert_server_to_ip"],
+            "protocol": "ipv4",
+        }
 
     # rename keys and update their value if needed
     include = settings.pop("include")

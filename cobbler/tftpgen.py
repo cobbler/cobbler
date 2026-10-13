@@ -1591,11 +1591,22 @@ class TFTPGen:
             #   isn't reachable for production systems
             #
             # In order to make the revert less intrusive, it'll depend on a configuration setting
-            if self.settings and self.settings.convert_server_to_ip:
+            convert_server_to_ip = (
+                self.settings.convert_server_to_ip if self.settings else {}
+            )
+            if convert_server_to_ip.get("enabled"):
+                family = (
+                    socket.AF_INET6
+                    if convert_server_to_ip.get("protocol") == "ipv6"
+                    else socket.AF_INET
+                )
                 try:
-                    httpserveraddress = socket.gethostbyname_ex(blended["http_server"])[
-                        2
-                    ][0]
+                    resolved = socket.getaddrinfo(blended["http_server"], None, family)[
+                        0
+                    ][4][0]
+                    httpserveraddress = (
+                        f"[{resolved}]" if family == socket.AF_INET6 else resolved
+                    )
                 except socket.gaierror:
                     httpserveraddress = blended["http_server"]
             else:

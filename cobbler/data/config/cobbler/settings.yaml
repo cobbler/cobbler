@@ -584,8 +584,11 @@ proxy_url_int: ""
 # file settings (pxelinux.cfg files) to save bytes, which seemed required for S/390 systems.
 # This behavior can have negative impact on installs with multi-homed Cobbler servers, because
 # not all of the IP addresses may be reachable during system install.
-# This behavior was now made conditional, with default being "off".
-convert_server_to_ip: false
+# This behavior was now made conditional, with default being "off". "protocol" selects whether
+# the hostname is resolved to an IPv4 or an IPv6 address when "enabled" is true.
+convert_server_to_ip:
+  enabled: false
+  protocol: ipv4
 
 # Used for caching the intermediate files for ISO-Building
 buildisodir: "/var/cache/cobbler/buildiso"
