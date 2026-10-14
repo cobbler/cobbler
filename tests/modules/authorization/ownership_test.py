@@ -292,3 +292,18 @@ def test_authorize_power_system_requires_ownership(
     # Act & Assert
     assert handler.authorize("otheruser", "power_system", system) == 1
     assert handler.authorize("myuser", "power_system", system) == 0
+
+
+def test_authorize_read_only_bypass_matches_known_resources(cobbler_api: CobblerAPI):
+    """
+    The read-only bypass is scoped to ``get_``/``read_``-prefixed resources (the real resource-name family,
+    e.g. ``get_tftp_file``), not any resource that merely starts with the letters "get"/"read".
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(handler, {"admins": {"admin": 1}})
+
+    # Act & Assert
+    assert handler.authorize("ghost", "get_distro") == 1
+    assert handler.authorize("ghost", "read_autoinstall_template") == 1
+    assert handler.authorize("ghost", "getaway_something") == 0
