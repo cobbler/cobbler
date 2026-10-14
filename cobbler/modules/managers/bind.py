@@ -166,6 +166,24 @@ class _BindManager(DnsManagerModule):
             expanded_address = expanded_address[:-1]
         return expanded_address
 
+    @staticmethod
+    def __match_zone(host: str, zones: Iterable[str]) -> str:
+        """
+        Find the longest configured zone whose suffix matches ``host``.
+
+        E.g. if you have a host a.b.c.d.e and ``zones`` contains both c.d.e and b.c.d.e,
+        then a.b.c.d.e should match b.c.d.e (the more specific zone).
+
+        :param host: The fully qualified DNS name to match.
+        :param zones: The configured zone names to match against.
+        :return: The longest matching zone, or an empty string if none match.
+        """
+        best_match = ""
+        for zone in zones:
+            if re.search(rf"\.{zone}$", host) and len(zone) > len(best_match):
+                best_match = zone
+        return best_match
+
     def __forward_zones(self) -> Dict[str, Dict[str, List[str]]]:
         """
         Returns a map of zones and the records that belong in them
@@ -195,15 +213,7 @@ class _BindManager(DnsManagerModule):
                 if host.find(".") == -1:
                     continue
 
-                # Match the longest zone! E.g. if you have a host a.b.c.d.e
-                # if manage_forward_zones has:
-                # - c.d.e
-                # - b.c.d.e
-                # then a.b.c.d.e should go in b.c.d.e
-                best_match = ""
-                for zone in zones:
-                    if re.search(rf"\.{zone}$", host) and len(zone) > len(best_match):
-                        best_match = zone
+                best_match = self.__match_zone(host, zones)
 
                 # no match
                 if best_match == "":
@@ -526,13 +536,19 @@ zone "{arpa}." {{
                 result += f"{my_name}  {rclass}  {my_rectype}  {my_host};\n"
         return result
 
-    def __pretty_print_cname_records(self) -> str:
+    def __cname_records(
+        self, forward_zones: Dict[str, Dict[str, List[str]]]
+    ) -> Dict[str, str]:
         """
-        Format CNAMEs and with consistent indentation
+        Format CNAMEs with consistent indentation, grouped by the forward zone they
+        belong to (determined the same way as the A/AAAA records in
+        :meth:`__forward_zones`), so a CNAME is only ever written into the single zone
+        file matching its ``dns_name`` instead of into every configured zone.
 
-        :return: The pretty printed version of the cname records.
+        :param forward_zones: The zones returned by :meth:`__forward_zones`.
+        :return: A map of zone name to its pretty printed cname records.
         """
-        result = ""
+        result: Dict[str, str] = {zone: "" for zone in forward_zones}
 
         # This loop warns and skips the host without dns_name instead of outright exiting
         # Which results in empty records without any warning to the users
@@ -541,12 +557,19 @@ zone "{arpa}." {{
             # Use list() to avoid "dictionary changed size during iteration"
             for _, interface in list(system.interfaces.items()):
                 cnames = interface.dns.common_names
+                if not cnames:
+                    continue
 
                 try:
                     if interface.dns.name != "":
+                        zone = self.__match_zone(interface.dns.name, forward_zones)
+                        if zone == "":
+                            continue
                         dnsname = interface.dns.name.split(".")[0]
                         for cname in cnames:
-                            result += f"{cname.split('.')[0]}  CNAME  {dnsname};\n"
+                            result[
+                                zone
+                            ] += f"{cname.split('.')[0]}  CNAME  {dnsname};\n"
                     else:
                         self.logger.warning(
                             'CNAME generation for system "%s" was skipped due to a missing dns_name entry while writing'
@@ -581,6 +604,7 @@ zone "{arpa}." {{
 
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
+        cname_records = self.__cname_records(forward)
 
         search_result = self.__find_named_template(
             enums.TemplateTag.NAMED_ZONE_DEFAULT.value,
@@ -632,7 +656,7 @@ zone "{arpa}." {{
                 else:
                     template_data = search_result.content
 
-            metadata["cname_record"] = self.__pretty_print_cname_records()
+            metadata["cname_record"] = cname_records[zone]
             metadata["host_record"] = self.__pretty_print_host_records(hosts)
 
             zonefilename = zonefileprefix + zone
@@ -664,7 +688,8 @@ zone "{arpa}." {{
             if not found_zone_specific_template:
                 template_data = search_result.content
 
-            metadata["cname_record"] = self.__pretty_print_cname_records()
+            # CNAMEs are forward-zone (domain name) records; reverse/PTR zones are
+            # indexed by IP address and cannot meaningfully contain them.
             metadata["host_record"] = self.__pretty_print_host_records(
                 hosts, rectype="PTR"
             )
