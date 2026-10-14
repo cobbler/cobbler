@@ -10,7 +10,7 @@ from cobbler.remote import CobblerXMLRPCServer
 def test_cobbler_xmlrpc_server_defaults_to_ipv4() -> None:
     """
     ``CobblerXMLRPCServer`` must keep binding an IPv4 (``AF_INET``) socket by default, so existing
-    deployments relying on ``xmlrpc_bind_address`` being an IPv4 address/hostname are unaffected.
+    deployments relying on ``xmlrpc_bind_address_v4`` being an IPv4 address/hostname are unaffected.
     """
     server = CobblerXMLRPCServer(("127.0.0.1", 0))
     try:

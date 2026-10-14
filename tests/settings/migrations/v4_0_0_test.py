@@ -1269,7 +1269,9 @@ def test_schema_v4_0_0_modules_process_management_values():
     assert V4_0_0.validate(settings)
 
 
-@pytest.mark.parametrize("setting_name", ["xmlrpc_bind_address", "xmlrpc_host"])
+@pytest.mark.parametrize(
+    "setting_name", ["xmlrpc_bind_address_v4", "xmlrpc_bind_address_v6", "xmlrpc_host"]
+)
 def test_schema_v4_0_0_xmlrpc_split_container_settings_accept_str(setting_name: str):
     """
     Both new split-container settings (the daemon's bind address and the address the web
@@ -1283,7 +1285,9 @@ def test_schema_v4_0_0_xmlrpc_split_container_settings_accept_str(setting_name: 
     assert V4_0_0.validate(settings_dict)
 
 
-@pytest.mark.parametrize("setting_name", ["xmlrpc_bind_address", "xmlrpc_host"])
+@pytest.mark.parametrize(
+    "setting_name", ["xmlrpc_bind_address_v4", "xmlrpc_bind_address_v6", "xmlrpc_host"]
+)
 def test_schema_v4_0_0_xmlrpc_split_container_settings_reject_non_str(
     setting_name: str,
 ):
@@ -1351,5 +1355,7 @@ def test_schema_v4_0_0_default_settings_yaml_validates():
     assert shipped_settings["modules"]["process_management"]["module"] == "auto"
     # Both new split-container settings must default to today's exact non-containerized
     # behavior - no default-behavior change is acceptable.
-    assert shipped_settings["xmlrpc_bind_address"] == "127.0.0.1"
+    assert shipped_settings["xmlrpc_bind_address_v4"] == "127.0.0.1"
     assert shipped_settings["xmlrpc_host"] == "127.0.0.1"
+    # The IPv6 loopback listener is additive and must default to "::1".
+    assert shipped_settings["xmlrpc_bind_address_v6"] == "::1"

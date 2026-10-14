@@ -103,7 +103,7 @@ RUN mkdir -p /etc/cobbler-dhcp /etc/cobbler-dns && \
 VOLUME ["/etc/cobbler", "/srv/www/cobbler", "/var/lib/cobbler", "/srv/tftpboot", "/etc/cobbler-dhcp", "/etc/cobbler-dns"]
 
 # XML-RPC port (settings.yaml's "xmlrpc_port"), and the HTTP/XML-RPC API's Gunicorn port. NOTE: the
-# shipped default for "xmlrpc_bind_address" is 127.0.0.1; it must be changed to a non-loopback
+# shipped default for "xmlrpc_bind_address_v4" is 127.0.0.1; it must be changed to a non-loopback
 # address in the mounted settings.yaml for the "http-api" container to reach this daemon over the
 # network.
 EXPOSE 25151 8000
@@ -111,9 +111,9 @@ EXPOSE 25151 8000
 # Health check: a real XML-RPC round trip against cobblerd's own port, calling
 # CobblerXMLRPCInterface.ping() (cobbler/remote.py) -- one of the very few XML-RPC methods that
 # needs no token/check_access() call, so it works before any operator/user has been configured.
-# "localhost" is used deliberately instead of settings.yaml's configured xmlrpc_bind_address: this
+# "localhost" is used deliberately instead of settings.yaml's configured xmlrpc_bind_address_v4: this
 # check runs *inside* the container itself, where the daemon is always reachable on loopback
-# regardless of whether xmlrpc_bind_address has been widened to 0.0.0.0 for the "http-api"
+# regardless of whether xmlrpc_bind_address_v4 has been widened to 0.0.0.0 for the "http-api"
 # container's benefit. This check is only meaningful for the "cobblerd" service; the "http-api"
 # service overrides this via its own healthcheck in compose.yml/compose.dev.yml.
 HEALTHCHECK --interval=10s --timeout=5s --retries=6 \

@@ -1021,15 +1021,25 @@ default: ``DISTRO``
 
 For more information see :ref:`wingen`.
 
-xmlrpc_bind_address
-####################
+xmlrpc_bind_address_v4
+######################
 
 The address ``cobblerd``'s XML-RPC server binds to. Change this only if you need the XML-RPC server reachable from
 outside of localhost -- for example when ``cobblerd`` runs in its own container, separate from whatever serves
 ``/cblr/svc``, ``/httpboot`` and ``/images`` (see :ref:`docker-deployment`), and needs to accept connections from
-that other container. Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS`` environment variable.
+that other container. Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V4`` environment variable.
 
 default: ``"127.0.0.1"``
+
+xmlrpc_bind_address_v6
+######################
+
+The IPv6 address ``cobblerd``'s XML-RPC server additionally binds to, alongside
+``xmlrpc_bind_address_v4``, so clients that resolve ``localhost`` to ``::1`` first can still reach it.
+Set to ``""`` to disable the IPv6 listener entirely (e.g. on a minimal image with IPv6 disabled in
+the kernel). Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V6`` environment variable.
+
+default: ``"::1"``
 
 xmlrpc_host
 ###########

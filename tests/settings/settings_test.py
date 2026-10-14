@@ -51,7 +51,7 @@ def test_default_password_crypted_matches_shipped_settings_yaml():
 
 @pytest.mark.parametrize(
     "attribute_name",
-    ["xmlrpc_bind_address", "xmlrpc_host"],
+    ["xmlrpc_bind_address_v4", "xmlrpc_host"],
 )
 def test_xmlrpc_split_container_settings_default_to_localhost(attribute_name: str):
     """
@@ -70,7 +70,7 @@ def test_xmlrpc_split_container_settings_default_to_localhost(attribute_name: st
 
 @pytest.mark.parametrize(
     "attribute_name",
-    ["xmlrpc_bind_address", "xmlrpc_host"],
+    ["xmlrpc_bind_address_v4", "xmlrpc_bind_address_v6", "xmlrpc_host"],
 )
 def test_xmlrpc_split_container_settings_accept_custom_values(attribute_name: str):
     # Arrange
@@ -80,6 +80,21 @@ def test_xmlrpc_split_container_settings_accept_custom_values(attribute_name: st
 
     # Assert
     assert result[attribute_name] == "cobblerd"
+
+
+def test_xmlrpc_bind_address_v6_defaults_to_ipv6_loopback():
+    """
+    ``xmlrpc_bind_address_v6`` must default to "::1" so that a plain, non-containerized
+    install gets an IPv6 loopback listener in addition to the existing IPv4 one.
+    """
+    # Arrange
+    test_settings = Settings()
+
+    # Act
+    result = test_settings.xmlrpc_bind_address_v6
+
+    # Assert
+    assert result == "::1"
 
 
 def test_is_valid():

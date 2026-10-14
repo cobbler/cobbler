@@ -1,0 +1,1 @@
+cobblerd's XML-RPC server and the Gunicorn-hosted HTTP API now also listen on the IPv6 loopback address (`::1`) by default, alongside the existing IPv4 `127.0.0.1` listener

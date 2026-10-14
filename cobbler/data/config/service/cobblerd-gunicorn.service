@@ -4,7 +4,7 @@ After=syslog.target network.target
 Wants=cobblerd.service
 
 [Service]
-ExecStart=/usr/bin/gunicorn cobbler.services:application
+ExecStart=/usr/bin/gunicorn cobbler.services:application --bind 127.0.0.1:8000 --bind [::1]:8000
 PrivateTmp=yes
 KillMode=process
 
