@@ -114,9 +114,9 @@ class OwnershipAuthorizationModule(AuthorizationModule):
         :param user: The user to authorize to the resource.
         :param resource: The resource the user is asking for access. This is something abstract like a remove
                           operation.
-        :param arg1: For ``save_*``/``modify_*`` resources, this is the actual (possibly not-yet-persisted) object
-                     in question. For ``remove_*`` resources, this is still the name of the object (until the
-                     ``remove``/``copy``/etc. call sites are migrated too).
+        :param arg1: For resources scoped to a specific item (``save_*``/``modify_*``/``remove_*``/``copy_*``/
+                     ``power_system``), this is the actual (possibly not-yet-persisted) object in question, not
+                     its name. ``None`` for resources with no specific object (e.g. ``modify_setting``).
         :param arg2: This parameter is pointless currently. Reserved for future code.
         :return: ``1`` if okay, otherwise ``0``.
         """
@@ -142,7 +142,7 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             "remove",
             "modify",
             "edit",
-            "power",
+            "power_system",
             "background",
         ]:
             if resource.find(criteria) != -1:
@@ -184,7 +184,7 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             or resource.find("save") != -1
             or resource.find("modify") != -1
             or resource.find("copy") != -1
-            or resource.find("power") != -1
+            or resource.find("power_system") != -1
         ):
             # arg1 is the (possibly not-yet-persisted) object itself here, passed in by
             # remote.py's modify_item()/save_item()/remove_item()/copy_item()/power_system() - no
@@ -217,8 +217,12 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             ):
                 return 0
 
+            # ctime is the reliable "has this ever been saved" signal: it is set exactly once, on
+            # first persistence, and copied verbatim by make_clone() - unlike uid (which
+            # make_clone() deliberately regenerates) or name (which a rename changes), it cannot be
+            # used to make an existing object's transaction-local stand-in look new.
             if (
-                not existing_is_obj
+                obj.ctime == 0.0
                 and getattr(obj, "_owners", None) == enums.VALUE_INHERITED
             ):
                 # Brand-new object, owners never customized by the caller: decide ownership from

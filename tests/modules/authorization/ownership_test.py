@@ -366,3 +366,95 @@ def test_authorize_does_not_reclaim_existing_unowned_object(
     # Assert
     assert result == 0
     assert profile.owners != ["mygroup"]
+
+
+def test_authorize_does_not_auto_assign_owner_for_clone_of_existing_object(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Security regression test: remote.py's transaction handling edits a ``make_clone()`` of an existing object,
+    whose ``uid`` differs from the original (``make_clone()`` deliberately drops it) even though it represents
+    the same, already-persisted item. Detecting "is this a new object" by comparing ``obj.uid`` against a
+    by-name lookup therefore misclassifies such a clone as new on every call after the first, letting a user with
+    no real relationship to the object get it auto-assigned to their own group. The real signal must survive
+    cloning and renaming - ``ctime`` does (it is only set once, on first save, and copied by ``make_clone()``).
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"otheruser": 1},
+        },
+    )
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    profile.owners = ["othergroup"]
+    system = create_system(profile_uid=profile.uid)
+    assert system.owners == ["othergroup"]  # resolved via inheritance from the profile
+
+    clone = system.make_clone()
+    assert clone.uid != system.uid
+    assert clone.ctime == system.ctime
+
+    # Act
+    result = handler.authorize("myuser", "modify_system", clone)
+
+    # Assert
+    assert result == 0
+    assert clone.owners != ["mygroup"]
+
+
+def test_authorize_does_not_mutate_owners_of_open_object_via_clone(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Security regression test: a clone of an existing object that is intentionally open to everyone
+    (``owners == []``) must not be silently narrowed to a single group's ownership as a side effect of an
+    unrelated transaction-clone modify call. The by-name-collision check only denies when the real object has
+    non-empty owners, so an open object's clone reaches the "is this new" check unguarded - the fix must
+    recognize the clone as not-new (via ``ctime``) regardless.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(handler, {"admins": {"admin": 1}, "mygroup": {"myuser": 1}})
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    profile.owners = []
+    system = create_system(profile_uid=profile.uid)
+    assert system.owners == []
+
+    clone = system.make_clone()
+    assert clone.uid != system.uid
+
+    # Act
+    result = handler.authorize("myuser", "modify_system", clone)
+
+    # Assert
+    assert result == 1  # open objects remain editable by anyone
+    assert (
+        clone.owners == []
+    )  # but must not be silently narrowed to the caller's own group
+
+
+def test_authorize_bare_power_role_is_not_object_scoped(cobbler_api: CobblerAPI):
+    """
+    Regression test: remote.py's __start_task() calls check_access(token, "power") (no object) as a generic,
+    role-level gate for background power tasks - distinct from the "power_system" resource, which IS
+    object-scoped. "power" must not be classified as a modify_operation requiring an object, or every
+    non-admin background power task would be unconditionally denied.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(handler, {"admins": {"admin": 1}, "mygroup": {"myuser": 1}})
+
+    # Act & Assert
+    assert handler.authorize("myuser", "power") == 1

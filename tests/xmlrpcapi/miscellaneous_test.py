@@ -721,3 +721,36 @@ def test_save_distro_with_sync_false_forwarded(
         assert result is True
         _, kwargs = mock_add.call_args
         assert kwargs.get("with_sync") is False
+
+
+def test_rename_item_passes_resolved_object_to_check_access(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_kernel_initrd: Callable[[str, str], str],
+    create_distro: Callable[[str, str, str, str, str], str],
+):
+    """
+    Regression test: rename_item() must pass the resolved object to check_access(), like modify_item()/
+    save_item()/remove_item()/copy_item() already do - not just the resource name with no object at all, which
+    would make the ownership authorization module deny every non-admin rename unconditionally.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    basepath = create_kernel_initrd("vmlinuz3", "initrd3.img")
+    path_kernel = os.path.join(basepath, "vmlinuz3")
+    path_initrd = os.path.join(basepath, "initrd3.img")
+    distro_uid = create_distro(
+        "testdistro_rename", "x86_64", "suse", path_kernel, path_initrd
+    )
+
+    # Act & Assert
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        result = remote.rename_item("distro", distro_uid, "testdistro_renamed", token)
+        assert result is True
+        args, _ = mock_check_access.call_args
+        passed_obj = args[2]
+        assert passed_obj is not None
+        assert getattr(passed_obj, "uid", None) == distro_uid

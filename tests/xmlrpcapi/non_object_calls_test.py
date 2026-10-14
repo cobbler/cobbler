@@ -100,6 +100,58 @@ def test_background_power_system(
     wait_task_end(tid, remote)
 
 
+def test_background_power_system_checks_access_per_system(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    wait_task_end: WaitTaskEndType,
+    create_kernel_initrd: Callable[[str, str], str],
+    create_distro: Callable[[str, str, str, str, str], str],
+    create_profile: Callable[[str, str, str], str],
+    create_system: Callable[[str, str], str],
+):
+    """
+    Regression test: background_power_system() previously called check_access(token, "power_system") once, with
+    no object at all, before starting the task - under the ownership authorization module this made the
+    "power_system" resource unconditionally denied for non-admins (since it now requires an object, like the
+    synchronous power_system() RPC already did). It must check access once per targeted system, each with that
+    system's actual object, before the background task is started.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    fk_kernel = "vmlinuz4"
+    fk_initrd = "initrd4.img"
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    path_kernel = os.path.join(folder, fk_kernel)
+    path_initrd = os.path.join(folder, fk_initrd)
+    distro_uid = create_distro(
+        "test_distro_background_power_access",
+        "x86_64",
+        "suse",
+        path_kernel,
+        path_initrd,
+    )
+    profile_uid = create_profile("test_profile_background_power_access", distro_uid, "")
+    system_uid = create_system("test_system_background_power_access", profile_uid)
+
+    # Act & Assert
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        tid = remote.background_power_system(
+            {"systems": [system_uid], "power": "status"}, token
+        )
+        wait_task_end(tid, remote)
+        power_system_calls = [
+            call
+            for call in mock_check_access.call_args_list
+            if call.args[1] == "power_system"
+        ]
+        assert len(power_system_calls) == 1
+        passed_obj = power_system_calls[0].args[2]
+        assert getattr(passed_obj, "uid", None) == system_uid
+
+
 def test_background_syncsystems(
     remote: CobblerXMLRPCInterface,
     token: str,

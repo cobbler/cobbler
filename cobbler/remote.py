@@ -570,7 +570,11 @@ class CobblerXMLRPCInterface:
                         f"failed to execute power task on {str(system_uid)}, exception: {str(error)}"
                     )
 
-        self.check_access(token, "power_system")
+        for system_uid in options.get("systems", []):
+            system_obj = self.api.find_system(uid=system_uid, return_list=False)
+            if system_obj is None or isinstance(system_obj, list):
+                raise ValueError(f'System with uid "{system_uid}" not found')
+            self.check_access(token, "power_system", system_obj)
         return self.__start_task(
             runner,
             token,
@@ -2660,9 +2664,9 @@ class CobblerXMLRPCInterface:
         self._log(f"rename_item({what})", object_id=object_id, token=token)
         if token is None:
             raise ValueError('"token" must be provided to rename an item!')
-        self.check_access(token, f"modify_{what}")
+        obj = self.__get_object(object_id, token)
+        self.check_access(token, f"modify_{what}", obj)
         if token in self.transactions:
-            obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
             obj_copy.name = newname
             self.transactions[token][obj_copy.uid] = TransactionTuple(
