@@ -367,6 +367,71 @@ def test_sort_zones(
     mock_config_files.open_unknown.assert_not_called()
 
 
+def test_cname_records_scoped_to_matching_forward_zone(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    mock_config_files: MockFiles,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+):
+    """
+    Test that a CNAME is only written into the forward zone file matching its dns_name,
+    instead of being duplicated into every configured forward (and reverse) zone file.
+    """
+    # Arrange
+    settings = cobbler_api.settings()
+    settings.from_dict(
+        {
+            "server": "cobbler.example.com",
+            "manage_dns": True,
+            "manage_forward_zones": ["zone1.example.com", "zone2.example.com"],
+            "manage_reverse_zones": ["192.168.1"],
+            "manage_dhcp_v4": False,
+            "manage_dhcp_v6": False,
+        }
+    )
+
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = cobbler_api.new_system(name="test", profile=test_profile.uid)
+    cobbler_api.add_system(test_system)
+    test_interface = cobbler_api.new_network_interface(
+        system_uid=test_system.uid,
+        name="default",
+        ipv4={"address": "192.168.1.2"},
+        dns={
+            "name": "myhost.zone1.example.com",
+            "common_names": ["asdf.zone1.example.com"],
+        },
+    )
+    cobbler_api.add_network_interface(test_interface)
+
+    manager = bind.get_manager(cobbler_api)
+
+    # Act
+    manager.write_configs()
+
+    # Assert
+    mocker.stopall()
+
+    assert_zone_has(
+        "/var/lib/named/zone1.example.com",
+        ["asdf", "CNAME", "myhost"],
+    )
+
+    zone2_lines = open("/var/lib/named/zone2.example.com").readlines()
+    assert not any(
+        "CNAME" in line for line in zone2_lines
+    ), f"Unexpected CNAME leaked into unrelated zone2.example.com: {zone2_lines}"
+
+    reverse_lines = open("/var/lib/named/192.168.1").readlines()
+    assert not any(
+        "CNAME" in line for line in reverse_lines
+    ), f"Unexpected CNAME leaked into reverse zone 192.168.1: {reverse_lines}"
+
+    mock_config_files.open_unknown.assert_not_called()
+
+
 @pytest.mark.skip("Advanced complicated test scenario for now.")
 def test_write_configs_zone_template(cobbler_api: CobblerAPI):
     """

@@ -1,0 +1,1 @@
+Modules: bind - Scope CNAME records to their matching forward zone instead of duplicating them into every configured forward (and reverse) zone file.
