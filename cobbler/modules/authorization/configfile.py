@@ -14,6 +14,8 @@ import os
 from configparser import ConfigParser
 from typing import TYPE_CHECKING, Any, Dict
 
+from cobbler.modules.authorization import AuthorizationModule
+
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
 
@@ -30,47 +32,56 @@ def register() -> str:
     return "authz"
 
 
-def __parse_config() -> Dict[str, Dict[Any, Any]]:
+class ConfigfileAuthorizationModule(AuthorizationModule):
     """
-    Parse the the users.conf file.
-
-    :return: The data of the config file.
+    Authorization module that allow users listed in /etc/cobbler/users.conf to be permitted to access resources.
     """
-    if not os.path.exists(CONFIG_FILE):
-        return {}
-    config = ConfigParser()
-    config.read(CONFIG_FILE)
-    alldata: Dict[str, Dict[str, Any]] = {}
-    groups = config.sections()
-    for group in groups:
-        alldata[str(group)] = {}
-        options = config.options(group)
-        for option in options:
-            alldata[group][option] = 1
-    return alldata
+
+    def __parse_config(self) -> Dict[str, Dict[Any, Any]]:
+        """
+        Parse the the users.conf file.
+
+        :return: The data of the config file.
+        """
+        if not os.path.exists(CONFIG_FILE):
+            return {}
+        config = ConfigParser()
+        config.read(CONFIG_FILE)
+        alldata: Dict[str, Dict[str, Any]] = {}
+        groups = config.sections()
+        for group in groups:
+            alldata[str(group)] = {}
+            options = config.options(group)
+            for option in options:
+                alldata[group][option] = 1
+        return alldata
+
+    def authorize(
+        self, user: str, resource: str, arg1: Any = None, arg2: Any = None
+    ) -> int:
+        """
+        Validate a user against a resource. All users in the file are permitted by this module.
+
+        :param user: The user to authorize.
+        :param resource: This parameter is not used currently.
+        :param arg1: This parameter is not used currently.
+        :param arg2: This parameter is not used currently.
+        :return: "0" if no authorized, "1" if authorized.
+        """
+        # FIXME: this must be modified to use the new ACL engine
+
+        data = self.__parse_config()
+        for _, group_data in data.items():
+            if user.lower() in group_data:
+                return 1
+        return 0
 
 
-def authorize(
-    api_handle: "CobblerAPI",
-    user: str,
-    resource: str,
-    arg1: Any = None,
-    arg2: Any = None,
-) -> int:
+def get_authorization_handler(api: "CobblerAPI") -> ConfigfileAuthorizationModule:
     """
-    Validate a user against a resource. All users in the file are permitted by this module.
+    Factory consumed by :class:`cobbler.api.CobblerAPI` to obtain the authorization handler instance.
 
-    :param api_handle: This parameter is not used currently.
-    :param user: The user to authorize.
-    :param resource: This parameter is not used currently.
-    :param arg1: This parameter is not used currently.
-    :param arg2: This parameter is not used currently.
-    :return: "0" if no authorized, "1" if authorized.
+    :param api: The API which is used for resolving information.
+    :return: The handler instance.
     """
-    # FIXME: this must be modified to use the new ACL engine
-
-    data = __parse_config()
-    for _, group_data in data.items():
-        if user.lower() in group_data:
-            return 1
-    return 0
+    return ConfigfileAuthorizationModule(api)

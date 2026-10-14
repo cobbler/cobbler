@@ -12,5 +12,7 @@ def test_register():
 
 
 def test_authorize(cobbler_api: CobblerAPI):
-    # Arrange & Act & Assert
-    assert allowall.authorize(cobbler_api, "", "")
+    # Arrange
+    handler = allowall.get_authorization_handler(cobbler_api)
+    # Act & Assert
+    assert handler.authorize("", "")

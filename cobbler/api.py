@@ -287,7 +287,7 @@ class CobblerAPI:
             )
             self.authz = self.get_module_from_file(
                 "authorization", "module", "authorization.allowall"
-            )
+            ).get_authorization_handler(self)
 
             self.autoinstall_mgr = AutoInstallationManager(self)
             self.yumgen = yumgen.YumGen(self)
@@ -3108,7 +3108,7 @@ class CobblerAPI:
         :param arg2: Currently unused by the built-in authorization modules. Reserved for future use.
         :return: The return code of the action.
         """
-        return_code: int = self.authz.authorize(self, user, resource, arg1, arg2)
+        return_code: int = self.authz.authorize(user, resource, arg1, arg2)
         self.log(
             "authorize", [user, resource, arg1, arg2, str(return_code)], debug=True
         )
