@@ -1,5 +1,7 @@
 from typing import Any, Callable, Dict
 
+import pytest
+
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.menu import Menu
@@ -49,24 +51,6 @@ def test_authorize_save_new_object_with_explicit_owners_succeeds(
 
     # Assert
     assert result == 1
-
-
-def test_authorize_save_new_object_default_owners_denied_for_non_admin(
-    cobbler_api: CobblerAPI,
-    create_distro: Callable[..., Distro],
-    create_profile: Callable[..., Profile],
-):
-    # Arrange
-    handler = ownership.get_authorization_handler(cobbler_api)
-    _patch_groups(handler, {"admins": {"admin": 1}, "mygroup": {"myuser": 1}})
-    distro = create_distro()
-    profile = create_profile(distro_uid=distro.uid, with_add=False)
-
-    # Act
-    result = handler.authorize("myuser", "save_profile", profile)
-
-    # Assert
-    assert result == 0
 
 
 def test_authorize_save_existing_object_owner_allowed(
@@ -307,3 +291,78 @@ def test_authorize_read_only_bypass_matches_known_resources(cobbler_api: Cobbler
     assert handler.authorize("ghost", "get_distro") == 1
     assert handler.authorize("ghost", "read_autoinstall_template") == 1
     assert handler.authorize("ghost", "getaway_something") == 0
+
+
+def test_authorize_auto_assigns_owner_for_new_object_single_group(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+):
+    """
+    A brand-new, not-yet-persisted object whose owners were never explicitly set should be auto-assigned to the
+    creating user's own group, so they aren't immediately locked out of what they just created.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(handler, {"admins": {"admin": 1}, "mygroup": {"myuser": 1}})
+    distro = create_distro()
+    profile = cobbler_api.new_profile()
+    profile.name = "test_authorize_auto_assign_single_group"
+    profile.distro = distro.uid
+
+    # Act
+    result = handler.authorize("myuser", "save_profile", profile)
+
+    # Assert
+    assert result == 1
+    assert profile.owners == ["mygroup"]
+
+
+def test_authorize_refuses_new_object_multiple_groups(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+):
+    """
+    Ownership of a brand-new object cannot be auto-decided when the creating user belongs to more than one
+    non-admin group - refuse with a descriptive error rather than silently denying or guessing.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"myuser": 1},
+        },
+    )
+    distro = cobbler_api.new_distro()
+    distro.name = "test_authorize_refuses_multi_group"
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        handler.authorize("myuser", "save_distro", distro)
+
+
+def test_authorize_does_not_reclaim_existing_unowned_object(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+):
+    """
+    An already-persisted object left at its default/inherited owner must not be auto-claimed by the next
+    non-admin group member who happens to save it - only genuine creation triggers auto-assignment.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(handler, {"admins": {"admin": 1}, "mygroup": {"myuser": 1}})
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    assert profile.owners != []
+
+    # Act
+    result = handler.authorize("myuser", "save_profile", profile)
+
+    # Assert
+    assert result == 0
+    assert profile.owners != ["mygroup"]

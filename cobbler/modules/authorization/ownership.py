@@ -14,6 +14,7 @@ import os
 from configparser import ConfigParser
 from typing import TYPE_CHECKING, Any, Dict, List
 
+from cobbler import enums
 from cobbler.modules.authorization import AuthorizationModule
 
 if TYPE_CHECKING:
@@ -200,16 +201,41 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             existing = self.api.find_items(
                 what=obj.COLLECTION_TYPE, criteria={"name": obj.name}, return_list=False
             )
+            existing_is_obj = (
+                existing is not None
+                and not isinstance(existing, list)
+                and existing.uid == obj.uid
+            )
             if (
                 existing is not None
                 and not isinstance(existing, list)
-                and existing.uid != obj.uid
+                and not existing_is_obj
                 and existing.owners not in (None, [])
                 and not self.__is_user_allowed(
                     existing, found_groups, user, resource, arg1, arg2
                 )
             ):
                 return 0
+
+            if (
+                not existing_is_obj
+                and getattr(obj, "_owners", None) == enums.VALUE_INHERITED
+            ):
+                # Brand-new object, owners never customized by the caller: decide ownership from
+                # the creating user's own group membership so they don't immediately lock
+                # themselves out of what they just created.
+                non_admin_groups = [
+                    group for group in found_groups if group not in ("admins", "admin")
+                ]
+                if len(non_admin_groups) == 1:
+                    obj.owners = non_admin_groups
+                    return 1
+                if len(non_admin_groups) > 1:
+                    raise ValueError(
+                        f'Cannot automatically assign ownership of new object "{obj.name}" for '
+                        f'user "{user}": they belong to multiple groups {non_admin_groups}. Set '
+                        '"owners" explicitly before saving.'
+                    )
 
         # if the object has no ownership data, allow access regardless
         if obj.owners is None or obj.owners == []:  # type: ignore[reportUnnecessaryComparison]
