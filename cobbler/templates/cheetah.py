@@ -154,7 +154,10 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
         This will first check for a per-system snippet, a per-profile snippet, a distro snippet, and a general snippet.
 
         :param template_identifier: The name or uid of the template.
-        :return: None (if the snippet file was not found) or the string with the read snippet.
+        :return: ``None`` when the snippet is missing or the lookup is ambiguous. Otherwise the snippet content,
+            prefixed exactly once with ``#errorCatcher ListErrors`` for every successful selection (general, system,
+            profile, and distro). The directive keeps an unresolved variable inside the snippet instead of failing the
+            caller's ``SNIPPET`` expression.
         """
         if self.validate_uuid(template_identifier):
             search_result = self.cobbler_api.find_template(
@@ -169,6 +172,8 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
             logger.warning("Requested Cheetah Snippet not found!")
             return None
 
+        # System, then profile, then distro. The first match wins; a later class must not replace it.
+        selected = search_result
         for snippet_class in ("system", "profile", "distro"):
             if self.varExists(f"{snippet_class}_name"):  # type: ignore
                 if self.validate_uuid(template_identifier):
@@ -194,9 +199,15 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
                     logger.info(
                         "Using override Template %s!", override_search_result.uid
                     )
-                    return override_search_result.content
+                    selected = override_search_result
+                    break
 
-        return "#errorCatcher ListErrors\n" + search_result.content
+        # General snippets already received this directive. Override content must get the same one so both paths
+        # share the include-cache key and the same unresolved-variable behavior.
+        directive = "#errorCatcher ListErrors\n"
+        if selected.content.startswith(directive):
+            return selected.content
+        return directive + selected.content
 
     def SNIPPET(self, file: str) -> Any:
         """

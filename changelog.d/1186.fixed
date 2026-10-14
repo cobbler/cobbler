@@ -1,0 +1,1 @@
+Give per-system, per-profile, and per-distro Cheetah snippets the same ListErrors handling as general snippets, so variables resolve consistently and a missing variable stays inside the snippet.

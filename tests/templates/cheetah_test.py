@@ -2,6 +2,9 @@
 Test module for verifying Cheetah template functionalities in Cobbler.
 """
 
+from types import SimpleNamespace
+from unittest.mock import patch
+
 import pytest
 
 from cobbler.api import CobblerAPI
@@ -117,3 +120,19 @@ def test_sedesc(cobbler_api: CobblerAPI):
 
     # Assert
     assert result == expected
+
+
+def test_system_snippet_missing_variable(cobbler_api: CobblerAPI):
+    """
+    Test that an unresolved variable preserves the per-system snippet and its placeholder.
+    """
+    # Arrange
+    snippet = SimpleNamespace(uid="system-snippet", content="url=$solo_name\n")
+    provider = CheetahTemplateProvider(cobbler_api)
+
+    # Act
+    with patch.object(cobbler_api, "find_template", return_value=snippet):
+        result = provider.render("$SNIPPET('chef_solo')", {"system_name": "node1"})
+
+    # Assert
+    assert result == "url=$solo_name\n"
