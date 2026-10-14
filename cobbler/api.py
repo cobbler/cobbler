@@ -3096,7 +3096,7 @@ class CobblerAPI:
         return return_code
 
     def authorize(
-        self, user: str, resource: str, arg1: Optional[str] = None, arg2: Any = None
+        self, user: str, resource: str, arg1: Any = None, arg2: Any = None
     ) -> int:
         """
         (Remote) access control. This depends on the chosen authorization module.

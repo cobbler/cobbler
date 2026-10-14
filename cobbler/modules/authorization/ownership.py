@@ -12,7 +12,7 @@ allow certain users/groups to access those specific objects.
 
 import os
 from configparser import ConfigParser
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 from cobbler.modules.authorization import AuthorizationModule
 
@@ -163,7 +163,7 @@ class OwnershipAuthorizationModule(AuthorizationModule):
         self,
         user: str,
         resource: str,
-        arg1: Optional[str] = None,
+        arg1: Any = None,
         arg2: Any = None,
     ) -> int:
         """
@@ -172,7 +172,9 @@ class OwnershipAuthorizationModule(AuthorizationModule):
         :param user: The user to authorize to the resource.
         :param resource: The resource the user is asking for access. This is something abstract like a remove
                           operation.
-        :param arg1: This is normally the name of the specific object in question.
+        :param arg1: For ``save_*``/``modify_*`` resources, this is the actual (possibly not-yet-persisted) object
+                     in question. For ``remove_*`` resources, this is still the name of the object (until the
+                     ``remove``/``copy``/etc. call sites are migrated too).
         :param arg2: This parameter is pointless currently. Reserved for future code.
         :return: ``1`` if okay, otherwise ``0``.
         """
@@ -265,7 +267,9 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             elif resource == "remove_image":
                 obj = self.api.find_image(name=arg1)
         elif resource.find("save") != -1 or resource.find("modify") != -1:
-            obj = self.api.find_items(what="", criteria={"name": arg1})
+            # arg1 is already the (possibly not-yet-persisted) object itself here, passed in by
+            # remote.py's modify_item()/save_item() - no name lookup needed or possible for new objects.
+            obj = arg1
 
         if obj is None or isinstance(obj, list):
             raise ValueError("Object not found or found multiple times!")

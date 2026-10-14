@@ -15,7 +15,7 @@ Every authorization module must implement :class:`AuthorizationModule` below:
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -36,7 +36,7 @@ class AuthorizationModule(ABC):
 
     @abstractmethod
     def authorize(
-        self, user: str, resource: str, arg1: Optional[str] = None, arg2: Any = None
+        self, user: str, resource: str, arg1: Any = None, arg2: Any = None
     ) -> int:
         """
         Validate a user against a resource.

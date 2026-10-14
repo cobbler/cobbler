@@ -1,0 +1,1 @@
+Fix the ownership authorization module raising an authorization error for every non-admin save/modify, including creating new objects, instead of correctly checking ownership against the object itself.

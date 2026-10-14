@@ -3008,7 +3008,7 @@ class CobblerXMLRPCInterface:
             token=token,
         )
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"modify_{what}", obj.name, attribute)
+        self.check_access(token, f"modify_{what}", obj, attribute)
 
         if token in self.transactions and object_id not in self.transactions[token]:
             new_obj = cast(InheritableItem, obj.make_clone())
@@ -3313,7 +3313,7 @@ class CobblerXMLRPCInterface:
         """
         self._log(f"save_item({what})", object_id=object_id, token=token)
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"save_{what}", obj.name)
+        self.check_access(token, f"save_{what}", obj)
         if token in self.transactions and object_id in self.transactions[token]:
             # obj.check_if_valid()
             # the object will be saved in commit_transaction()
@@ -4927,7 +4927,7 @@ class CobblerXMLRPCInterface:
         self,
         token: Optional[str],
         resource: str,
-        arg1: Optional[str] = None,
+        arg1: Any = None,
         arg2: Any = None,
     ) -> int:
         """
