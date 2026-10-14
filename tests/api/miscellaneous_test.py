@@ -433,6 +433,18 @@ def test_get_process_management_module_auto_resolves_to_service_outside_containe
     assert result.__name__ == "cobbler.modules.process_management.service"
 
 
+def test_authorize_uses_authorization_handler(cobbler_api: CobblerAPI):
+    """
+    Regression test: ``CobblerAPI.authorize()`` must call through the instantiated authorization handler
+    (``get_authorization_handler()``), not treat ``self.authz`` as the raw module.
+    """
+    # Act
+    result = cobbler_api.authorize("someuser", "get_distro")
+
+    # Assert
+    assert result == 1
+
+
 def test_get_process_management_module_explicit_setting_survives_container_detection(
     cobbler_api: CobblerAPI, mocker: "MockerFixture"
 ):

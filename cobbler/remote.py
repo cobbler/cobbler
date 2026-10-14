@@ -570,7 +570,11 @@ class CobblerXMLRPCInterface:
                         f"failed to execute power task on {str(system_uid)}, exception: {str(error)}"
                     )
 
-        self.check_access(token, "power_system")
+        for system_uid in options.get("systems", []):
+            system_obj = self.api.find_system(uid=system_uid, return_list=False)
+            if system_obj is None or isinstance(system_obj, list):
+                raise ValueError(f'System with uid "{system_uid}" not found')
+            self.check_access(token, "power_system", system_obj)
         return self.__start_task(
             runner,
             token,
@@ -593,7 +597,7 @@ class CobblerXMLRPCInterface:
         system_obj = self.api.find_system(uid=system_id, return_list=False)
         if system_obj is None or isinstance(system_obj, list):
             raise ValueError(f'System with uid "{system_id}" not found')
-        self.check_access(token, "power_system", system_obj.name)
+        self.check_access(token, "power_system", system_obj)
         result = self.api.power_system(system_obj, power)
         return True if result is None else result
 
@@ -1204,7 +1208,7 @@ class CobblerXMLRPCInterface:
         )
         if obj is None or isinstance(obj, list):
             raise ValueError(f'Item with item_uuid "{item_uuid}" did not exist!')
-        self.check_access(token, f"modify_{obj.COLLECTION_TYPE}", obj.name, attribute)
+        self.check_access(token, f"modify_{obj.COLLECTION_TYPE}", obj, attribute)
         self.api.set_item_resolved_value(item_uuid, attribute, value)
         return True
 
@@ -2313,7 +2317,7 @@ class CobblerXMLRPCInterface:
             obj = cast(InheritableItem, self.__get_object(object_id, token))
         except ValueError:
             return False
-        self.check_access(token, f"remove_{what}", obj.name)
+        self.check_access(token, f"remove_{what}", obj)
         if token in self.transactions:
             self.transactions[token][object_id] = TransactionTuple(
                 what, obj, True, obj.mtime, obj.uid, []
@@ -2484,9 +2488,9 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         self._log(f"copy_item({what})", object_id=object_id, token=token)
-        self.check_access(token, f"copy_{what}")
+        obj = self.__get_object(object_id, token)
+        self.check_access(token, f"copy_{what}", obj)
         if token in self.transactions:
-            obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
             obj_copy.name = newname
             self.transactions[token][obj_copy.uid] = TransactionTuple(
@@ -2660,9 +2664,9 @@ class CobblerXMLRPCInterface:
         self._log(f"rename_item({what})", object_id=object_id, token=token)
         if token is None:
             raise ValueError('"token" must be provided to rename an item!')
-        self.check_access(token, f"modify_{what}")
+        obj = self.__get_object(object_id, token)
+        self.check_access(token, f"modify_{what}", obj)
         if token in self.transactions:
-            obj = self.__get_object(object_id, token)
             obj_copy = cast(InheritableItem, obj.make_clone())
             obj_copy.name = newname
             self.transactions[token][obj_copy.uid] = TransactionTuple(
@@ -3008,7 +3012,7 @@ class CobblerXMLRPCInterface:
             token=token,
         )
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"modify_{what}", obj.name, attribute)
+        self.check_access(token, f"modify_{what}", obj, attribute)
 
         if token in self.transactions and object_id not in self.transactions[token]:
             new_obj = cast(InheritableItem, obj.make_clone())
@@ -3286,7 +3290,7 @@ class CobblerXMLRPCInterface:
 
         :param token: The API-token obtained via the login() method.
         """
-        self.check_access(token, "new_repo", token)
+        self.check_access(token, "new_repo")
         self.api.auto_add_repos()
         return True
 
@@ -3313,7 +3317,7 @@ class CobblerXMLRPCInterface:
         """
         self._log(f"save_item({what})", object_id=object_id, token=token)
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"save_{what}", obj.name)
+        self.check_access(token, f"save_{what}", obj)
         if token in self.transactions and object_id in self.transactions[token]:
             # obj.check_if_valid()
             # the object will be saved in commit_transaction()
@@ -4927,7 +4931,7 @@ class CobblerXMLRPCInterface:
         self,
         token: Optional[str],
         resource: str,
-        arg1: Optional[str] = None,
+        arg1: Any = None,
         arg2: Any = None,
     ) -> int:
         """
@@ -5059,9 +5063,7 @@ class CobblerXMLRPCInterface:
             obj: Optional["system.System"] = self.__get_object(object_id, token)  # type: ignore
         except ValueError:
             obj = None
-        self.check_access(
-            token, "clear_system_logs", obj.name if obj else "object not found"
-        )
+        self.check_access(token, "clear_system_logs", obj)
         if obj is None:
             return False
         self.api.clear_logs(obj)
