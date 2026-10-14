@@ -2,6 +2,7 @@ from typing import Any, Callable, Dict
 
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
+from cobbler.items.menu import Menu
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 from cobbler.modules.authorization import ownership
@@ -139,6 +140,125 @@ def test_authorize_denies_unknown_user(
 
     # Act
     result = handler.authorize("ghost", "save_system", system)
+
+    # Assert
+    assert result == 0
+
+
+def test_authorize_remove_template_requires_ownership(cobbler_api: CobblerAPI):
+    """
+    Regression test: ``remove_template`` previously fell through the hand-rolled, by-name ``remove_*`` dispatch
+    (which only covered distro/profile/system/repo/image) and crashed with ``ValueError``.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"otheruser": 1},
+        },
+    )
+    test_template = cobbler_api.new_template(
+        name="test_authorize_remove_template", template_type="cheetah"
+    )
+    cobbler_api.add_template(test_template)
+    test_template.owners = ["mygroup"]
+
+    # Act & Assert
+    assert handler.authorize("myuser", "remove_template", test_template) == 1
+    assert handler.authorize("otheruser", "remove_template", test_template) == 0
+
+
+def test_authorize_remove_menu_requires_ownership(
+    cobbler_api: CobblerAPI, create_menu: Callable[..., Menu]
+):
+    """
+    Regression test: ``remove_menu`` previously fell through the hand-rolled, by-name ``remove_*`` dispatch and
+    crashed with ``ValueError``.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"otheruser": 1},
+        },
+    )
+    menu = create_menu()
+    menu.owners = ["mygroup"]
+
+    # Act & Assert
+    assert handler.authorize("myuser", "remove_menu", menu) == 1
+    assert handler.authorize("otheruser", "remove_menu", menu) == 0
+
+
+def test_authorize_copy_requires_ownership(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Regression test: ``copy_item()`` previously called ``check_access()`` with no object at all, so every
+    non-admin copy was denied regardless of ownership.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"otheruser": 1},
+        },
+    )
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    system = create_system(profile_uid=profile.uid)
+    system.owners = ["mygroup"]
+
+    # Act & Assert
+    assert handler.authorize("myuser", "copy_system", system) == 1
+    assert handler.authorize("otheruser", "copy_system", system) == 0
+
+
+def test_authorize_save_denies_name_collision_with_owned_existing_object(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Security regression test: a user must not be able to bypass ownership of an existing, differently-owned
+    object by constructing a new, unsaved object with the same name and self-assigning its (unenforced) owners -
+    authorize() must check the real, already-persisted owner of that name too.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"otheruser": 1},
+        },
+    )
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    existing_system = create_system(profile_uid=profile.uid, name="colliding-name")
+    existing_system.owners = ["othergroup"]
+
+    colliding_new_system = cobbler_api.new_system()
+    colliding_new_system.name = "colliding-name"
+    colliding_new_system.profile = profile.uid
+    colliding_new_system.owners = ["mygroup"]
+
+    # Act
+    result = handler.authorize("myuser", "save_system", colliding_new_system)
 
     # Assert
     assert result == 0

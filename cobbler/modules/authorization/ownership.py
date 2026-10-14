@@ -255,27 +255,40 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             return 1
 
         obj = None
-        if resource.find("remove") != -1:
-            if resource == "remove_distro":
-                obj = self.api.find_distro(name=arg1)
-            elif resource == "remove_profile":
-                obj = self.api.find_profile(name=arg1)
-            elif resource == "remove_system":
-                obj = self.api.find_system(name=arg1)
-            elif resource == "remove_repo":
-                obj = self.api.find_repo(name=arg1)
-            elif resource == "remove_image":
-                obj = self.api.find_image(name=arg1)
-        elif resource.find("save") != -1 or resource.find("modify") != -1:
-            # arg1 is already the (possibly not-yet-persisted) object itself here, passed in by
-            # remote.py's modify_item()/save_item() - no name lookup needed or possible for new objects.
+        if (
+            resource.find("remove") != -1
+            or resource.find("save") != -1
+            or resource.find("modify") != -1
+            or resource.find("copy") != -1
+        ):
+            # arg1 is the (possibly not-yet-persisted) object itself here, passed in by
+            # remote.py's modify_item()/save_item()/remove_item()/copy_item() - no by-name lookup
+            # is needed (or, for a new item, even possible).
             obj = arg1
 
         if obj is None or isinstance(obj, list):
             raise ValueError("Object not found or found multiple times!")
 
+        if resource.find("save") != -1 or resource.find("modify") != -1:
+            # A name collision with an already-persisted, differently-owned object must not let a
+            # self-assigned (e.g. brand-new) object's unenforced ownership stand in for the real
+            # owner of that name.
+            existing = self.api.find_items(
+                what=obj.COLLECTION_TYPE, criteria={"name": obj.name}, return_list=False
+            )
+            if (
+                existing is not None
+                and not isinstance(existing, list)
+                and existing.uid != obj.uid
+                and existing.owners not in (None, [])
+                and not self.__is_user_allowed(
+                    existing, found_groups, user, resource, arg1, arg2
+                )
+            ):
+                return 0
+
         # if the object has no ownership data, allow access regardless
-        if obj is None or obj.owners is None or obj.owners == []:  # type: ignore[reportUnnecessaryComparison]
+        if obj.owners is None or obj.owners == []:  # type: ignore[reportUnnecessaryComparison]
             return 1
 
         return self.__is_user_allowed(obj, found_groups, user, resource, arg1, arg2)
