@@ -2,6 +2,10 @@
 Test module for verifying Cheetah template functionalities in Cobbler.
 """
 
+from types import SimpleNamespace
+from typing import Any, Dict, List, Set, Tuple
+from unittest.mock import patch
+
 import pytest
 
 from cobbler.api import CobblerAPI
@@ -114,6 +118,115 @@ def test_sedesc(cobbler_api: CobblerAPI):
 
     # Act
     result = test_template.sedesc(test_input)
+
+    # Assert
+    assert result == expected
+
+
+def test_system_snippet_missing_variable(cobbler_api: CobblerAPI):
+    """
+    Test that an unresolved variable preserves the per-system snippet and its placeholder.
+    """
+    # Arrange
+    snippet = SimpleNamespace(uid="system-snippet", content="url=$solo_name\n")
+    provider = CheetahTemplateProvider(cobbler_api)
+
+    # Act
+    with patch.object(cobbler_api, "find_template", return_value=snippet):
+        result = provider.render("$SNIPPET('chef_solo')", {"system_name": "node1"})
+
+    # Assert
+    assert result == "url=$solo_name\n"
+
+
+OVERRIDE_PRIORITY_CASES: List[Tuple[Set[str], Dict[str, str], str]] = [
+    # All overrides exist: the highest-priority one (system) must win.
+    (
+        {"per_system", "per_profile", "per_distro"},
+        {
+            "system_name": "node1",
+            "profile_name": "profile1",
+            "distro_name": "distro1",
+        },
+        "system content\n",
+    ),
+    # No per-system override: falls back to the per-profile override.
+    (
+        {"per_profile", "per_distro"},
+        {
+            "system_name": "node1",
+            "profile_name": "profile1",
+            "distro_name": "distro1",
+        },
+        "profile content\n",
+    ),
+    # Only a per-distro override exists: falls back all the way to it.
+    (
+        {"per_distro"},
+        {
+            "system_name": "node1",
+            "profile_name": "profile1",
+            "distro_name": "distro1",
+        },
+        "distro content\n",
+    ),
+    # Variables exist but none of the overrides do: falls back to the general snippet.
+    (
+        set(),
+        {
+            "system_name": "node1",
+            "profile_name": "profile1",
+            "distro_name": "distro1",
+        },
+        "general content\n",
+    ),
+    # None of the system/profile/distro variables exist: the general snippet is used
+    # even though overrides for all three are available.
+    (
+        {"per_system", "per_profile", "per_distro"},
+        {},
+        "general content\n",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "available_overrides,context,expected",
+    OVERRIDE_PRIORITY_CASES,
+)
+def test_snippet_override_priority(
+    cobbler_api: CobblerAPI,
+    available_overrides: Set[str],
+    context: Dict[str, str],
+    expected: str,
+):
+    """
+    Test that the per-system, per-profile, and per-distro overrides are selected in priority
+    order, and that the lookup correctly falls through to the next class (and ultimately to the
+    general snippet) whenever a higher-priority override does not exist.
+    """
+    # Arrange
+    override_content = {
+        "per_system": "system content\n",
+        "per_profile": "profile content\n",
+        "per_distro": "distro content\n",
+    }
+
+    def fake_find_template(*_args: Any, **kwargs: Any) -> Any:
+        tags = kwargs.get("tags")
+        if tags is None:
+            return SimpleNamespace(uid="general-snippet", content="general content\n")
+        if tags in available_overrides:
+            return SimpleNamespace(
+                uid=f"{tags}-snippet", content=override_content[tags]
+            )
+        return None
+
+    provider = CheetahTemplateProvider(cobbler_api)
+
+    # Act
+    with patch.object(cobbler_api, "find_template", side_effect=fake_find_template):
+        result = provider.render("$SNIPPET('chef_solo')", context)
 
     # Assert
     assert result == expected
