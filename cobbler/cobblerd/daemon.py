@@ -6,8 +6,10 @@ import binascii
 import logging
 import os
 import pwd
+import selectors
 import sys
 import time
+from typing import List, Tuple
 
 import systemd.daemon  # type: ignore
 
@@ -70,6 +72,71 @@ def regen_ss_file() -> None:
     os.lchown(ssfile, http_user_gid, -1)
 
 
+def _build_xmlrpc_listeners(
+    cobbler_api: CobblerAPI, port: int
+) -> Tuple["remote.ProxiedXMLRPCInterface", List["remote.CobblerXMLRPCServer"]]:
+    """
+    Build one ``CobblerXMLRPCServer`` per configured bind address: always an IPv4 (or
+    hostname) listener, plus an IPv6 listener unless ``xmlrpc_bind_address_v6`` is
+    empty. Both listeners register the same ``ProxiedXMLRPCInterface`` instance so they
+    expose an identical API surface.
+
+    :param cobbler_api: The cobbler_api instance which is used for this method.
+    :param port: The port both listeners bind to.
+    :return: The shared XML-RPC interface, plus the list of listeners. ``listeners[0]``
+             is always the primary (IPv4) one.
+    """
+    xinterface = remote.ProxiedXMLRPCInterface(
+        cobbler_api, remote.CobblerXMLRPCInterface
+    )
+    settings = cobbler_api.settings()
+    bind_address_v4 = os.environ.get(
+        "COBBLER_XMLRPC_BIND_ADDRESS_V4", settings.xmlrpc_bind_address_v4
+    )
+    bind_address_v6 = os.environ.get(
+        "COBBLER_XMLRPC_BIND_ADDRESS_V6", settings.xmlrpc_bind_address_v6
+    )
+
+    listeners = [remote.CobblerXMLRPCServer((bind_address_v4, port))]
+    if bind_address_v6:
+        try:
+            listeners.append(
+                remote.CobblerXMLRPCServer((bind_address_v6, port), use_ipv6=True)
+            )
+        except OSError as error:
+            logger.warning(
+                "Could not start the IPv6 XML-RPC listener on [%s]:%s (%s); "
+                "continuing with IPv4 only.",
+                bind_address_v6,
+                port,
+                error,
+            )
+
+    for server in listeners:
+        # don't log requests; ignore mypy due to multiple inheritance & protocols being 3.8+
+        server.logRequests = False  # type: ignore[attr-defined]
+        server.register_instance(xinterface)
+
+    return xinterface, listeners
+
+
+def _serve_xmlrpc_forever(servers: List["remote.CobblerXMLRPCServer"]) -> None:
+    """
+    Serve one or more already-bound-and-activated XML-RPC listener sockets from a single
+    thread, by multiplexing them with a selector and dispatching whichever socket has a
+    pending connection to its own server instance. ``ThreadingMixIn`` still hands each
+    accepted connection off to its own thread, exactly as with a single listener.
+
+    :param servers: The listener servers to multiplex.
+    """
+    with selectors.DefaultSelector() as selector:
+        for server in servers:
+            selector.register(server, selectors.EVENT_READ, server)
+        while True:
+            for key, _ in selector.select(timeout=0.5):
+                key.data._handle_request_noblock()
+
+
 def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     """
     This tries to bring up the Cobbler xmlrpc_api and restart it if it fails.
@@ -80,18 +147,8 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     :param cobbler_api: The cobbler_api instance which is used for this method.
     :param port: The port where the xmlrpc api should run on.
     """
-    xinterface = remote.ProxiedXMLRPCInterface(
-        cobbler_api, remote.CobblerXMLRPCInterface
-    )
-    settings = cobbler_api.settings()
-    bind_address = os.environ.get(
-        "COBBLER_XMLRPC_BIND_ADDRESS", settings.xmlrpc_bind_address
-    )
-    server = remote.CobblerXMLRPCServer((bind_address, port))
-    # don't log requests; ignore mypy due to multiple inheritance & protocols being 3.8+
-    server.logRequests = False  # type: ignore[attr-defined]
+    xinterface, listeners = _build_xmlrpc_listeners(cobbler_api, port)
     logger.debug("XMLRPC running on %s", port)
-    server.register_instance(xinterface)
     start_time = ""
     if psutil is not None:
         ps_util = psutil.Process(os.getpid())
@@ -103,7 +160,7 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
             logger.info("Cobbler startup completed %s", start_time)
             # Start background load_items task
             xinterface.proxied.background_load_items()
-            server.serve_forever()
+            _serve_xmlrpc_forever(listeners)
         except IOError:
             # interrupted? try to serve again
             time.sleep(0.5)

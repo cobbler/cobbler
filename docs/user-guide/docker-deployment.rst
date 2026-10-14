@@ -154,7 +154,7 @@ XML-RPC host/bind settings
 Splitting the daemon and the HTTP/XML-RPC API application into separate containers only works because of two
 settings added for this purpose:
 
-* ``xmlrpc_bind_address`` (default ``"127.0.0.1"``, overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS`` environment
+* ``xmlrpc_bind_address_v4`` (default ``"127.0.0.1"``, overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V4`` environment
   variable) controls what address ``cobblerd`` binds its XML-RPC server to. The Python-level default is
   loopback-only, which a separate ``http-api`` container could never reach; the compose stack sets this to ``"0.0.0.0"``
   on ``cobblerd`` so the ``http-api`` container can dial in over the shared Docker network.
@@ -167,7 +167,7 @@ variables only exist so the *same* ``settings.yaml`` can be shared, read-only, b
 one still gets the value it individually needs.
 
 ``cobblerd`` is never published to the host directly in the reference stack -- only Traefik's port 80 is; binding
-``xmlrpc_bind_address`` to ``0.0.0.0`` is only safe to the extent that nothing outside the Docker network can reach
+``xmlrpc_bind_address_v4`` to ``0.0.0.0`` is only safe to the extent that nothing outside the Docker network can reach
 that port.
 
 Traefik and routing
@@ -664,7 +664,7 @@ This deployment model is deliberately scoped. Before relying on it, be aware of 
 * **Partial environment-variable configuration.** `GH #3137
   <https://github.com/cobbler/cobbler/issues/3137>`_ (full environment-variable-driven configuration) is only
   partially covered: only the XML-RPC host/bind-address settings needed to split ``cobblerd`` and ``http-api`` into
-  separate containers (``COBBLER_XMLRPC_BIND_ADDRESS``/``COBBLER_XMLRPC_HOST``) have environment variable
+  separate containers (``COBBLER_XMLRPC_BIND_ADDRESS_V4``/``COBBLER_XMLRPC_HOST``) have environment variable
   overrides. Every other ``settings.yaml`` key must still be set through the settings file itself.
 * **Kubernetes is out of scope.** Nothing on this page or in the referenced Dockerfile/Compose file has been
   designed, tested, or is intended for Kubernetes. Running this image under Kubernetes is not supported.

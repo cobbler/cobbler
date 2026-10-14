@@ -154,6 +154,7 @@ import logging
 import os
 import random
 import re
+import socket
 import stat
 import threading
 import time
@@ -5213,13 +5214,16 @@ class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
     just starts the server.
     """
 
-    def __init__(self, args: Any) -> None:
+    def __init__(self, args: Any, use_ipv6: bool = False) -> None:
         """
         The constructor for the main Cobbler XMLRPC server.
 
         :param args: Arguments which are handed to the Python XMLRPC server.
+        :param use_ipv6: If True, bind an IPv6 (``AF_INET6``) socket instead of the default IPv4 one.
         """
         self.allow_reuse_address = True
+        if use_ipv6:
+            self.address_family = socket.AF_INET6
         xmlrpc.server.SimpleXMLRPCServer.__init__(
             self, args, requestHandler=RequestHandler
         )

@@ -305,7 +305,8 @@ class Settings:
             "web",
             "webui",
         ]
-        self.xmlrpc_bind_address = "127.0.0.1"
+        self.xmlrpc_bind_address_v4 = "127.0.0.1"
+        self.xmlrpc_bind_address_v6 = "::1"
         self.xmlrpc_host = "127.0.0.1"
         self.xmlrpc_port = 25151
         self.yum_distro_priority = 1

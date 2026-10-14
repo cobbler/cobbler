@@ -26,7 +26,7 @@ services:
     image: cobbler-cobblerd:latest
     command: ["cobblerd", "-F"]
     environment:
-      COBBLER_XMLRPC_BIND_ADDRESS: "0.0.0.0"
+      COBBLER_XMLRPC_BIND_ADDRESS_V4: "0.0.0.0"
     configs:
       - source: cobbler-settings
         target: /etc/cobbler/settings.yaml
