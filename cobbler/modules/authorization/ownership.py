@@ -201,13 +201,12 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             "remove",
             "modify",
             "edit",
-            "xapi",
+            "power",
             "background",
         ]:
             if resource.find(criteria) != -1:
                 modify_operation = True
 
-        # FIXME: is everyone allowed to copy?  I think so.
         # FIXME: deal with the problem of deleted parents and promotion
 
         found_user = False
@@ -260,10 +259,11 @@ class OwnershipAuthorizationModule(AuthorizationModule):
             or resource.find("save") != -1
             or resource.find("modify") != -1
             or resource.find("copy") != -1
+            or resource.find("power") != -1
         ):
             # arg1 is the (possibly not-yet-persisted) object itself here, passed in by
-            # remote.py's modify_item()/save_item()/remove_item()/copy_item() - no by-name lookup
-            # is needed (or, for a new item, even possible).
+            # remote.py's modify_item()/save_item()/remove_item()/copy_item()/power_system() - no
+            # by-name lookup is needed (or, for a new item, even possible).
             obj = arg1
 
         if obj is None or isinstance(obj, list):

@@ -262,3 +262,33 @@ def test_authorize_save_denies_name_collision_with_owned_existing_object(
 
     # Assert
     assert result == 0
+
+
+def test_authorize_power_system_requires_ownership(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Regression test: ``power_system`` did not match any ``modify_operation`` criteria, so any authenticated
+    (non-admin) user could power-cycle any system regardless of ownership.
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(
+        handler,
+        {
+            "admins": {"admin": 1},
+            "mygroup": {"myuser": 1},
+            "othergroup": {"otheruser": 1},
+        },
+    )
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    system = create_system(profile_uid=profile.uid)
+    system.owners = ["othergroup"]
+
+    # Act & Assert
+    assert handler.authorize("otheruser", "power_system", system) == 1
+    assert handler.authorize("myuser", "power_system", system) == 0
