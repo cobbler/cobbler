@@ -458,3 +458,31 @@ def test_authorize_bare_power_role_is_not_object_scoped(cobbler_api: CobblerAPI)
 
     # Act & Assert
     assert handler.authorize("myuser", "power") == 1
+
+
+def test_authorize_does_not_auto_assign_owner_for_legacy_zero_ctime_object(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
+):
+    """
+    Defense in depth: ``ctime`` is only populated on first save going forward, but a record deserialized from
+    old or incomplete data could still have ``ctime == 0.0`` despite being genuinely persisted (``from_dict()``
+    only sets fields present in the stored data). Directly modifying such an already-persisted object (i.e. not
+    through a transaction clone) must not be treated as a new creation just because of that: a uid lookup in the
+    object's own collection already finds it, which ``ctime`` alone cannot tell apart from "never saved".
+    """
+    # Arrange
+    handler = ownership.get_authorization_handler(cobbler_api)
+    _patch_groups(handler, {"admins": {"admin": 1}, "mygroup": {"myuser": 1}})
+    distro = create_distro()
+    profile = create_profile(distro_uid=distro.uid)
+    assert profile.owners != []
+    profile.ctime = 0.0  # simulate a legacy/incomplete record
+
+    # Act
+    result = handler.authorize("myuser", "save_profile", profile)
+
+    # Assert
+    assert result == 0
+    assert profile.owners != ["mygroup"]
