@@ -465,6 +465,38 @@ def file_is_remote(file_location: str) -> bool:
     return False
 
 
+def _resolve_distro_name(api_handle: "CobblerAPI", distro_uid: str) -> str:
+    """
+    Resolve a distro UID (as stored in a profile's/system's ``distro`` field) to the distro's actual name, for use
+    in the blended ``distro_name`` metavariable. Falls back to the raw value if the distro cannot be found, rather
+    than raising, since this is used for templating convenience only.
+
+    :param api_handle: The api to use for looking up the distro.
+    :param distro_uid: The UID stored in the ``distro`` field.
+    :return: The distro's name, or ``distro_uid`` unchanged if it could not be resolved.
+    """
+    distro = api_handle.find_distro(uid=distro_uid, return_list=False)
+    if distro is not None and not isinstance(distro, list):
+        return distro.name  # type: ignore
+    return distro_uid
+
+
+def _resolve_profile_name(api_handle: "CobblerAPI", profile_uid: str) -> str:
+    """
+    Resolve a profile UID (as stored in a system's ``profile`` field) to the profile's actual name, for use in the
+    blended ``profile_name`` metavariable. Falls back to the raw value if the profile cannot be found, rather than
+    raising, since this is used for templating convenience only.
+
+    :param api_handle: The api to use for looking up the profile.
+    :param profile_uid: The UID stored in the ``profile`` field.
+    :return: The profile's name, or ``profile_uid`` unchanged if it could not be resolved.
+    """
+    profile = api_handle.find_profile(uid=profile_uid, return_list=False)
+    if profile is not None and not isinstance(profile, list):
+        return profile.name  # type: ignore
+    return profile_uid
+
+
 def blender(
     api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "BootableItem"
 ) -> Dict[str, Any]:
@@ -535,16 +567,16 @@ def blender(
     if root_obj.TYPE_NAME == "system":  # type: ignore
         # is a system object
         results["system_name"] = results["name"]
-        results["profile_name"] = results["profile"]
+        results["profile_name"] = _resolve_profile_name(api_handle, results["profile"])
         if "distro" in results:
-            results["distro_name"] = results["distro"]
+            results["distro_name"] = _resolve_distro_name(api_handle, results["distro"])
         elif "image" in results:
             results["distro_name"] = "N/A"
             results["image_name"] = results["image"]
     elif root_obj.TYPE_NAME == "profile":  # type: ignore
         # is a profile or subprofile object
         results["profile_name"] = results["name"]
-        results["distro_name"] = results["distro"]
+        results["distro_name"] = _resolve_distro_name(api_handle, results["distro"])
     elif root_obj.TYPE_NAME == "distro":  # type: ignore
         # is a distro object
         results["distro_name"] = results["name"]

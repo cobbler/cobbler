@@ -1,0 +1,1 @@
+Fixed the blended `distro_name` and `profile_name` metavariables resolving to the raw UID instead of the actual object name, for profiles/systems and systems respectively, following the 3.3.x to 4.0.0 UID-based reference migration.
