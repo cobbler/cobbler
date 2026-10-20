@@ -16,6 +16,85 @@ For more information about AutoYaST, see:
 * https://documentation.suse.com/sles/15-SP7/html/SLES-all/Invoking.html
 * https://github.com/yast/yast-autoinstallation
 
+Agama
+=====
+
+Cobbler also supports `Agama <https://agama-project.github.io/docs/>`_, the installer that replaced AutoYaST as the
+default for openSUSE Leap and SUSE Linux Enterprise starting with the 16.x generation. Unlike AutoYaST's XML
+profiles, an Agama profile is a single JSON (or Jsonnet) document. Which installer a distro/profile/system actually
+uses is decided by the ``AutoinstallerType`` tag (``autoyast`` vs. ``agama``) carried by its resolved autoinstall
+template -- the same tagging mechanism used to distinguish Preseed from Cloud-Init, described in more detail in the
+`Template selection via tags`_ section below.
+
+How the install client finds its profile
+------------------------------------------
+
+Cobbler passes Agama the ``inst.auto=<url>`` kernel parameter, pointing at the rendered profile via the same
+``/cblr/svc/op/autoinstall/<profile|system>/<name>/file/<template>`` URL used by every other autoinstall type (see
+the :ref:`HTTP API documentation <http-api>`). Unlike Cloud-Init, an Agama profile is a single file -- there is no
+``subfile`` concept here.
+
+Building the JSON document
+---------------------------
+
+The built-in template, ``built-in-autoinst.json``, always includes a mandatory ``product`` section, followed by one
+``built-in-agama-<module>`` snippet per entry in the ``agama_modules`` ``autoinstall_meta`` key (a list), each
+contributing its own top-level JSON key:
+
+.. code-block:: jinja
+
+    {
+        {% include "built-in-agama-product" %}{{ "," if agama_modules }}
+    {%- for module in agama_modules %}
+        {% include "built-in-agama-%s" % module %}{{ ", " if not loop.last }}
+    {%- endfor %}
+    }
+
+Available modules (i.e. valid entries for ``agama_modules``) are: ``bootloader``, ``dasd`` (s390x), ``files``,
+``hostname``, ``localization``, ``network``, ``questions``, ``root``, ``scripts``, ``security``, ``software``,
+``storage``, ``storage-legacy`` (a simpler alternative to ``storage``) and ``user`` (s390x also adds ``zfcp``). Each
+corresponds 1:1 to Agama's own `profile reference <https://agama-project.github.io/docs/user/reference/profile>`_
+section of the same name -- consult that page for the exact JSON shape each module produces.
+
+Most modules are driven by dedicated, flat ``agama_<module>_<field>`` ``autoinstall_meta`` keys, following the same
+pattern as the ``product`` section (which is always rendered, independent of ``agama_modules``):
+
+.. code-block:: text
+
+    agama_product_id = "openSUSE_Leap"
+    agama_root_password = "$6$rounds=..."
+    agama_localization_language = "en_US"
+    agama_localization_keyboard = "us"
+    agama_localization_timezone = "UTC"
+
+A few modules instead take one larger nested value (``agama_storage``, ``agama_scripts``, ``agama_files``,
+``agama_security``, ``agama_questions``, ``agama_dasd``, ``agama_zfcp``) whose structure mirrors the corresponding
+Agama profile section directly -- see the module reference linked above for their exact shape. ``network`` and
+``hostname`` are the two exceptions that take no ``agama_*`` keys at all: they are instead derived automatically
+from the system's actual configured :class:`~cobbler.items.network_interface.NetworkInterface` objects and
+``hostname`` property respectively, the same metavariables every other autoinstall type uses.
+
+If ``agama_root_password`` is left unset, the ``root`` module falls back to the global ``default_password_crypted``
+setting (``/etc/cobbler/settings.yaml``), the same default every other autoinstall type uses.
+
+.. note:: ``agama_modules`` is a list value, so -- as of this writing -- it needs to be set via the XML-RPC API
+          directly rather than ``cobbler-cli``, for the same reason described for
+          ``cloud_init_user_data_modules`` above: ``cobbler-cli``'s ``--autoinstall-meta`` flag can only represent
+          flat ``key=value`` strings.
+
+.. note:: ``agama_product_id`` has no reliable default -- the built-in template falls back to ``"Tumbleweed"`` if
+          unset, which is wrong for any other product. The value is Agama's own internal product identifier, not a
+          distribution or codename string: for example, openSUSE Leap's correct value is ``"openSUSE_Leap"`` --
+          values like ``"Leap"`` or ``"Leap_16.1"`` are rejected by Agama as unknown products. Consult the
+          ``products.d`` definitions shipped by the target media/product (or Agama's own documentation) for the
+          correct value of any other product.
+
+For more information about Agama, see:
+
+* https://agama-project.github.io/docs/overview/unattended
+* https://agama-project.github.io/docs/user/profile
+* https://agama-project.github.io/docs/user/reference/profile
+
 Kickstart
 =========
 
