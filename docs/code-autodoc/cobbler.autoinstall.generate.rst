@@ -60,6 +60,14 @@ cobbler.autoinstall.generate.preseed module
    :show-inheritance:
    :undoc-members:
 
+cobbler.autoinstall.generate.shared module
+------------------------------------------
+
+.. automodule:: cobbler.autoinstall.generate.shared
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.autoinstall.generate.windows module
 -------------------------------------------
 
