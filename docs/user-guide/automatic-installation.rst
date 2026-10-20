@@ -42,7 +42,115 @@ For more information about Preseed, see:
 Cloud-Init
 ==========
 
-For the current status of cloud-init support please visit https://github.com/cobbler/cobbler/issues/3218
+Cobbler supports `cloud-init <https://cloud-init.io/>`_'s ``NoCloud`` datasource, used by modern Ubuntu releases
+(24.04 and newer) that install via Subiquity instead of the classic debian-installer/Preseed used by older
+Ubuntu releases and by Debian. Which of the two mechanisms is used for a given distro/profile/system is decided by
+the ``AutoinstallerType`` tag (``cloud-init`` vs. ``preseed``) carried by its resolved autoinstall template, not by
+breed alone -- see `Template selection via tags`_ below.
+
+How the install client finds its data
+--------------------------------------
+
+Cobbler passes cloud-init a kernel parameter of the form ``ds=nocloud;s=<seed-url>``. The ``NoCloud`` datasource
+then fetches its data by directly concatenating that seed URL with each file name it needs -- see `cloud-init's
+NoCloud datasource reference <https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html>`_ for the
+exact protocol. Cobbler's generated seed URL always ends in ``/subfile/``, so appending e.g. ``user-data`` produces
+a clean, unambiguous path such as:
+
+.. code-block:: text
+
+    http://<server>/cblr/svc/op/autoinstall/system/<name>/file/<template>/subfile/user-data
+
+See the :ref:`HTTP API documentation <http-api>`'s ``autoinstall`` endpoint section for the full URL format,
+including why sub-file selection only ever works through this path segment and never through a query string.
+
+The four sub-files
+-------------------
+
+A cloud-init install is made up of up to four separate files, all requested against the same seed URL:
+
+* ``user-data``: the main cloud-config document (packages, users, ``runcmd``, ...). Built-in template:
+  ``built-in-user-data``.
+* ``meta-data``: minimal per-instance metadata, currently just an ``instance-id``. Built-in template:
+  ``built-in-meta-data``.
+* ``network-config``: static network configuration for first boot. Built-in template:
+  ``built-in-network-config``.
+* ``vendor-data``: not used by Cobbler's built-in templates -- always rendered as an empty string, since all
+  provisioning data is folded into ``user-data``/``meta-data`` instead.
+
+Template selection via tags
+----------------------------
+
+As described in :ref:`templating`, every :class:`~cobbler.items.template.Template` carries a set of tags that steer
+which template gets used for what. For cloud-init, two layers of tagging are involved:
+
+#. Every cloud-init template is tagged with the :class:`cobbler.enums.AutoinstallerType` value ``cloud-init`` (this
+   is what makes Cobbler emit a ``ds=nocloud;s=...`` kernel parameter instead of a Preseed ``url=...`` one in the
+   first place) and with the specific :class:`cobbler.enums.CloudInitFileTypes` it implements (``user-data``,
+   ``meta-data``, ``vendor-data`` or ``network-config``).
+#. Each built-in template is additionally cross-tagged with its *siblings'* ``built-in-<name>`` identifiers. For
+   example, the ``built-in-meta-data`` template also carries the tag ``built-in-user-data``, and vice versa. This
+   is what lets Cobbler resolve ``meta-data`` for a profile/system whose ``autoinstall`` property only ever points
+   at ``built-in-user-data``: when a sub-file other than the one already assigned is requested, Cobbler searches
+   for a template tagged with that sub-file type *and* tagged with the originally assigned template's name or UID,
+   and uses that one instead.
+
+In practice this means you only need to assign the ``user-data`` template to a profile/system's ``autoinstall``
+property, exactly as you would for any other autoinstall type (this is also what every shipped
+``default_autoinstall`` value for cloud-init-based distros already points at) -- Cobbler resolves ``meta-data`` and
+``network-config`` from there automatically.
+
+Customizing generated output with modules
+-------------------------------------------
+
+The built-in ``user-data`` template does not hardcode any cloud-config modules. Instead, it includes a configurable
+list of them:
+
+.. code-block:: jinja
+
+    #cloud-config
+    {%- for module in cloud_init_user_data_modules %}
+    {% include "built-in-cloud-init-module-%s" % module %}
+    {%- endfor %}
+
+Set which modules to include via the ``cloud_init_user_data_modules`` ``autoinstall_meta`` key (a list of module
+names, hyphenated to match cloud-init's own module names, e.g. ``set-hostname``, ``ssh``, ``packages``), then
+configure each selected module's values via a further ``autoinstall_meta`` key named ``cloud_init_<module name,
+with underscores instead of hyphens>`` (a dict). Both of these are non-flat (list/dict) values, so -- as of this
+writing -- they need to be set via the XML-RPC API directly rather than ``cobbler-cli``, whose ``--autoinstall-meta``
+flag can only represent flat ``key=value`` strings. For example, to set a hostname and an SSH authorized key:
+
+.. code:: python
+
+    import xmlrpc.client
+
+    server = xmlrpc.client.ServerProxy("http://localhost/cobbler_api")
+    token = server.login("username", "password")
+
+    profile_uid = server.get_profile_handle("example_profile")
+    server.modify_profile(
+        profile_uid,
+        "autoinstall_meta",
+        {
+            "cloud_init_user_data_modules": ["set-hostname", "ssh"],
+            "cloud_init_set_hostname": {"hostname": "example-host"},
+            "cloud_init_ssh": {"ssh_authorized_keys": ["ssh-ed25519 AAAA..."]},
+        },
+        token,
+    )
+    server.save_profile(profile_uid, True, True, "bypass", token)
+
+Cobbler ships one module snippet per `cloud-init module
+<https://cloudinit.readthedocs.io/en/latest/reference/modules.html>`_ under
+``cobbler/data/templates/jinja/autoinstall/snippets/cloud-init/``; each snippet's expected ``autoinstall_meta``
+shape follows that module's entry in the linked cloud-init module reference directly.
+
+``network-config`` does not have a configurable module list -- it always renders the ``network-v1`` module
+snippet.
+
+.. note:: ``libcobblersignatures``' shipped ``supported_arches`` for the ``ubuntu``/``debian`` breeds use Debian's
+          own architecture names (e.g. ``amd64``), but :class:`cobbler.enums.Archs` only knows ``x86_64`` -- pass
+          ``--arch=x86_64`` to ``cobbler import`` for these distros rather than ``--arch=amd64``.
 
 Ignition (and Combustion)
 =========================
