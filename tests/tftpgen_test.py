@@ -989,7 +989,9 @@ def test_generate_windows_initrd(cobbler_api: CobblerAPI):
 
     # Act
     # pylint: disable-next=protected-access
-    result = test_gen._build_windows_initrd("custom_loader", "my_custom_loader", "ipxe")  # type: ignore[reportPrivateUsage]
+    result = test_gen._build_windows_initrd(  # type: ignore[reportPrivateUsage]
+        "custom_loader", "my_custom_loader", enums.BootLoader.IPXE
+    )
 
     # Assert
     assert result == "--name custom_loader my_custom_loader custom_loader"
@@ -1012,7 +1014,9 @@ def test_generate_initrd(mocker: "MockerFixture", cobbler_api: CobblerAPI):
 
     # Act
     # pylint: disable-next=protected-access
-    result = test_gen._generate_initrd(input_metadata, "", "", "ipxe")  # type: ignore[reportPrivateUsage]
+    result = test_gen._generate_initrd(  # type: ignore[reportPrivateUsage]
+        input_metadata, "", "", enums.BootLoader.IPXE
+    )
 
     # Assert
     assert result == expected_result

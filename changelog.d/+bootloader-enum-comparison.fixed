@@ -1,0 +1,1 @@
+Fixed several `enums.BootLoader` comparisons in `tftpgen.py` against raw strings (e.g. `"grub"`, `"pxe"`) that could never be true, since `BootLoader` is a plain `Enum` rather than a `str`-mixed one. This silently skipped the HTTP/TFTP device-prefix conversion for GRUB kernel/initrd lines, breaking any GRUB boot entry with a remote HTTP kernel or initrd.
