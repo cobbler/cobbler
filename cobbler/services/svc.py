@@ -140,6 +140,7 @@ class CobblerSvc:
         profile: Optional[str] = None,
         system: Optional[str] = None,
         file: str = "",
+        subfile: str = "",
         **kwargs: Any,
     ) -> str:
         """
@@ -149,8 +150,15 @@ class CobblerSvc:
         :param system: The name of the system to generate the autoinstall for.
         :param file: The name of the autoinstall template to render. If empty, the template assigned to the
             resolved profile or system is used instead.
-        :param kwargs: Used to select which cloud-init sub-file to generate by checking for the presence of the keys
-            "user-data", "vendor-data", "meta-data" or "network-config". Ignored for non cloud-init autoinstall types.
+        :param subfile: For autoinstallation types that are made up of several files (currently only cloud-init,
+            with "user-data", "vendor-data", "meta-data" and "network-config"), this selects which of those
+            sub-files to generate. Ignored for non cloud-init autoinstall types. Populated from the ``subfile/<name>``
+            URL path segment documented in the HTTP API user guide (never from a query string), the convention
+            cloud-init's own NoCloud datasource relies on. If absent, falls back to a bare trailing ``<name>`` path
+            segment (e.g. ``file/<template>/user-data``) for backwards compatibility with URLs built before the
+            ``subfile/`` segment was introduced.
+        :param kwargs: Unused other than for the backwards-compatible ``subfile`` fallback described above. Absorbs
+            any other incidental form fields produced by the URL dispatcher.
         :return: The rendered auto-installation file content, or an error message string if the request was invalid
             or the request to the XML-RPC API failed.
         """
@@ -160,15 +168,16 @@ class CobblerSvc:
         if profile is not None and system is not None:
             return "ERROR: Both profile and system were given!"
 
-        subfile = ""
-        if "user-data" in kwargs:
-            subfile = "user-data"
-        elif "vendor-data" in kwargs:
-            subfile = "vendor-data"
-        elif "meta-data" in kwargs:
-            subfile = "meta-data"
-        elif "network-config" in kwargs:
-            subfile = "network-config"
+        if not subfile:
+            for candidate in (
+                "user-data",
+                "vendor-data",
+                "meta-data",
+                "network-config",
+            ):
+                if candidate in kwargs:
+                    subfile = candidate
+                    break
 
         data = self.remote.generate_autoinstall(
             profile if profile else system,

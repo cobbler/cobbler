@@ -663,7 +663,7 @@ def test_build_kernel_options_system(
             "ubuntu",
             "lunar",
             "built-in-user-data",
-            "ds=nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-user-data hostname=test_build_kernel_options_autoinstall domain=local.lan suite=lunar",
+            "ds=nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-user-data/subfile/ hostname=test_build_kernel_options_autoinstall domain=local.lan suite=lunar",
         ),
         (
             "freebsd",

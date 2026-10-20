@@ -1660,7 +1660,12 @@ class TFTPGen:
             elif distro.breed in ("debian", "ubuntu"):
                 # Cloud-Init
                 if enums.AutoinstallerType.CLOUDINIT.value in autoinstall_tags:
-                    append_line.append_key_value("ds", f"nocloud;s={autoinstall_path}")
+                    # cloud-init's NoCloud datasource builds its meta-data/user-data/vendor-data requests by
+                    # concatenating this seed URL directly with the file name (no separator inserted), and requires
+                    # it to end in a slash: https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html
+                    append_line.append_key_value(
+                        "ds", f"nocloud;s={autoinstall_path}/subfile/"
+                    )
                 elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
                     append_line.append_key_value("auto-install/enable", "true")
                     append_line.append_key_value("priority", "critical")
