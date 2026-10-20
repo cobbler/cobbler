@@ -7,7 +7,7 @@ duplicating or silently drifting from that logic.
 """
 
 import urllib.parse
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 from urllib.parse import SplitResult
 
 from cobbler import utils, validate
@@ -33,7 +33,7 @@ def generate_repo_stanza(
     """
     buf = ""
     blended = utils.blender(api, False, obj)
-    repos = blended["repos"]
+    repos = blended.get("repos", [])
 
     # keep track of URLs and be sure to not include any duplicates
     included: Dict[str, int] = {}
@@ -68,17 +68,19 @@ def generate_repo_stanza(
             pass
 
     if is_profile:
-        distro: "Distro" = obj.get_conceptual_parent()  # type: ignore
+        distro: Optional["Distro"] = obj.get_conceptual_parent()  # type: ignore
     else:
-        distro: "Distro" = obj.get_conceptual_parent().get_conceptual_parent()  # type: ignore
+        parent = obj.get_conceptual_parent()
+        distro = parent.get_conceptual_parent() if parent is not None else None  # type: ignore
 
-    source_repos = distro.source_repos
-    count = 0
-    for repo in source_repos:
-        count += 1
-        if not repo[1] in included:
-            buf += f"repo --name=source-{count} --baseurl={repo[1]}\n"
-            included[repo[1]] = 1
+    if distro is not None:
+        source_repos = distro.source_repos
+        count = 0
+        for repo in source_repos:
+            count += 1
+            if not repo[1] in included:
+                buf += f"repo --name=source-{count} --baseurl={repo[1]}\n"
+                included[repo[1]] = 1
 
     return buf
 
