@@ -711,17 +711,32 @@ def _dict_item_to_tokens(key: Any, value: Any) -> List[str]:
         value = cast(List[Any], value)
         for item in value:
             item_str = str(item).strip()
-            if " " in item_str:
+            if needs_quoting(item_str):
                 tokens.append(f"{key}='{item_str}'")
             else:
                 tokens.append(f"{key}={item_str}")
     else:
         value_str = str(value).strip()
-        if " " in value_str:
+        if needs_quoting(value_str):
             tokens.append(f"{key}='{value_str}'")
         else:
             tokens.append(f"{key}={value_str}")
     return tokens
+
+
+def needs_quoting(value: str) -> bool:
+    """
+    Whether a kernel option value needs to be single-quoted before being emitted into a boot loader config.
+
+    GRUB's config file is itself parsed as a script: an unquoted ``;`` is a statement separator, so a value like
+    ``nocloud;s=http://...`` (the NoCloud datasource convention) is silently truncated at the semicolon unless
+    quoted. A value that is already wrapped in a matching pair of quotes (e.g. built by a caller that does its own
+    quoting, such as :meth:`~cobbler.actions.buildiso.append_line.AppendLineBuilder.add_remaining_kopts`) is left
+    alone to avoid quoting it twice.
+    """
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+        return False
+    return " " in value or ";" in value
 
 
 def dict_to_string(_dict: Dict[Any, Any]) -> str:
