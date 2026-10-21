@@ -1,12 +1,9 @@
 {#- https://cloudinit.readthedocs.io/en/latest/reference/modules.html#ubuntu-autoinstall -#}
-{#- TODO: Support nesting properties for Ubuntu Subiquity -#}
+{#- cc_ubuntu_autoinstall passes the whole `autoinstall` mapping through to Subiquity largely unvalidated, so rather
+   than hand-enumerate Subiquity's own (large, independently-versioned) autoinstall schema field by field like the
+   other modules in this directory do for cloud-init's own schema, dump whatever nested structure was configured
+   (version, identity, ssh, storage, user-data, ...) as-is. -#}
 {%- if cloud_init_ubuntu_autoinstall is defined %}
 autoinstall:
-  {%- if cloud_init_ubuntu_autoinstall.version is defined %}
-  version: {{ cloud_init_ubuntu_autoinstall.version }}
-  {%- endif %}
-  {%- if cloud_init_ubuntu_autoinstall.user_data is defined %}
-  user_data: |
-    {{ cloud_init_ubuntu_autoinstall.user_data|indent(4) }}
-  {%- endif %}
+{{ cloud_init_ubuntu_autoinstall | toyaml | indent(2, first=True) }}
 {%- endif %}
