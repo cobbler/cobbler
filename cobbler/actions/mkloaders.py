@@ -271,7 +271,7 @@ class MkLoaders:
 
         grub_dir = self.bootloaders_dir.joinpath("grub")
         if not grub_dir.exists():
-            grub_dir.mkdir(mode=0o644)
+            grub_dir.mkdir(mode=0o755)
 
 
 # NOTE: move this to cobbler.utils?

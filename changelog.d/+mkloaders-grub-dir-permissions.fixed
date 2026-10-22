@@ -1,0 +1,1 @@
+Fixed `cobbler mkloaders` creating the `grub/` bootloader directory with mode `0644` (no execute/search bit), which silently broke PXE boot for any non-root process (e.g. the TFTP daemon) trying to traverse into it.

@@ -465,6 +465,38 @@ def file_is_remote(file_location: str) -> bool:
     return False
 
 
+def _resolve_distro_name(api_handle: "CobblerAPI", distro_uid: str) -> str:
+    """
+    Resolve a distro UID (as stored in a profile's/system's ``distro`` field) to the distro's actual name, for use
+    in the blended ``distro_name`` metavariable. Falls back to the raw value if the distro cannot be found, rather
+    than raising, since this is used for templating convenience only.
+
+    :param api_handle: The api to use for looking up the distro.
+    :param distro_uid: The UID stored in the ``distro`` field.
+    :return: The distro's name, or ``distro_uid`` unchanged if it could not be resolved.
+    """
+    distro = api_handle.find_distro(uid=distro_uid, return_list=False)
+    if distro is not None and not isinstance(distro, list):
+        return distro.name  # type: ignore
+    return distro_uid
+
+
+def _resolve_profile_name(api_handle: "CobblerAPI", profile_uid: str) -> str:
+    """
+    Resolve a profile UID (as stored in a system's ``profile`` field) to the profile's actual name, for use in the
+    blended ``profile_name`` metavariable. Falls back to the raw value if the profile cannot be found, rather than
+    raising, since this is used for templating convenience only.
+
+    :param api_handle: The api to use for looking up the profile.
+    :param profile_uid: The UID stored in the ``profile`` field.
+    :return: The profile's name, or ``profile_uid`` unchanged if it could not be resolved.
+    """
+    profile = api_handle.find_profile(uid=profile_uid, return_list=False)
+    if profile is not None and not isinstance(profile, list):
+        return profile.name  # type: ignore
+    return profile_uid
+
+
 def blender(
     api_handle: "CobblerAPI", remove_dicts: bool, root_obj: "BootableItem"
 ) -> Dict[str, Any]:
@@ -535,16 +567,16 @@ def blender(
     if root_obj.TYPE_NAME == "system":  # type: ignore
         # is a system object
         results["system_name"] = results["name"]
-        results["profile_name"] = results["profile"]
+        results["profile_name"] = _resolve_profile_name(api_handle, results["profile"])
         if "distro" in results:
-            results["distro_name"] = results["distro"]
+            results["distro_name"] = _resolve_distro_name(api_handle, results["distro"])
         elif "image" in results:
             results["distro_name"] = "N/A"
             results["image_name"] = results["image"]
     elif root_obj.TYPE_NAME == "profile":  # type: ignore
         # is a profile or subprofile object
         results["profile_name"] = results["name"]
-        results["distro_name"] = results["distro"]
+        results["distro_name"] = _resolve_distro_name(api_handle, results["distro"])
     elif root_obj.TYPE_NAME == "distro":  # type: ignore
         # is a distro object
         results["distro_name"] = results["name"]
@@ -679,17 +711,32 @@ def _dict_item_to_tokens(key: Any, value: Any) -> List[str]:
         value = cast(List[Any], value)
         for item in value:
             item_str = str(item).strip()
-            if " " in item_str:
+            if needs_quoting(item_str):
                 tokens.append(f"{key}='{item_str}'")
             else:
                 tokens.append(f"{key}={item_str}")
     else:
         value_str = str(value).strip()
-        if " " in value_str:
+        if needs_quoting(value_str):
             tokens.append(f"{key}='{value_str}'")
         else:
             tokens.append(f"{key}={value_str}")
     return tokens
+
+
+def needs_quoting(value: str) -> bool:
+    """
+    Whether a kernel option value needs to be single-quoted before being emitted into a boot loader config.
+
+    GRUB's config file is itself parsed as a script: an unquoted ``;`` is a statement separator, so a value like
+    ``nocloud;s=http://...`` (the NoCloud datasource convention) is silently truncated at the semicolon unless
+    quoted. A value that is already wrapped in a matching pair of quotes (e.g. built by a caller that does its own
+    quoting, such as :meth:`~cobbler.actions.buildiso.append_line.AppendLineBuilder.add_remaining_kopts`) is left
+    alone to avoid quoting it twice.
+    """
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+        return False
+    return " " in value or ";" in value
 
 
 def dict_to_string(_dict: Dict[Any, Any]) -> str:

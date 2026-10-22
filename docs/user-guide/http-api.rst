@@ -1,3 +1,5 @@
+.. _http-api:
+
 ********
 HTTP API
 ********
@@ -83,6 +85,36 @@ Example Output:
 
    # this file intentionally left blank
    # admins:  edit it as you like, or leave it blank for non-interactive install
+
+Selecting a specific template
+------------------------------
+
+An optional ``file/<template>`` path segment selects which autoinstall template to render, instead of the one
+assigned to the resolved profile or system:
+
+.. code-block:: console
+
+    curl http://localhost/cblr/svc/op/autoinstall/system/example_system/file/example_template
+
+Cloud-init sub-files
+--------------------
+
+cloud-init-based autoinstalls are made up of several separate files -- ``user-data``,
+``meta-data``, ``vendor-data`` and ``network-config`` -- rather than a single rendered document. Which one gets
+rendered is selected with a further ``subfile/<name>`` path segment, appended after ``file/<template>``:
+
+.. code-block:: console
+
+    curl http://localhost/cblr/svc/op/autoinstall/system/example_system/file/example_template/subfile/user-data
+    curl http://localhost/cblr/svc/op/autoinstall/system/example_system/file/example_template/subfile/meta-data
+
+.. note:: Subfile selection only ever works through this URL path segment. A query string (e.g.
+          ``?subfile=user-data``) has no effect, by design -- the underlying request dispatcher parses the whole
+          form from the URL path, not the query string, and the WSGI endpoint exposes ``subfile`` as a named
+          parameter rather than scanning arbitrary keyword arguments for it. This matches the real NoCloud
+          datasource protocol: cloud-init itself builds these exact path-appended requests by concatenating the
+          seed URL (``ds=nocloud;s=...``) directly with ``user-data``/``meta-data``/etc., which is why Cobbler's
+          generated seed URL always ends in ``file/<template>/subfile/``.
 
 ks
 ==

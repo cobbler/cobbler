@@ -98,3 +98,22 @@ def test_render(cobbler_api: CobblerAPI):
 
     # Assert
     assert result == ""
+
+
+def test_render_quotes_semicolon_containing_value(cobbler_api: CobblerAPI):
+    """
+    Regression test: a value containing a semicolon (e.g. the NoCloud ``ds=nocloud;s=...`` convention) must be
+    quoted, since GRUB's config file parses an unquoted ``;`` as a statement separator and would otherwise silently
+    truncate the value.
+    """
+    # Arrange
+    test_generator = KernelCommandLine(cobbler_api)
+    test_generator.append_key_value(
+        "ds", "nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/"
+    )
+
+    # Act
+    result = test_generator.render({})
+
+    # Assert
+    assert result == "ds='nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/'"

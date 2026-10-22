@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Optional
 
 from cobbler import utils
 from cobbler.autoinstall.generate.base import AutoinstallBaseGenerator
+from cobbler.autoinstall.generate.shared import resolve_install_source_directory
 
 if TYPE_CHECKING:
     from cobbler.items.abstract.bootable_item import BootableItem
@@ -41,6 +42,12 @@ class PreseedGenerator(AutoinstallBaseGenerator):
         # make autoinstall_meta metavariable available at top level
         autoinstall_meta = meta.pop("autoinstall_meta")
         meta.update(autoinstall_meta)
+
+        # add install_source_directory metavariable, used by the built-in preseed templates
+        if "tree" in meta:
+            meta["install_source_directory"] = resolve_install_source_directory(
+                meta["tree"]
+            )
 
         meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
         if "kernel_options_post" in meta:

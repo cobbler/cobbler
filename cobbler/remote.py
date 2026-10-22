@@ -492,15 +492,35 @@ class CobblerXMLRPCInterface:
         def runner(self: "CobblerThread"):
             if isinstance(self.options, list):
                 raise ValueError("options for background_import need to be dict!")
+            # XML-RPC has no way to transmit None for an optional string parameter (no allow_none), so clients send
+            # an empty string instead. Normalize those back to None here so they get the real defaults.
+            available_as = self.options.get("available_as", None)
+            if available_as == "":
+                available_as = None
+            autoinstall_file = self.options.get("autoinstall_file", None)
+            if autoinstall_file == "":
+                autoinstall_file = None
+            rsync_flags = self.options.get("rsync_flags", None)
+            if rsync_flags == "":
+                rsync_flags = None
+            arch = self.options.get("arch", None)
+            if arch == "":
+                arch = None
+            breed = self.options.get("breed", None)
+            if breed == "":
+                breed = None
+            os_version = self.options.get("os_version", None)
+            if os_version == "":
+                os_version = None
             self.remote.api.import_tree(
                 self.options.get("path", None),  # type: ignore
                 self.options.get("name", None),  # type: ignore
-                self.options.get("available_as", None),
-                self.options.get("autoinstall_file", None),
-                self.options.get("rsync_flags", None),
-                self.options.get("arch", None),
-                self.options.get("breed", None),
-                self.options.get("os_version", None),
+                available_as,
+                autoinstall_file,
+                rsync_flags,
+                arch,
+                breed,
+                os_version,
             )
 
         return self.__start_task(runner, token, "import", "Media import", options)

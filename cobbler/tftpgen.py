@@ -1455,7 +1455,9 @@ class TFTPGen:
 
             # XCP-ng: PXE boots via the syslinux mboot.c32 module (symlinked at the tftpboot root),
             # not a per-distro kernel image.
-            if boot_loader == "pxe" and distro.os_version.startswith("xcp"):
+            if boot_loader == enums.BootLoader.PXE and distro.os_version.startswith(
+                "xcp"
+            ):
                 kernel_path = "mboot.c32"
 
             if not kernel_path:
@@ -1492,7 +1494,7 @@ class TFTPGen:
             autoinstall_meta, kernel_path, initrd_path, boot_loader  # type: ignore
         )
 
-        if boot_loader == "grub" and utils.file_is_remote(kernel_path):  # type: ignore
+        if boot_loader == enums.BootLoader.GRUB and utils.file_is_remote(kernel_path):  # type: ignore
             metadata["kernel_path"] = grub.parse_grub_remote_file(kernel_path)  # type: ignore
 
     def build_kernel_options(
@@ -1658,7 +1660,12 @@ class TFTPGen:
             elif distro.breed in ("debian", "ubuntu"):
                 # Cloud-Init
                 if enums.AutoinstallerType.CLOUDINIT.value in autoinstall_tags:
-                    append_line.append_key_value("ds", f"nocloud;s={autoinstall_path}")
+                    # cloud-init's NoCloud datasource builds its meta-data/user-data/vendor-data requests by
+                    # concatenating this seed URL directly with the file name (no separator inserted), and requires
+                    # it to end in a slash: https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html
+                    append_line.append_key_value(
+                        "ds", f"nocloud;s={autoinstall_path}/subfile/"
+                    )
                 elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
                     append_line.append_key_value("auto-install/enable", "true")
                     append_line.append_key_value("priority", "critical")
@@ -2079,7 +2086,10 @@ class TFTPGen:
         return self.api.templar.render(search_result.content, blended, None)
 
     def _build_windows_initrd(
-        self, loader_name: str, custom_loader_name: str, bootloader_format: str
+        self,
+        loader_name: str,
+        custom_loader_name: str,
+        bootloader_format: "enums.BootLoader",
     ) -> str:
         """
         Generate a initrd metadata for Windows.
@@ -2091,11 +2101,11 @@ class TFTPGen:
         """
         initrd_line = custom_loader_name
 
-        if bootloader_format == "ipxe":
+        if bootloader_format == enums.BootLoader.IPXE:
             initrd_line = f"--name {loader_name} {custom_loader_name} {loader_name}"
-        elif bootloader_format == "pxe":
+        elif bootloader_format == enums.BootLoader.PXE:
             initrd_line = f"{custom_loader_name}@{loader_name}"
-        elif bootloader_format == "grub":
+        elif bootloader_format == enums.BootLoader.GRUB:
             loader_path = custom_loader_name
             if utils.file_is_remote(loader_path):
                 loader_path = grub.parse_grub_remote_file(custom_loader_name)  # type: ignore
@@ -2108,7 +2118,7 @@ class TFTPGen:
         autoinstall_meta: Dict[Any, Any],
         kernel_path: str,
         initrd_path: str,
-        bootloader_format: str,
+        bootloader_format: "enums.BootLoader",
     ) -> List[str]:
         """
         Generate a initrd metadata.

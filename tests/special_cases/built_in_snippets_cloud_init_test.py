@@ -3639,7 +3639,7 @@ def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
         ),
         (
             {"cloud_init_ubuntu_autoinstall": {"user_data": "test_data"}},
-            ["autoinstall:", "  user_data: |", "    test_data"],
+            ["autoinstall:", "  user_data: test_data"],
         ),
         (
             {
@@ -3648,7 +3648,7 @@ def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
                     "user_data": "test_data",
                 }
             },
-            ["autoinstall:", "  version: 1", "  user_data: |", "    test_data"],
+            ["autoinstall:", "  user_data: test_data", "  version: 1"],
         ),
         (
             {
@@ -3656,7 +3656,25 @@ def test_built_in_cloud_init_module_timezone(cobbler_api: CobblerAPI):
                     "user_data": "line1\nline2",
                 }
             },
-            ["autoinstall:", "  user_data: |", "    line1", "    line2"],
+            ["autoinstall:", "  user_data: 'line1", "", "    line2'"],
+        ),
+        (
+            # Regression test: Subiquity's own autoinstall keys (identity/ssh/storage/...) must be rendered as
+            # direct siblings of "version" under "autoinstall", not nested inside a "user_data" string -- Subiquity
+            # itself fails with "neither identity nor user-data provided" if they are nested incorrectly.
+            {
+                "cloud_init_ubuntu_autoinstall": {
+                    "version": 1,
+                    "identity": {"hostname": "example-host", "username": "ubuntu"},
+                }
+            },
+            [
+                "autoinstall:",
+                "  identity:",
+                "    hostname: example-host",
+                "    username: ubuntu",
+                "  version: 1",
+            ],
         ),
     ],
 )

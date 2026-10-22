@@ -82,7 +82,10 @@ class KernelCommandLine:
             if len(element) == 1:
                 append_line += f" {element[0]}"
             else:
-                append_line += f" {element[0]}={element[1]}"
+                value = element[1]
+                if utils.needs_quoting(value):
+                    value = f"'{value}'"
+                append_line += f" {element[0]}={value}"
         append_line = append_line.lstrip()
         # do variable substitution on the append line promote all of the autoinstall_meta variables
         if "autoinstall_meta" in blended:

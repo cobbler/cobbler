@@ -12,6 +12,10 @@ from typing import TYPE_CHECKING, Any, Optional
 
 from cobbler import utils
 from cobbler.autoinstall.generate.base import AutoinstallBaseGenerator
+from cobbler.autoinstall.generate.shared import (
+    generate_config_stanza,
+    generate_repo_stanza,
+)
 
 if TYPE_CHECKING:
     from cobbler.items.abstract.bootable_item import BootableItem
@@ -45,6 +49,14 @@ class KickstartGenerator(AutoinstallBaseGenerator):
         autoinstall_meta = meta.pop("autoinstall_meta")
         meta.update(autoinstall_meta)
 
+        # add package repositories metadata to autoinstall metavariables
+        meta["yum_repo_stanza"] = self.generate_autoinstall_metadata(
+            obj, "yum_repo_stanza"
+        )
+        meta["yum_config_stanza"] = self.generate_autoinstall_metadata(
+            obj, "yum_config_stanza"
+        )
+
         meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
         if "kernel_options_post" in meta:
             meta["kernel_options_post"] = utils.dict_to_string(
@@ -57,6 +69,16 @@ class KickstartGenerator(AutoinstallBaseGenerator):
         self, obj: "BootableItem", key: str
     ) -> Optional[Any]:
         """
-        This format does not define any auxiliary metadata keys; always returns ``None``.
+        Generates the ``$yum_repo_stanza`` and ``$yum_config_stanza`` substitutions used by Red Hat based automatic
+        installation files.
+
+        :param obj: The profile or system to generate the metadata for.
+        :param key: Either ``"yum_repo_stanza"`` or ``"yum_config_stanza"``.
+        :return: The generated stanza, or None if ``key`` is neither of the two supported values.
         """
+        is_profile = obj.TYPE_NAME == "profile"  # type: ignore
+        if key == "yum_repo_stanza":
+            return generate_repo_stanza(self.api, obj, is_profile)
+        if key == "yum_config_stanza":
+            return generate_config_stanza(self.api, obj, is_profile)
         return None

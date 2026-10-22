@@ -132,6 +132,19 @@ ZYpp based distributions (openSUSE Leap, openSUSE Tumbleweed, SLES)
 - ``python311-file-magic``
 - ``python311-PyYAML``
 
+.. note::
+   On a fresh SLES installation, two of the required packages above are not
+   available from the base product repositories and need an extra repository
+   enabled first:
+
+   - ``fence-agents`` ships as part of the SUSE Linux Enterprise High
+     Availability Extension, not base SLES. Register the system against that
+     extension (e.g. via ``SUSEConnect -p sle-ha/<version>/<arch>``) to make
+     the package available.
+   - ``python3-Cheetah3`` (``python311-Cheetah3`` on newer SLES) ships via
+     SUSE Package Hub rather than the base product. Enable Package Hub for
+     your SLES version/architecture before installing Cobbler.
+
 **Recommended packages**
 
 - ``syslinux``

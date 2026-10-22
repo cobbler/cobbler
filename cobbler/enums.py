@@ -197,6 +197,9 @@ class Archs(ConvertableEnum):
 
     I386 = "i386"
     X86_64 = "x86_64"
+    # Alias, not a distinct member: Debian/Ubuntu's distro_signatures.json entries declare "amd64" as their
+    # native architecture name for this same architecture, which to_enum() would otherwise fail to resolve.
+    AMD64 = "x86_64"
     IA64 = "ia64"
     PPC = "ppc"
     PPC64 = "ppc64"

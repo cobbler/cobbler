@@ -4,9 +4,12 @@ Test module to verify the functionality of the Kickstart generator.
 
 from typing import Any, Callable
 
+import pytest
+
 from cobbler.api import CobblerAPI
 from cobbler.autoinstall.generate.kickstart import KickstartGenerator
 from cobbler.items.distro import Distro
+from cobbler.items.image import Image
 from cobbler.items.profile import Profile
 from cobbler.items.system import System
 
@@ -57,3 +60,31 @@ def test_generate_autoinstall_metatdata(
 
     # Assert
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["yum_repo_stanza", "yum_config_stanza"],
+)
+def test_generate_autoinstall_metadata_for_image_attached_system(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[], Image],
+    create_system: Any,
+    key: str,
+):
+    """
+    Regression test: a system attached to an image (not a profile) has no profile/distro in its
+    conceptual-parent chain, so ``generate_repo_stanza`` used to raise ``KeyError: 'repos'`` (no
+    "repos" key in the blended dict) and would then have hit ``AttributeError`` resolving the
+    distro.
+    """
+    # Arrange
+    test_image = create_image()
+    test_system: System = create_system(image_uid=test_image.uid)
+    test_generator = KickstartGenerator(cobbler_api)
+
+    # Act
+    result = test_generator.generate_autoinstall_metadata(test_system, key)  # type: ignore
+
+    # Assert
+    assert isinstance(result, str)

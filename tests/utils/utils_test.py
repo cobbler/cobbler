@@ -348,7 +348,21 @@ def test_uniquify(testinput, expected_result):  # type: ignore
     assert expected_result == result
 
 
-@pytest.mark.parametrize("testinput,expected_result", [({}, "")])
+@pytest.mark.parametrize(
+    "testinput,expected_result",
+    [
+        ({}, ""),
+        (
+            {"ds": "nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/"},
+            "ds='nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/' ",
+        ),
+        (
+            # A value that is already wrapped in a matching pair of quotes by the caller must not be quoted again.
+            {"test": '"test test test"'},
+            'test="test test test" ',
+        ),
+    ],
+)
 def test_dict_to_string(testinput, expected_result):  # type: ignore
     # Arrange
     # TODO: Generate more parameter combinations

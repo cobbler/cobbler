@@ -1,0 +1,1 @@
+Fixed `background_import`'s XML-RPC handler not normalizing empty-string values (sent by clients in place of `None`, since XML-RPC has no `allow_none` for these calls) back to `None` for optional parameters such as `available_as`, which caused `cobbler import` to fail whenever those options were left unset.

@@ -1,0 +1,1 @@
+Documented that `fence-agents` and `python3-Cheetah3`, both required packages on SUSE/SLES, need the High Availability Extension and SUSE Package Hub repositories enabled respectively on a fresh SLES installation.
