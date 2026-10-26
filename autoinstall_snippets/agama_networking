@@ -45,10 +45,10 @@
             #if $gateway != ""
         "gateway4": "$gateway",
             #elif $idata.get("if_gateway") != ""
-        "gateway4": "$idata.get("if_gateway")"
+        "gateway4": "$idata.get("if_gateway")",
             #end if
           #elif $idata.get("if_gateway") != ""
-        "gateway4": "$idata.get("if_gateway")"
+        "gateway4": "$idata.get("if_gateway")",
           #end if
         #else
         "method4": "auto",
