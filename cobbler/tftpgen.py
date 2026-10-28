@@ -1663,8 +1663,12 @@ class TFTPGen:
                     # cloud-init's NoCloud datasource builds its meta-data/user-data/vendor-data requests by
                     # concatenating this seed URL directly with the file name (no separator inserted), and requires
                     # it to end in a slash: https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html
+                    # "nocloud-net" (not plain "nocloud") is required for an HTTP(S) seed URL: "nocloud" is only
+                    # scanned during cloud-init's pre-network "local" datasource stage, before PXE/DHCP networking
+                    # is up, so a plain "nocloud" seed is never actually fetched and the installer silently falls
+                    # back to interactive mode instead of autoinstalling.
                     append_line.append_key_value(
-                        "ds", f"nocloud;s={autoinstall_path}/subfile/"
+                        "ds", f"nocloud-net;s={autoinstall_path}/subfile/"
                     )
                 elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
                     append_line.append_key_value("auto-install/enable", "true")
