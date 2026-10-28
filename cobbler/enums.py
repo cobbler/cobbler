@@ -380,6 +380,7 @@ class AutoinstallValidationError(ConvertableEnum):
     NONE = 0
     TEMPLATING = 1
     KICKSTART = 2
+    GENERATION = 3
 
 
 class CloudInitFileTypes(ConvertableEnum):

@@ -2,7 +2,7 @@
 Tests that validate the functionality of the module that is responsible for generating auto-installation control files.
 """
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
 
@@ -81,6 +81,73 @@ def test_validate_autoinstall_files(cobbler_api: CobblerAPI):
 
     # Assert
     assert result
+
+
+def test_validate_autoinstall_files_continues_after_generation_error(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+):
+    """
+    A generator exception for one profile (e.g. cloud-init's "needs a valid
+    autoinstaller subfile" ValueError) must not abort validation of the other
+    profiles still queued.
+    """
+    # Arrange
+    test_distro = create_distro()
+    failing_profile = create_profile(test_distro.uid, name="failing-profile")
+    healthy_profile = create_profile(test_distro.uid, name="healthy-profile")
+    test_manager = manager.AutoInstallationManager(cobbler_api)
+
+    def fake_generate_autoinstall(obj: Any, _template: Any) -> str:
+        if obj.uid == failing_profile.uid:
+            raise ValueError("needs a valid autoinstaller subfile")
+        return "Success"
+
+    mocker.patch.object(
+        test_manager, "generate_autoinstall", side_effect=fake_generate_autoinstall
+    )
+    validate_spy = mocker.spy(test_manager, "validate_autoinstall_file")
+
+    # Act
+    result = test_manager.validate_autoinstall_files()
+
+    # Assert
+    assert not result
+    validated_objs = [call.args[0] for call in validate_spy.call_args_list]
+    assert failing_profile in validated_objs
+    assert healthy_profile in validated_objs
+
+
+def test_log_autoinstall_validation_errors_identifies_failing_item(
+    caplog: pytest.LogCaptureFixture,
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+):
+    """
+    The warning logged for a failed validation must identify which profile/system
+    failed, not just the error content - otherwise a failure is unactionable when
+    more than one profile/system is validated.
+    """
+    # Arrange
+    test_distro = create_distro()
+    failing_profile = create_profile(test_distro.uid, name="failing-profile")
+    test_manager = manager.AutoInstallationManager(cobbler_api)
+    mocker.patch.object(
+        test_manager,
+        "generate_autoinstall",
+        side_effect=ValueError("needs a valid autoinstaller subfile"),
+    )
+
+    # Act
+    with caplog.at_level("WARNING"):
+        test_manager.validate_autoinstall_files()
+
+    # Assert
+    assert any(failing_profile.name in record.getMessage() for record in caplog.records)
 
 
 def test_get_last_errors(cobbler_api: CobblerAPI):
