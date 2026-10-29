@@ -1,6 +1,18 @@
 """
 This module represents the Cobbler Python API. It is used by the XML-RPC API and can be used by external consumers.
 
+.. warning::
+   Instantiating :class:`CobblerAPI` directly (e.g. from a standalone script run while ``cobblerd`` is already
+   running) starts a completely separate process with its own, independently-loaded in-memory collections. It is
+   not the same process as ``cobblerd`` and the two do **not** share state. Changes made this way (``add_*``,
+   ``save``, etc.) are correctly written to the on-disk JSON files, but ``cobblerd`` has no mechanism to notice
+   out-of-band disk changes or to reload its collections on its own -- it only (re-)reads them from disk once, at
+   process startup. Any add/edit made via a standalone ``CobblerAPI()`` while ``cobblerd`` is already running will
+   therefore be invisible to the live XML-RPC API (and everything built on it, e.g. ``cobbler`` CLI reports) until
+   ``cobblerd`` itself is restarted. If an external script's changes need to be visible immediately, make them
+   through ``cobblerd``'s own XML-RPC API instead (it serves requests from its own live memory), or restart
+   ``cobblerd`` afterward.
+
 Changelog:
 
 Schema: From -> To
@@ -230,6 +242,11 @@ class CobblerAPI:
         """
         Constructor. Since :class:`CobblerAPI` is a singleton, the actual initialization logic below only runs once
         per process; subsequent calls just reuse the already-initialized shared state.
+
+        .. warning::
+           This loads collections fresh from disk into a new, process-local singleton. If ``cobblerd`` is already
+           running elsewhere, this is a second, independent in-memory copy -- see the module-level warning on
+           :mod:`cobbler.api` before using this from a standalone script while ``cobblerd`` is up.
 
         :param is_cobblerd: Whether this API is run as a daemon or not.
         :param settingsfile_location: The location of the settings file on the disk.

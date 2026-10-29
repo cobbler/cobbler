@@ -93,6 +93,16 @@ Permissions
 The ``/var/lib/cobbler/triggers`` directory is only writeable by root (and are executed by Cobbler on a regular basis).
 For security reasons do not loosen these permissions.
 
+.. warning::
+   Any standalone script (a script-based trigger below, or any other one-off script, e.g. for bulk imports or
+   maintenance tasks) that instantiates its own ``CobblerAPI()`` runs as a separate OS process with its own,
+   independently-loaded copy of the collections -- it does **not** share memory with an already-running
+   ``cobblerd``. Changes it makes (adds/edits) are correctly written to the on-disk JSON files, but ``cobblerd``
+   has no way to detect out-of-band disk changes and will not pick them up until it is restarted; until then they
+   are invisible to the live XML-RPC API and to anything built on it (e.g. ``cobbler`` CLI reports). If a script
+   needs its changes to show up immediately, talk to ``cobblerd``'s own XML-RPC API instead, or restart
+   ``cobblerd`` afterward.
+
 Example trigger for resetting Cfengine keys
 ===========================================
 
