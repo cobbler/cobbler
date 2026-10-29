@@ -1044,17 +1044,18 @@ class _ImportSignatureManager(ManagerModule):
             if wim_file.lower() in file_dict:
                 file_dict[wim_file.lower()] = wim_file
 
+        # Both bootmgr variants are extracted unconditionally: wimboot-based delivery (BIOS iPXE, UEFI iPXE,
+        # syslinux, GRUB -- every documented path except the legacy pxeboot.n12 one) needs the real PE32
+        # "/windows/boot/pxe/bootmgr.exe" as a standalone initrd component, not the ISO-root BIOS boot-sector
+        # stub that add_entry() would otherwise fall back to. pxeboot.n12 remains gated to the non-wimboot case,
+        # since it is only used as the boot kernel itself there (see wingen.rst's "Additional Windows metadata").
         file_list = [
             file_dict["/windows/boot/efi/bootmgr.efi"],
+            file_dict["/windows/boot/pxe/bootmgr.exe"],
             file_dict["/windows/system32/config/software"],
         ]
         if "wimboot" not in self.signature.kernel_file:
-            file_list.extend(
-                [
-                    file_dict["/windows/boot/pxe/pxeboot.n12"],
-                    file_dict["/windows/boot/pxe/bootmgr.exe"],
-                ]
-            )
+            file_list.append(file_dict["/windows/boot/pxe/pxeboot.n12"])
 
         self.extract_files_from_wim(winpe_path, file_list)
         self.update_winpe(winpe_path, file_dict["/windows/system32/config/software"])

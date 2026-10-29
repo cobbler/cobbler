@@ -3,7 +3,17 @@ wpeinit
 $SNIPPET('built-in-wait_network_online')
 #set $distros_dir = '\\\\' + $http_server + '\\' + $samba_distro_share
 #set $distro_share = 'Z:\\links\\' + $distro_name
+## Windows 10 1709+/11 refuse guest/anonymous SMB sessions by default (surfaced as "System error
+## 53: network path not found" rather than an access-denied error), which breaks the guest-accessible
+## Samba share documented in docs/user-guide/wingen.rst. If the server was configured with a Samba
+## account for the share named by the "samba_distro_share" setting (see smbpasswd(8)), set
+## "samba_distro_user"/"samba_distro_password" in autoinstall_meta to authenticate instead of relying
+## on the guest fallback Windows blocks by default -- no credential is baked into this template.
+#if "samba_distro_user" in $autoinstall_meta and "samba_distro_password" in $autoinstall_meta
+net use z: $distros_dir /user:$autoinstall_meta["samba_distro_user"] $autoinstall_meta["samba_distro_password"]
+#else
 net use z: $distros_dir
+#end if
 set exit_code=%ERRORLEVEL%
 IF %exit_code% EQU 0 GOTO INSTALL
 echo "Can't mount network drive"
@@ -27,7 +37,11 @@ xcopy $distro_share\\$OEM\$\\$1 c: /y /s /e
 #end if
 #set $unattended = ""
 #if "answerfile" in $autoinstall_meta
-#set $unattended = "/unattend:Z:\\images\\" + $distro_name + '\\' + $autoinstall_meta["answerfile"]
+## Pass the answer file as a full UNC path rather than a Z:-mapped one: drive letter mappings are
+## per-session, and setup.exe relaunching itself in a different session during its own startup
+## (a well-documented behavior) silently loses the mapping, making Setup fall back to its fully
+## interactive flow with no indication the switch was ever ignored.
+#set $unattended = "/unattend:" + $distros_dir + '\\images\\' + $distro_name + '\\' + $autoinstall_meta["answerfile"]
 #end if
 
 #if $os_version in ('xp', '2003' )
@@ -39,7 +53,51 @@ xcopy $distro_share\\$OEM\$\\$1 c: /y /s /e
 #set $winnt = $distro_share + '\\' + $win_arch + '\\winnt32.exe'
 $winnt /syspart:c: /tempdrive:c: /makelocalsource $unattended
 #else
-$distro_share\sources\setup.exe $unattended
+## Windows 11's TPM 2.0/Secure Boot/CPU-family hardware checks reject most VMs outright ("Windows 11
+## cannot run on this PC"), aborting the install before it reaches any unattend-driven step. Set
+## "bypass_win11_requirements" (any value) in autoinstall_meta to apply the LabConfig registry bypass
+## Microsoft itself documents for exactly this case (VMs, unsupported-but-functional hardware).
+#if "bypass_win11_requirements" in $autoinstall_meta
+reg add "HKLM\SYSTEM\Setup\LabConfig" /v BypassTPMCheck /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\Setup\LabConfig" /v BypassSecureBootCheck /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\Setup\LabConfig" /v BypassRAMCheck /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\Setup\LabConfig" /v BypassStorageCheck /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\Setup\LabConfig" /v BypassCPUCheck /t REG_DWORD /d 1 /f
+#end if
+## Unlike every other breed, Windows has never had a "pxe_just_once" hook: setup.exe's first WinPE
+## phase normally reboots the VM on its own to continue installing from the local disk, and
+## without disabling netboot first, the VM just re-PXE-boots back into WinPE and re-runs this
+## entire script from scratch -- including WillWipeDisk=true -- a destructive reinstall loop
+## rather than a cosmetic nuisance. Calling nopxe is deliberately sequenced *after* setup.exe
+## returns successfully, not before it starts: disabling netboot pre-emptively would strand a
+## system whose install then fails/crashes with no way to retry via PXE, exactly the failure mode
+## every other breed's %post-triggered nopxe call already avoids by running after the real work is
+## done. "/noreboot" plus an explicit "wpeutil reboot" afterwards gives us that window to check
+## setup.exe's own exit code before deciding whether continuing past this point is even safe.
+## The installation media's boot.wim is a minimal WinPE with neither curl nor PowerShell
+## (confirmed via `wimdir`); unlike certutil (also absent here -- it ships with full Windows, not
+## every WinPE build), WSH (cscript.exe) and WinHTTP (winhttp.dll) are part of boot.wim's base
+## scripting/networking components, so a tiny generated VBScript is the most portable way to issue
+## the GET request.
+#set $system_name = $getVar('system_name', '')
+#set $noreboot = ""
+#if $system_name != '' and $getVar('pxe_just_once', '')
+#set $noreboot = " /noreboot"
+#end if
+$distro_share\sources\setup.exe $unattended$noreboot
+#if $noreboot != ""
+set setup_exit_code=%ERRORLEVEL%
+IF %setup_exit_code% NEQ 0 (
+    echo "setup.exe exited with code %setup_exit_code%; leaving netboot enabled for a retry"
+    goto EXIT
+)
+#set $nopxe_url = $getVar('autoinstall_scheme', 'http') + '://' + $http_server + '/cblr/svc/op/nopxe/system/' + $system_name
+echo Set http = CreateObject("WinHttp.WinHttpRequest.5.1") > nopxe.vbs
+echo http.Open "GET", "$nopxe_url", False >> nopxe.vbs
+echo http.Send >> nopxe.vbs
+cscript //nologo //b nopxe.vbs
+wpeutil reboot
+#end if
 #end if
 :EXIT
 exit

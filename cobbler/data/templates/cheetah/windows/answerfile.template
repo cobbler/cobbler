@@ -31,34 +31,76 @@
 #end if
 #set $uefi = $getVar('uefi', $uefi)
 #set $part_num = 0
+## Child element order below follows each component's XSD sequence (alphabetical by element name)
+## exactly -- Windows Setup validates unattend.xml against its catalog/schema and silently rejects a
+## pass with elements out of order, surfacing only as "the DiskConfiguration setting from the answer
+## file could not be applied" with no further detail.
                     <CreatePartitions>
 #if $uefi == 'True'
                         <CreatePartition wcm:action="add">
 #set $part_num += 1
                             <Order>$part_num</Order>
-                            <Type>Primary</Type>
                             <Size>300</Size>
+                            <Type>Primary</Type>
                         </CreatePartition>
                         <CreatePartition wcm:action="add">
 #set $part_num += 1
                             <Order>$part_num</Order>
-                            <Type>EFI</Type>
                             <Size>100</Size>
+                            <Type>EFI</Type>
                         </CreatePartition>
                         <CreatePartition wcm:action="add">
 #set $part_num += 1
                             <Order>$part_num</Order>
-                            <Type>MSR</Type>
                             <Size>128</Size>
+                            <Type>MSR</Type>
                         </CreatePartition>
 #end if
                         <CreatePartition wcm:action="add">
 #set $part_num += 1
-                            <Order>$part_num</Order>
                             <Extend>true</Extend>
+                            <Order>$part_num</Order>
                             <Type>Primary</Type>
                         </CreatePartition>
                     </CreatePartitions>
+## CreatePartitions only creates raw, unformatted partitions; without a matching ModifyPartitions
+## entry for each one, Setup has nothing to install onto and aborts with the same silent error above.
+                    <ModifyPartitions>
+#set $mod_num = 0
+#if $uefi == 'True'
+                        <ModifyPartition wcm:action="add">
+#set $mod_num += 1
+                            <Format>NTFS</Format>
+                            <Label>Recovery</Label>
+                            <Order>$mod_num</Order>
+                            <PartitionID>$mod_num</PartitionID>
+                            <TypeID>DE94BBA4-06D1-4D40-A16A-BFD50179D6AC</TypeID>
+                        </ModifyPartition>
+                        <ModifyPartition wcm:action="add">
+#set $mod_num += 1
+                            <Format>FAT32</Format>
+                            <Label>System</Label>
+                            <Order>$mod_num</Order>
+                            <PartitionID>$mod_num</PartitionID>
+                        </ModifyPartition>
+                        <ModifyPartition wcm:action="add">
+#set $mod_num += 1
+                            <Order>$mod_num</Order>
+                            <PartitionID>$mod_num</PartitionID>
+                        </ModifyPartition>
+#end if
+                        <ModifyPartition wcm:action="add">
+#set $mod_num += 1
+#if $uefi != 'True'
+                            <Active>true</Active>
+#end if
+                            <Format>NTFS</Format>
+                            <Label>OS</Label>
+                            <Letter>C</Letter>
+                            <Order>$mod_num</Order>
+                            <PartitionID>$mod_num</PartitionID>
+                        </ModifyPartition>
+                    </ModifyPartitions>
                 </Disk>
             </DiskConfiguration>
             <ImageInstall>
@@ -69,7 +111,13 @@
                         </Credentials>
                         <MetaData wcm:action="add">
                             <Key>/IMAGE/NAME</Key>
-#if $os_version == '7'
+## install.wim/install.esd is frequently a multi-edition image (Home/Pro/Pro N/Pro Workstation/...,
+## one index per edition); this name must match one of its indices exactly (see `wiminfo`) or Setup
+## falls back to showing the "choose the operating system to install" picker. Override via
+## "image_name" in autoinstall_meta when the image doesn't contain a plain "Windows <version> Pro".
+#if "image_name" in $autoinstall_meta
+                            <Value>$autoinstall_meta["image_name"]</Value>
+#else if $os_version == '7'
                             <Value>Windows 7 PROFESSIONAL</Value>
 #else if $os_version == '8'
                             <Value>Windows 8.1 Pro</Value>
@@ -98,7 +146,15 @@
             </ImageInstall>
             <UserData>
                 <ProductKey>
-#if $os_version == '7'
+## The generic/KMS client keys below are per-EDITION, not per-Windows-version -- e.g. the Windows
+## 10/11 "W269N-..." key below is for the plain Pro edition only, and setup.exe silently discards
+## the entire unattend.xml (not just the key) if it doesn't match the image's actual edition, which
+## otherwise presents as every setting -- including the windowsPE language pass -- being ignored with
+## no visible error. Override via "product_key" in autoinstall_meta for any other edition (Home, Pro
+## N, Pro Workstation, Pro Workstation N, Education, Enterprise, ...).
+#if "product_key" in $autoinstall_meta
+                    <Key>$autoinstall_meta["product_key"]</Key>
+#else if $os_version == '7'
                     <Key>FJ82H-XT6CR-J8D7P-XQJJ2-GPDD4</Key>
 #else if $os_version == '8'
                     <Key>GCRJD-8NW9H-F2CDX-CCM8D-9D6T9</Key>
