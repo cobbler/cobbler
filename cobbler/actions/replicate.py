@@ -28,6 +28,25 @@ OBJ_TYPES = [
     "image",
 ]
 
+# Remote objects are transported via ``to_dict()``, which includes computed/read-only
+# properties (e.g. a Distro's ``remote_grub_kernel``/``remote_grub_initrd``, derived from
+# ``remote_boot_kernel``/``remote_boot_initrd``). Those have no setter, so feeding them back
+# into a constructor's ``from_dict()`` raises ``AttributeError``. Mirrors the key list
+# ``BaseItem.serialize()`` already drops for the same reason before persisting to disk.
+NON_CONSTRUCTIBLE_KEYS = [
+    "kickstart",
+    "ks_meta",
+    "remote_grub_kernel",
+    "remote_grub_initrd",
+    "built_in",
+]
+
+
+def _strip_non_constructible_keys(data: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        key: value for key, value in data.items() if key not in NON_CONSTRUCTIBLE_KEYS
+    }
+
 
 class Replicate:
     """
@@ -133,7 +152,9 @@ class Replicate:
 
             if not rdata["uid"] in local_objects:
                 creator = getattr(self.api, f"new_{obj_type}")
-                newobj = creator(utils.revert_strip_none(rdata))
+                newobj = creator(
+                    **_strip_non_constructible_keys(utils.revert_strip_none(rdata))
+                )
                 try:
                     self.logger.info("adding %s %s", obj_type, rdata["name"])
                     if not self.api.add_item(obj_type, newobj):
@@ -166,7 +187,9 @@ class Replicate:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
                         self.api.remove_item(obj_type, ldata["name"], recursive=True)
                     creator = getattr(self.api, f"new_{obj_type}")
-                    newobj = creator(utils.revert_strip_none(rdata))
+                    newobj = creator(
+                        **_strip_non_constructible_keys(utils.revert_strip_none(rdata))
+                    )
                     try:
                         self.logger.info("updating %s %s", obj_type, rdata["name"])
                         if not self.api.add_item(obj_type, newobj):
