@@ -128,6 +128,51 @@ def test_from_list(
     assert len(distro_collection.indexes["arch"]) == 1
 
 
+def test_from_list_item_failure_is_logged_with_identifying_details(
+    distro_collection: distros.Distros,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_initrd: str,
+    fk_kernel: str,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Regression test for the "vanishing items" bug: when a single item in a collection fails to load from disk
+    (e.g. because a validation rule, such as the valid os_versions for a breed, changed since the item was last
+    saved), ``from_list()`` must not silently drop it with only a generic, unidentifiable message that reads as
+    if the whole collection failed to load. The failure must be logged with the offending item's own uid/name so
+    an operator can actually tell which item "vanished" (and that its on-disk JSON file was untouched) instead
+    of discovering it only indirectly (e.g. via a missing entry in ``cobbler distro report``).
+    """
+    # Arrange
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    test_kernel = os.path.join(folder, fk_kernel)
+    valid_item = {"name": "test_from_list_valid", "kernel": test_kernel}
+    invalid_item = {
+        "uid": "deadbeefdeadbeefdeadbeefdeadbeef",
+        "name": "test_from_list_invalid",
+        "kernel": test_kernel,
+        "breed": "suse",
+        "os_version": "this-os-version-does-not-exist",
+    }
+    item_list = [valid_item, invalid_item]
+
+    # Act
+    with caplog.at_level("ERROR"):
+        distro_collection.from_list(item_list)
+
+    # Assert - the valid item still loaded despite the other item in the same collection failing
+    assert len(distro_collection.listing) == 1
+    assert distro_collection.get("test_from_list_valid") is not None
+    # Assert - the invalid item never made it into the live collection
+    assert distro_collection.get("test_from_list_invalid") is None
+    # Assert - the failure was logged with enough detail to identify the specific offending item, not a generic
+    # message that could be mistaken for the entire collection having failed to load
+    assert len(caplog.records) == 1
+    logged_message = caplog.records[0].getMessage()
+    assert invalid_item["uid"] in logged_message
+    assert invalid_item["name"] in logged_message
+
+
 def test_copy(
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,
