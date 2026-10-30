@@ -6,6 +6,7 @@ structures for Cobbler's operation. It supports setup for Apache, Nginx, systemd
 components based on distribution options and installation scope.
 """
 
+import json
 import pathlib
 from typing import TYPE_CHECKING, List
 
@@ -200,6 +201,36 @@ def setup_cobblerd_log_directories(base_path: pathlib.Path, apache_user: str) ->
     (base_path / apache_user / "cobbler").mkdir(parents=True, exist_ok=True)
 
 
+def signatures_seed_needed(signatures_path: pathlib.Path) -> bool:
+    """
+    Determine whether ``distro_signatures.json`` needs to be (re)seeded from libcobblersignatures' built-in
+    data.
+
+    A plain ``Path.exists()`` check is not sufficient: a packaging scriptlet race (or any other mishap) can
+    leave behind a zero-byte or truncated file that technically "exists" but is useless to
+    :func:`cobbler.utils.signatures.load_signatures`. Reseed whenever the file is missing, empty/whitespace
+    only, or fails to parse as JSON. A file that exists and parses as JSON -- including one an admin
+    customized -- is left alone, even if its structure later turns out to be semantically wrong; that is
+    not this function's concern.
+
+    :param signatures_path: The path to the ``distro_signatures.json`` file to check.
+    :return: ``True`` if the file should be (re)seeded, ``False`` if the existing file should be kept as-is.
+    """
+    if not signatures_path.exists():
+        return True
+    try:
+        content = signatures_path.read_text(encoding="utf-8")
+    except OSError:
+        return True
+    if not content.strip():
+        return True
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return True
+    return False
+
+
 def setup_cobblerd(
     base_path: pathlib.Path, distro_options: "DistroOptions", scope: List[str]
 ) -> None:
@@ -240,7 +271,7 @@ def setup_cobblerd(
     # already has one (e.g. a customized file surviving an upgrade)
     signatures_filename = "distro_signatures.json"
     new_signatures_path = var_path / signatures_filename
-    if not new_signatures_path.exists():
+    if signatures_seed_needed(new_signatures_path):
         built_in_signatures = Signatures()
         built_in_signatures.importsignatures(ImportTypes.BUILT_IN, "")
         built_in_signatures.jsontomodels()
