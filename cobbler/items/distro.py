@@ -13,6 +13,7 @@ V4.0.0 (unreleased):
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
         * ``source_tree_path``: str
+        * ``remote_boot_iso``: str
         * ``distro_groups`` membership accessor.
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
@@ -180,6 +181,7 @@ class Distro(BootableItem):
         self._redhat_management_password = enums.VALUE_INHERITED
         self._source_repos: List[str] = []
         self._source_tree_path: str = ""
+        self._remote_boot_iso: str = ""
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
@@ -526,6 +528,42 @@ class Distro(BootableItem):
         :raises CX: Raised in case the value is not an absolute path to an existing directory.
         """
         self._source_tree_path = validate.validate_source_tree_path(source_tree_path)
+
+    @LazyProperty
+    def remote_boot_iso(self) -> str:
+        """
+        URL to the original installation ISO this distro was imported from (e.g. an Ubuntu live-server/Subiquity
+        ISO), reachable over HTTP or TFTP. Unlike ``remote_boot_kernel``/``remote_boot_initrd`` this is not
+        consumed by GRUB; it is only used to build the ``url=`` kernel parameter that casper (Ubuntu's
+        live-filesystem netboot loader) needs to locate and boot its live squashfs over the network. ``cobbler
+        import`` never sees the original ISO file -- it only ever scans an already-mounted directory tree -- so
+        this field is not populated automatically and must be set explicitly (e.g. via ``cobbler distro edit``)
+        once the ISO has been staged somewhere HTTP/TFTP-reachable.
+
+        :getter: Returns the current remote URL to the install ISO, or an empty string if unset.
+        :setter: Raises a ``TypeError`` or ``ValueError`` in case the provided value was not correct.
+        """
+        return self._remote_boot_iso
+
+    @remote_boot_iso.setter
+    def remote_boot_iso(self, remote_boot_iso: str):
+        """
+        Setter for the ``remote_boot_iso`` property.
+
+        :param remote_boot_iso: The new URL to the remote install ISO.
+        :raises TypeError: Raised in case the URL is not of type str.
+        :raises ValueError: Raised in case the validation is not succeeding.
+        """
+        if not isinstance(remote_boot_iso, str):  # type: ignore
+            raise TypeError("Field remote_boot_iso of distro needs to be of type str!")
+        if not remote_boot_iso:
+            self._remote_boot_iso = remote_boot_iso
+            return
+        if not validate.validate_boot_remote_file(remote_boot_iso):
+            raise ValueError(
+                "remote_boot_iso needs to be a valid URL starting with tftp or http!"
+            )
+        self._remote_boot_iso = remote_boot_iso
 
     @LazyProperty
     def arch(self):

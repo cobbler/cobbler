@@ -668,6 +668,32 @@ def test_remote_boot_initrd(
 
 @pytest.mark.parametrize(
     "value,expected_exception",
+    [
+        ([""], pytest.raises(TypeError)),
+        ("", does_not_raise()),
+        ("http://192.168.1.1/cblr/links/distro/custom-iso/image.iso", does_not_raise()),
+        ("ftp://192.168.1.1/image.iso", pytest.raises(ValueError)),
+    ],
+)
+def test_remote_boot_iso(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
+    """
+    Test that verifies the ``remote_boot_iso`` property (ledger 1.7 -- the casper/Subiquity live-netboot "url="
+    source) validates its input and round-trips correctly. Unlike ``remote_boot_kernel``/``remote_boot_initrd``
+    this is not GRUB-reparsed, so a plain valid HTTP URL is expected to round-trip unchanged.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    with expected_exception:
+        distro.remote_boot_iso = value  # type: ignore[method-assign]
+
+        # Assert
+        assert distro.remote_boot_iso == value
+
+
+@pytest.mark.parametrize(
+    "value,expected_exception",
     [([""], pytest.raises(TypeError)), ("", does_not_raise())],
 )
 def test_remote_grub_initrd(
