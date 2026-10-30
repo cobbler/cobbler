@@ -1065,6 +1065,70 @@ def test_generate_script(
     )
 
 
+def test_generate_script_resolves_builtin_template_by_bare_name(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that a built-in script template can be resolved by its bare, unprefixed
+    name (e.g. "preseed_early_default"), which is the name every real caller
+    (the "d-i preseed/early_command"/"late_command" "?script=" directives) actually
+    uses. Without the "built-in-" prefix fallback, this lookup previously failed
+    and silently fell back to the "not found" stub.
+    """
+    # Arrange
+    expected_template = "# Start preseed_early_default\n"
+    expected_template += "# This script is not run in the chroot /target by default\n"
+    expected_template += "$SNIPPET('built-in-autoinstall_start')\n"
+    expected_template += "$SNIPPET('built-in-save_boot_device')\n"
+    expected_template += "# End preseed_early_default\n"
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    mocker.patch("cobbler.utils.blender", return_value={})
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
+
+    # Act
+    result = test_gen.generate_script(
+        profile=test_profile, script_name="preseed_early_default"
+    )
+
+    # Assert
+    assert isinstance(result, mocker.MagicMock)
+    test_gen.api.templar.render.assert_called_with(  # type: ignore
+        expected_template, {"img_path": f"/images/{test_distro.name}"}, None
+    )
+
+
+def test_generate_script_unknown_name_returns_not_found_stub(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that a script name matching neither a bare nor a "built-in-" prefixed
+    template still correctly falls back to the "not found" stub, i.e. the
+    "built-in-" fallback lookup must not make every lookup succeed.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    mocker.patch("cobbler.utils.blender", return_value={})
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
+
+    # Act
+    result = test_gen.generate_script(
+        profile=test_profile, script_name="totally_bogus_script_name"
+    )
+
+    # Assert
+    assert result == '# script template "totally_bogus_script_name" not found'
+
+
 def test_generate_windows_initrd(cobbler_api: CobblerAPI):
     """
     Test to verify that the initrd for a Windows distro is generated.

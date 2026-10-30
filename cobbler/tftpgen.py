@@ -2099,6 +2099,14 @@ class TFTPGen:
             blended["img_path"] = os.path.join("/images", distro.name)  # type: ignore
 
         search_result = self.api.find_template(False, False, name=script_name)
+        if search_result is None:
+            # All built-in templates are registered with a "built-in-" prefix
+            # (see cobbler.templates.__init__), but callers (e.g. the "d-i
+            # preseed/early_command"/"late_command" "?script=" directives) request
+            # them by their bare name. Retry with the prefix before giving up.
+            search_result = self.api.find_template(
+                False, False, name=f"built-in-{script_name}"
+            )
         if search_result is None or isinstance(search_result, list):
             return f'# script template "{script_name}" not found'
 
