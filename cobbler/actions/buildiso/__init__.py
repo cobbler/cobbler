@@ -636,8 +636,7 @@ class BuildIso:
 
         xorrisofs_return_code = utils.subprocess_call(cmd, shell=False)
         if xorrisofs_return_code != 0:
-            self.logger.error("xorrisofs failed with non zero exit code!")
-            return
+            utils.die("xorrisofs failed with non zero exit code!")
 
         self.logger.info("ISO build complete")
         self.logger.info("You may wish to delete: %s", buildisodir)
@@ -696,8 +695,7 @@ class BuildIso:
 
         xorrisofs_return_code = utils.subprocess_call(cmd, shell=False)
         if xorrisofs_return_code != 0:
-            self.logger.error("xorrisofs failed with non zero exit code!")
-            return
+            utils.die("xorrisofs failed with non zero exit code!")
 
         self.logger.info("ISO build complete")
         self.logger.info("You may wish to delete: %s", buildisodir)
