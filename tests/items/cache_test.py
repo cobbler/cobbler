@@ -592,17 +592,26 @@ def test_dict_cache_edit_invalidate(
     objs.append(test_system2)
 
     # Act
-    repo1_dep = test_repo1.tree_walk("_owners")
-    repo2_dep = test_repo2.tree_walk("_owners")
-    menu1_dep = test_menu1.tree_walk("_owners")
-    menu2_dep = test_menu2.tree_walk("_owners")
-    distro_dep = test_distro.tree_walk("_owners")
-    profile1_dep = test_profile1.tree_walk("_owners")
-    profile2_dep = test_profile2.tree_walk("_owners")
-    profile3_dep = test_profile3.tree_walk("_owners")
-    image_dep = test_image.tree_walk("_owners")
-    system1_dep = test_system1.tree_walk("_owners")
-    system2_dep = test_system2.tree_walk("_owners")
+    # NOTE: these intentionally use `descendants` (same-collection `tree_walk()` *plus*
+    # cross-collection dependents, e.g. Profiles that inherit from a Distro, or Systems that inherit
+    # from a Profile) rather than `tree_walk("_owners")` alone. `tree_walk()` only ever walks
+    # same-collection children (reached via the "parent" field within the same COLLECTION_TYPE,
+    # e.g. subprofiles) -- it cannot see e.g. `test_profile1`/`test_profile2`/`test_profile3`
+    # depending on `test_distro`, since that's a cross-collection ("distro") relationship. Since none
+    # of the objects below override "owners" themselves, `descendants` and `tree_walk("_owners")`
+    # agree exactly on the same-collection portion; `descendants` additionally covers the
+    # cross-collection portion that `_clean_dict_cache` now also invalidates.
+    repo1_dep = test_repo1.descendants
+    repo2_dep = test_repo2.descendants
+    menu1_dep = test_menu1.descendants
+    menu2_dep = test_menu2.descendants
+    distro_dep = test_distro.descendants
+    profile1_dep = test_profile1.descendants
+    profile2_dep = test_profile2.descendants
+    profile3_dep = test_profile3.descendants
+    image_dep = test_image.descendants
+    system1_dep = test_system1.descendants
+    system2_dep = test_system2.descendants
 
     settings_dep = objs
     signatures_dep = [
@@ -653,6 +662,58 @@ def test_dict_cache_edit_invalidate(
     )
     with expected_exception:
         cobbler_api.clean_items_cache(True)  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "cache_enabled",
+    [True, False],
+)
+def test_dict_cache_distro_kernel_options_edit_invalidates_profile_and_system(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[..., Distro],
+    create_profile: Any,
+    create_system: Any,
+    cache_enabled: bool,
+):
+    """
+    Regression test for the "stale resolved kernel_options after a Distro edit" bug (ledger entry
+    1.1b): a Profile/System with no ``kernel_options`` override of its own inherits the value from its
+    Distro. ``_clean_dict_cache()`` used ``tree_walk()`` to invalidate dependents' resolved dict
+    cache, but ``tree_walk()`` only ever walks same-collection children (e.g. subprofiles via
+    "parent") -- it never reaches cross-collection dependents like a Profile that inherits from a
+    Distro via "distro", or a System that inherits from a Profile via "profile". This meant that once
+    a Profile's (or System's) resolved ``to_dict()`` had been computed and cached once, editing the
+    ancestor Distro's ``kernel_options`` afterwards correctly invalidated the Distro's own cache (so
+    reading the Distro directly always showed the new value) but left the Profile's/System's cached
+    resolved ``kernel_options`` stale indefinitely -- exactly the "report is correct, sync/
+    build_kernel_options is stale" split seen in the ledger.
+    """
+    # Arrange
+    cobbler_api.settings().cache_enabled = cache_enabled
+    test_distro = create_distro()
+    test_distro.kernel_options = "originalvalue=1"  # type: ignore[method-assign]
+    test_profile: Profile = create_profile(distro_uid=test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+
+    # Warm the resolved dict cache for both dependents, baking the distro's original
+    # kernel_options into each of their cached, resolved "to_dict()" output.
+    profile_before = test_profile.to_dict(resolved=True)
+    system_before = test_system.to_dict(resolved=True)
+    assert profile_before["kernel_options"] == {"originalvalue": "1"}
+    assert system_before["kernel_options"] == {"originalvalue": "1"}
+
+    # Act: edit the distro's kernel_options. Nothing about the profile/system own fields changed.
+    test_distro.kernel_options = "newvalue=2"  # type: ignore[method-assign]
+
+    # Assert: the profile's and system's cached resolved kernel_options must reflect the new value,
+    # not the stale, pre-edit value baked in above -- whether that's because the cache was properly
+    # invalidated (cache_enabled=True) or because there never was a cache to go stale in the first
+    # place (cache_enabled=False). Before the fix, this failed with cache_enabled=True: both
+    # dependents kept serving ``{"originalvalue": "1"}``.
+    profile_after = test_profile.to_dict(resolved=True)
+    system_after = test_system.to_dict(resolved=True)
+    assert profile_after["kernel_options"] == {"newvalue": "2"}
+    assert system_after["kernel_options"] == {"newvalue": "2"}
 
 
 @pytest.mark.parametrize(
@@ -736,7 +797,10 @@ def test_dict_cache_rename_invalidate(
         remain_objs = set(objs)
         deps: Set[BaseItem] = set()
         if isinstance(obj_test, BootableItem):
-            deps = set(obj_test.tree_walk())
+            # See the comment on `*_dep` in test_dict_cache_edit_invalidate: `descendants` also
+            # covers cross-collection dependents (e.g. Profiles/Systems that inherit from this
+            # Distro/Repo/Menu), which plain `tree_walk()` misses.
+            deps = set(obj_test.descendants)
             remain_objs = remain_objs - deps
             remain_objs.remove(obj_test)
             logger.info("Pre Rename")
