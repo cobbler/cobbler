@@ -1670,6 +1670,21 @@ class TFTPGen:
                     append_line.append_key_value(
                         "ds", f"nocloud-net;s={autoinstall_path}/subfile/"
                     )
+                    if distro.remote_boot_iso:
+                        # casper (the live-filesystem netboot loader used by every Ubuntu
+                        # live-server/Subiquity release since "noble"/24.04) needs its own set of kernel
+                        # parameters to locate and boot the live squashfs over the network -- cloud-init's
+                        # "ds=" above only configures the autoinstall data source, it does nothing for
+                        # casper itself. Without these, casper falls back to an interactive "Unable to
+                        # find a medium containing a live file system... Attempt interactive netboot from
+                        # a URL?" prompt. Only emitted when remote_boot_iso is set, since without a known
+                        # ISO URL a "url=" pointing nowhere would just be a different way of hanging.
+                        append_line.append_key_value("url", distro.remote_boot_iso)
+                        append_line.append_key_value("ip", "dhcp")
+                        append_line.append_key_value("root", "/dev/ram0")
+                        append_line.append_key_value("ramdisk_size", "3400000")
+                        append_line.append_key_value("cloud-config-url", "/dev/null")
+                        append_line.append_key("autoinstall")
                 elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
                     append_line.append_key_value("auto-install/enable", "true")
                     append_line.append_key_value("priority", "critical")

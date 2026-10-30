@@ -729,6 +729,91 @@ def test_build_kernel_options_autoinstall(
     assert result == expected_result
 
 
+def test_build_kernel_options_casper_live_server_with_remote_boot_iso(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for the casper/Subiquity live-netboot kernel parameters (ledger 1.7): a casper-breed
+    (Ubuntu live-server/Subiquity, detected the same way as the "nocloud-net" fix -- breed "ubuntu" plus a
+    cloud-init autoinstall template) distro with ``remote_boot_iso`` set must emit the full set of kernel
+    parameters casper needs to locate and boot its live squashfs over the network, in addition to cloud-init's
+    own "ds=" datasource parameter.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "ubuntu"
+    test_distro.os_version = "noble"
+    test_distro.remote_boot_iso = (
+        "http://192.168.1.1/cblr/links/ubuntu26-casper-amd64/custom-iso/"
+        "ubuntu-26.04.1-live-server-amd64.iso"
+    )
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-user-data"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert (
+        "url=http://192.168.1.1/cblr/links/ubuntu26-casper-amd64/custom-iso/"
+        "ubuntu-26.04.1-live-server-amd64.iso" in result
+    )
+    assert "ip=dhcp" in result
+    assert "root=/dev/ram0" in result
+    assert "ramdisk_size=3400000" in result
+    assert "cloud-config-url=/dev/null" in result
+    assert "autoinstall" in result.split()
+    # The pre-existing cloud-init datasource parameter must still be present.
+    assert "ds='nocloud-net;s=" in result
+
+
+def test_build_kernel_options_casper_live_server_without_remote_boot_iso(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for ledger 1.7: a casper-breed distro imported from a plain directory tree (not a traceable
+    ISO) has no ``remote_boot_iso`` set. In that case cobbler must not emit a broken/empty "url=" (or any of the
+    other casper-specific parameters, since without "url=" they wouldn't help casper find its live squashfs
+    anyway) -- it should fall back to the pre-existing cloud-init-only behavior.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "ubuntu"
+    test_distro.os_version = "noble"
+    assert test_distro.remote_boot_iso == ""
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-user-data"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert "url=" not in result
+    assert "ip=dhcp" not in result
+    assert "root=/dev/ram0" not in result
+    assert "ramdisk_size=" not in result
+    assert "cloud-config-url=" not in result
+    # "autoinstall" itself legitimately appears as a URL path segment (.../op/autoinstall/system/...) in the
+    # unrelated cloud-init "ds=" parameter, so check for the bare casper flag as its own whitespace-delimited
+    # token rather than as a plain substring.
+    assert "autoinstall" not in result.split()
+    assert "ds='nocloud-net;s=" in result
+
+
 def test_build_kernel_options_convert_server_to_ip_disabled(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],
