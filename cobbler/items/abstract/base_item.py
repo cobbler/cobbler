@@ -543,6 +543,14 @@ class BaseItem(ABC):
         item_dict = self.api.deserialize_item(self)
         self.from_dict(item_dict)
 
+    # Keys that other properties' setters resolve inheritance/validation against (e.g. a profile's
+    # or system's ``boot_loaders`` setter looks at its parent/distro/profile to compute the set of
+    # allowed values). These must be applied before any other key so that dependent setters never see
+    # a not-yet-set reference, regardless of the order ``dictionary`` happens to iterate in (which
+    # depends on the ``serializer_pretty_json`` setting: alphabetically sorted on disk, or attribute
+    # declaration order otherwise).
+    _FROM_DICT_PRIORITY_KEYS = ("parent", "distro", "profile", "image")
+
     def from_dict(self, dictionary: Dict[Any, Any]) -> None:
         """
         Modify this object to take on values in ``dictionary``.
@@ -557,7 +565,11 @@ class BaseItem(ABC):
         old_has_initialized = self._has_initialized
         self._has_initialized = False
         result = copy.deepcopy(dictionary)
-        for key in dictionary:
+        ordered_keys = sorted(
+            dictionary,
+            key=lambda key: 0 if key.lower() in self._FROM_DICT_PRIORITY_KEYS else 1,
+        )
+        for key in ordered_keys:
             lowered_key = key.lower()
             private_key = "_" + lowered_key
             # The following also works for child classes because self is a child class at this point and not only an

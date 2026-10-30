@@ -141,6 +141,38 @@ def test_from_list(
         assert len(indx) == 1
 
 
+def test_from_list_survives_concrete_boot_loaders_override(
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    profile_collection: profiles.Profiles,
+):
+    """
+    Regression test for a profile with a concrete ``boot_loaders`` override vanishing on a simulated
+    ``cobblerd`` restart (fresh collection deserialize via ``from_list()``).
+
+    A profile's ``boot_loaders`` setter validates the given value against its distro's resolved boot
+    loaders. During a fresh deserialize, ``Collection.from_list()`` calls ``factory_produce()`` which
+    constructs the item via ``Profile(api, **item_dict)``, applying every key through ``from_dict()``.
+    If ``boot_loaders`` happens to be applied before ``distro``, the distro reference is not resolved
+    yet, so validation incorrectly sees no supported boot loaders and raises, silently dropping the
+    item from the collection.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_profile.boot_loaders = ["ipxe"]  # type: ignore[method-assign]
+    serialized_profile = test_profile.to_dict()
+
+    # Act
+    profile_collection.remove(test_profile)
+    profile_collection.from_list([serialized_profile])
+
+    # Assert
+    reloaded_profile = profile_collection.find(False, name=test_profile.name)
+    assert isinstance(reloaded_profile, profile.Profile)
+    assert reloaded_profile.boot_loaders == [enums.BootLoader.IPXE]
+
+
 def test_copy(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],
