@@ -47,10 +47,14 @@ then
     # Build RPMs
     echo "==> Build RPMs ..."
     mkdir -p rpm-build
-    $EXECUTOR run -t -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build:z" "$IMAGE"
+    $EXECUTOR run -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build:z" "$IMAGE"
 fi
 
 # Launch container and install cobbler
+# Note: -t is kept here (without -i) so that the backgrounded `/bin/bash`
+# has an open pty and doesn't immediately exit on EOF; since the container
+# is started detached (-d), this does not require a host TTY and is safe
+# in non-interactive/CI contexts.
 echo "==> Start container ..."
 $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
     -p 80:80 -p 443:443 \
@@ -59,51 +63,51 @@ $EXECUTOR run --cap-add=NET_ADMIN -t -d --name cobbler \
     "$IMAGE" /bin/bash
 
 echo "==> Install fresh RPMs ..."
-$EXECUTOR exec -t cobbler bash -c 'rpm -Uvh rpm-build/RPMS/cobbler-*.noarch.rpm'
+$EXECUTOR exec cobbler bash -c 'rpm -Uvh rpm-build/RPMS/cobbler-*.noarch.rpm'
 if [[ ! ( "$TAG" == *"rl"* || "$TAG" == *"fc"* ) ]]; then
-    $EXECUTOR exec -it cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
+    $EXECUTOR exec cobbler bash -c 'a2enmod proxy && a2enmod proxy_http'
 fi
 
 # openSUSE does not have this file so skip it
 if test "${TAG#*opensuse}" == "$TAG"
 then
     echo "==> Remove httpd SSL default config which is automatically loaded normally"
-    $EXECUTOR exec -t cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
+    $EXECUTOR exec cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
 fi
 
 echo "==> Create webroot directory ..."
 if [[ ( "$TAG" == *"rl"* || "$TAG" == *"fc"* ) ]]; then
-    $EXECUTOR exec -it cobbler bash -c 'mkdir /var/www/cobbler'
+    $EXECUTOR exec cobbler bash -c 'mkdir /var/www/cobbler'
 else
-    $EXECUTOR exec -it cobbler bash -c 'mkdir /srv/www/cobbler'
+    $EXECUTOR exec cobbler bash -c 'mkdir /srv/www/cobbler'
 fi
 
 echo "==> Start Supervisor ..."
-if $EXECUTOR exec -t cobbler bash -c 'test ! -d "/var/log/supervisor"'
+if $EXECUTOR exec cobbler bash -c 'test ! -d "/var/log/supervisor"'
 then
     echo "==> /var/log/supervisor does not exist, create it"
-    $EXECUTOR exec -t cobbler bash -c 'mkdir -p /var/log/supervisor'
+    $EXECUTOR exec cobbler bash -c 'mkdir -p /var/log/supervisor'
 fi
-$EXECUTOR exec -t cobbler bash -c 'supervisord -c /etc/supervisord.conf'
+$EXECUTOR exec cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 
 echo "==> Show Logs ..."
-$EXECUTOR exec -t cobbler bash -c 'cat /var/log/supervisor/supervisor.log'
+$EXECUTOR exec cobbler bash -c 'cat /var/log/supervisor/supervisor.log'
 
 if $RUN_TESTS
 then
     echo "==> Running tests ..."
-    $EXECUTOR exec -t cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
-    $EXECUTOR exec -t cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro'
-    $EXECUTOR exec -t cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
-    $EXECUTOR exec -t cobbler bash -c 'pytest'
+    $EXECUTOR exec cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
+    $EXECUTOR exec cobbler bash -c 'pip3 install pyyaml netaddr Cheetah3 pymongo distro'
+    $EXECUTOR exec cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
+    $EXECUTOR exec cobbler bash -c 'pytest'
 fi
 
 if $RUN_SYSTEM_TESTS
 then
     echo "==> Wait 15 sec. because supervisord gets two unkown sighups"
-    $EXECUTOR exec -t cobbler bash -c 'sleep 15'
+    $EXECUTOR exec cobbler bash -c 'sleep 15'
     echo "==> Running system tests ..."
-    $EXECUTOR exec --privileged -t cobbler make system-test
+    $EXECUTOR exec --privileged cobbler make system-test
 fi
 
 # Clean up
