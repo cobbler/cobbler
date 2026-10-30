@@ -11,7 +11,7 @@ import fnmatch
 import logging
 import os
 import xmlrpc.client
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 from cobbler import utils
 from cobbler.utils import filesystem_helpers
@@ -151,11 +151,10 @@ class Replicate:
                 continue
 
             if not rdata["uid"] in local_objects:
-                creator = getattr(self.api, f"new_{obj_type}")
-                newobj = creator(
-                    **_strip_non_constructible_keys(utils.revert_strip_none(rdata))
-                )
                 try:
+                    creator = getattr(self.api, f"new_{obj_type}")
+                    reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))
+                    newobj = creator(**_strip_non_constructible_keys(reverted))
                     self.logger.info("adding %s %s", obj_type, rdata["name"])
                     if not self.api.add_item(obj_type, newobj):
                         self.logger.error(
@@ -186,11 +185,10 @@ class Replicate:
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
                         self.api.remove_item(obj_type, ldata["name"], recursive=True)
-                    creator = getattr(self.api, f"new_{obj_type}")
-                    newobj = creator(
-                        **_strip_non_constructible_keys(utils.revert_strip_none(rdata))
-                    )
                     try:
+                        creator = getattr(self.api, f"new_{obj_type}")
+                        reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))
+                        newobj = creator(**_strip_non_constructible_keys(reverted))
                         self.logger.info("updating %s %s", obj_type, rdata["name"])
                         if not self.api.add_item(obj_type, newobj):
                             self.logger.error(

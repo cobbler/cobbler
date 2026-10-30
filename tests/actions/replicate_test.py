@@ -83,6 +83,46 @@ def test_add_objects_not_on_local(
     api_mock.new_distro.assert_called_once()  # type: ignore
 
 
+def test_add_objects_not_on_local_continues_after_construction_exception(
+    mocker: MockerFixture, replicate_obj: replicate.Replicate
+):
+    """
+    Test that asserts that a construction-time exception (raised by the ``new_<type>()`` call,
+    e.g. because of invalid data on the remote object) for one object does not abort processing
+    of the remaining objects in the same call -- it should be logged and skipped just like an
+    ``add_item()`` failure already is.
+    """
+    # Arrange
+    replicate_obj.local_data["distro"] = []
+    replicate_obj.remote_data["distro"] = []
+    replicate_obj.must_include["distro"] = ["broken", "ok"]  # type: ignore
+    mocker.patch("cobbler.utils.lod_to_dod", return_value={})
+    mocker.patch(
+        "cobbler.utils.lod_sort_by_key",
+        return_value=[
+            {"uid": "uid-broken", "name": "broken"},
+            {"uid": "uid-ok", "name": "ok"},
+        ],
+    )
+    api_mock = mocker.patch.object(replicate_obj, "api")
+
+    def new_distro_side_effect(**kwargs: object):
+        if kwargs.get("name") == "broken":
+            raise ValueError("construction failed")
+        return mocker.MagicMock()
+
+    api_mock.new_distro.side_effect = new_distro_side_effect  # type: ignore
+
+    # Act
+    replicate_obj.add_objects_not_on_local("distro")
+
+    # Assert: the "broken" object's construction exception must not prevent "ok" from being
+    # processed (reached by add_item).
+    assert api_mock.new_distro.call_count == 2  # type: ignore
+    api_mock.add_item.assert_called_once()  # type: ignore
+    assert api_mock.add_item.call_args.args[0] == "distro"  # type: ignore
+
+
 def test_replace_objects_newer_on_remote(
     mocker: MockerFixture, replicate_obj: replicate.Replicate
 ):
@@ -107,6 +147,48 @@ def test_replace_objects_newer_on_remote(
 
     # Assert
     api_mock.new_distro.assert_called_once()  # type: ignore
+    api_mock.add_item.assert_called_once()  # type: ignore
+
+
+def test_replace_objects_newer_on_remote_continues_after_construction_exception(
+    mocker: MockerFixture, replicate_obj: replicate.Replicate
+):
+    """
+    Test that asserts that a construction-time exception (raised by the ``new_<type>()`` call)
+    for one object does not abort processing of the remaining objects in the same call.
+    """
+    # Arrange
+    replicate_obj.local_data["distro"] = []
+    replicate_obj.remote_data["distro"] = []
+    replicate_obj.must_include["distro"] = ["broken", "ok"]  # type: ignore
+    mocker.patch(
+        "cobbler.utils.lod_to_dod",
+        side_effect=[
+            {
+                "uid-broken": {"uid": "uid-broken", "name": "broken", "mtime": 4},
+                "uid-ok": {"uid": "uid-ok", "name": "ok", "mtime": 4},
+            },
+            {
+                "uid-broken": {"uid": "uid-broken", "name": "broken", "mtime": 5},
+                "uid-ok": {"uid": "uid-ok", "name": "ok", "mtime": 5},
+            },
+        ],
+    )
+    api_mock = mocker.patch.object(replicate_obj, "api")
+
+    def new_distro_side_effect(**kwargs: object):
+        if kwargs.get("name") == "broken":
+            raise ValueError("construction failed")
+        return mocker.MagicMock()
+
+    api_mock.new_distro.side_effect = new_distro_side_effect  # type: ignore
+
+    # Act
+    replicate_obj.replace_objects_newer_on_remote("distro")
+
+    # Assert: the "broken" object's construction exception must not prevent "ok" from being
+    # processed (reached by add_item).
+    assert api_mock.new_distro.call_count == 2  # type: ignore
     api_mock.add_item.assert_called_once()  # type: ignore
 
 
