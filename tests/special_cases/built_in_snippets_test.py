@@ -856,7 +856,7 @@ def test_built_in_network_config_xcp(cobbler_api: CobblerAPI):
         "system_name": "test_name",
         "hostname": "",
         "gateway": "",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "interfaces": {
             "default": {
                 "mac_address": "aa:bb:cc:dd:ee:ff",

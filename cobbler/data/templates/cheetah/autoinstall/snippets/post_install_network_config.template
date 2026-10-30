@@ -264,7 +264,7 @@ echo "IPV6_DEFAULTGW=$ipv6_default_gateway" >> $devfile
         #else
             ## this is a DHCP interface, much less work to do
 echo "BOOTPROTO=dhcp" >> $devfile
-            #if $len($name_servers) > 0
+            #if $len($dns.name_servers) > 0
 echo "PEERDNS=no" >> $devfile
             #end if
         #end if
@@ -295,7 +295,7 @@ echo "MTU=$mtu" >> $devfile
         ## If the interface is anything but a slave then add DNSn entry
         #if $iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")
             #set $nct = 0
-            #for $nameserver in $name_servers
+            #for $nameserver in $dns.name_servers
                 #set $nct = $nct + 1
 echo "DNS$nct=$nameserver" >> $devfile
             #end for
@@ -333,13 +333,13 @@ echo "$network via $router dev $iname" >> $ipv6_routesfile
     #end for
     ## =============================================================================
     ## Configure name server search path in /etc/resolv.conf
-    #set $num_ns = $len($name_servers)
-    #set $num_ns_search = $len($name_servers_search)
+    #set $num_ns = $len($dns.name_servers)
+    #set $num_ns_search = $len($dns.name_servers_search)
     #if $num_ns_search > 0
 
 sed -i -e "/^search /d" /etc/resolv.conf
 echo -n "search " >>/etc/resolv.conf
-        #for $nameserversearch in $name_servers_search
+        #for $nameserversearch in $dns.name_servers_search
 echo -n "$nameserversearch " >>/etc/resolv.conf
         #end for
 echo "" >>/etc/resolv.conf
@@ -349,7 +349,7 @@ echo "" >>/etc/resolv.conf
     #if $num_ns > 0
 
 sed -i -e "/^nameserver /d" /etc/resolv.conf
-        #for $nameserver in $name_servers
+        #for $nameserver in $dns.name_servers
 echo "nameserver $nameserver" >>/etc/resolv.conf
         #end for
     #end if

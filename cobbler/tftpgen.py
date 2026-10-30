@@ -2170,7 +2170,7 @@ class TFTPGen:
                 )
                 initrd_path = f"{loaders_path}{os.path.basename(initrd_path)}"
             else:
-                (loaders_path, _) = os.path.split(kernel_path)
+                loaders_path, _ = os.path.split(kernel_path)
                 loaders_path += "/"
 
             bootmgr_path = bcd_path = wim_path = loaders_path

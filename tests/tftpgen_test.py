@@ -7,6 +7,7 @@ import os
 import pathlib
 import shutil
 import socket
+import subprocess
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 from unittest.mock import PropertyMock
 
@@ -1061,7 +1062,11 @@ def test_generate_script(
     # Assert
     assert isinstance(result, mocker.MagicMock)
     test_gen.api.templar.render.assert_called_with(  # type: ignore
-        expected_template, {"img_path": f"/images/{test_distro.name}"}, None
+        expected_template,
+        {
+            "img_path": f"/images/{test_distro.name}",
+        },
+        None,
     )
 
 
@@ -1098,7 +1103,11 @@ def test_generate_script_resolves_builtin_template_by_bare_name(
     # Assert
     assert isinstance(result, mocker.MagicMock)
     test_gen.api.templar.render.assert_called_with(  # type: ignore
-        expected_template, {"img_path": f"/images/{test_distro.name}"}, None
+        expected_template,
+        {
+            "img_path": f"/images/{test_distro.name}",
+        },
+        None,
     )
 
 
@@ -1127,6 +1136,60 @@ def test_generate_script_unknown_name_returns_not_found_stub(
 
     # Assert
     assert result == '# script template "totally_bogus_script_name" not found'
+
+
+def test_generate_script_post_install_network_config_deb_renders_fully(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Regression test: "built-in-preseed_late_default" includes
+    "built-in-post_install_network_config_deb" via "$SNIPPET(...)". That snippet's
+    content used to reference the flat "$name_servers"/"$name_servers_search"
+    Cheetah variables (pre-dating the ``DNSOption`` refactor), but
+    "generate_script()"'s blended context only ever exposes them nested under
+    "dns" (``blended["dns"]["name_servers"]``) -- the template has since been
+    updated to reference the nested path directly, matching every other
+    consumer of ``utils.blender()``'s output. Previously, the resulting Cheetah
+    "NameMapper.NotFound" error was raised while evaluating a "#set"
+    control-flow directive, not while resolving a placeholder inside output
+    text, so it was *not* caught by the "#errorCatcher ListErrors" directive
+    "read_snippet()" prefixes onto every included snippet -- Cheetah's
+    "#include" silently fell back to leaving the literal, un-rendered
+    "$SNIPPET(...)" call in the output, which is not valid shell and aborts
+    "d-i late_command"'s "sh" interpreter.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(profile_uid=test_profile.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.generate_script(
+        system=test_system, script_name="preseed_late_default"
+    )
+
+    # Assert
+    assert "$SNIPPET" not in result, (
+        "built-in-post_install_network_config_deb was left unexpanded:\n" + result
+    )
+    assert "NameMapper" not in result
+    assert "post_install_network_config generated code" in result
+
+    shell_check = subprocess.run(
+        ["sh", "-n"],
+        input=result,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert shell_check.returncode == 0, (
+        f"Rendered script is not valid POSIX shell (sh -n exit "
+        f"{shell_check.returncode}): {shell_check.stderr}\n---\n{result}"
+    )
 
 
 def test_generate_windows_initrd(cobbler_api: CobblerAPI):
