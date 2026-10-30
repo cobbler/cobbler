@@ -60,6 +60,12 @@ except ImportError:
 
 MANAGER = None
 
+# File extensions (matched case-insensitively, since Windows filenames can be any case) that Samba requires the
+# Unix execute bit on in order to grant Windows clients FILE_EXECUTE access over an SMB share, independent of
+# SELinux. ISO9660/UDF-extracted Windows media typically carries no execute bit on any file, so these need it set
+# explicitly after import; see harden_windows_executable_permissions().
+WINDOWS_EXECUTABLE_EXTENSIONS = (".exe", ".dll", ".com")
+
 
 def register() -> str:
     """
@@ -261,6 +267,8 @@ class _ImportSignatureManager(ManagerModule):
         self.logger.info("Adding distros from path %s:", self.path)
         if self.breed == "windows":  # type: ignore
             self.import_winpe()
+            if not self.direct_source:
+                self.harden_windows_executable_permissions(self.path)
 
         distros_added: List["Distro"] = []
         import_walker(self.path, self.distro_adder, distros_added)
@@ -1211,6 +1219,68 @@ class _ImportSignatureManager(ManagerModule):
                     os.path.join(dest_path, wim_file),
                     os.path.join(dest_path, wim_file.lower()),
                 )
+
+    def harden_windows_executable_permissions(self, path: str) -> None:
+        """
+        Ensure imported Windows PE/EXE/DLL/COM files carry the Unix execute bit.
+
+        Samba requires the execute bit to grant Windows clients ``FILE_EXECUTE`` access over an SMB share,
+        independent of SELinux. The rsync copy that stages a Windows distro into ``distro_mirror``
+        (``--chmod=ug=rwX``) only *preserves* an existing execute bit rather than adding one, and
+        ISO9660/UDF-extracted Windows media typically has no execute bit set on any file to begin with, so
+        imported ``setup.exe``-style files end up mode 644 and Windows clients get
+        ``STATUS_ACCESS_DENIED`` when trying to launch them over the network share.
+
+        Only called for Cobbler-managed copies of the import source (never when ``direct_source`` is set), and
+        only ever grants execute to a permission class that already has read access to the same file. All
+        decisions and the final permission change are made on an open file descriptor (opened with
+        ``O_NOFOLLOW``), not on the pathname, so a symlink swapped in between a path check and the chmod
+        (a classic TOCTOU race) cannot retarget the change at a file outside the staged tree; hardlinked files
+        and files not owned by the user running the import are skipped outright, and any pre-existing
+        setuid/setgid bit is stripped rather than carried forward onto a now-executable file.
+
+        :param path: The directory (recursively) to scan for Windows executables whose permissions need fixing.
+        """
+        root_realpath = os.path.realpath(path)
+        current_euid = os.geteuid()
+        for root, _subdirs, fnames in os.walk(path):
+            for fname in fnames:
+                if not fname.lower().endswith(WINDOWS_EXECUTABLE_EXTENSIONS):
+                    continue
+                fpath = os.path.join(root, fname)
+                if (
+                    os.path.commonpath([root_realpath, os.path.realpath(fpath)])
+                    != root_realpath
+                ):
+                    continue
+                fdesc = -1
+                try:
+                    fdesc = os.open(fpath, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+                    file_stat = os.fstat(fdesc)
+                    if not stat.S_ISREG(file_stat.st_mode):
+                        continue
+                    if file_stat.st_nlink > 1:
+                        continue
+                    if file_stat.st_uid != current_euid:
+                        continue
+                    current_mode = stat.S_IMODE(file_stat.st_mode)
+                    new_mode = current_mode
+                    if current_mode & stat.S_IRUSR:
+                        new_mode |= stat.S_IXUSR
+                    if current_mode & stat.S_IRGRP:
+                        new_mode |= stat.S_IXGRP
+                    if current_mode & stat.S_IROTH:
+                        new_mode |= stat.S_IXOTH
+                    new_mode &= ~(stat.S_ISUID | stat.S_ISGID)
+                    if new_mode != current_mode:
+                        os.fchmod(fdesc, new_mode)
+                except OSError as os_error:
+                    self.logger.warning(
+                        "Could not set the execute bit on %s: %s", fpath, os_error
+                    )
+                finally:
+                    if fdesc != -1:
+                        os.close(fdesc)
 
 
 # ==========================================================================

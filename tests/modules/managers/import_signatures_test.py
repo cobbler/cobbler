@@ -4,7 +4,8 @@ Tests that validate the functionality of the module that is responsible for mana
 
 import os
 import pathlib
-from typing import Any, Callable, Dict, Generator
+import stat
+from typing import Any, Callable, Dict, Generator, List
 
 import pytest
 from libcobblersignatures.models.osversion import Osversion
@@ -274,6 +275,145 @@ def test_configure_tree_location_direct_source(
         distro.autoinstall_meta["tree"]
         == f"{protocol}://@@http_server@@/cblr/svc/tree/{distro.name}/"
     )
+
+
+def test_harden_windows_executable_permissions_sets_execute_bit_on_exe_dll_com(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Regression test: Windows-imported ``.exe``/``.dll``/``.com`` files must come out of
+    ``harden_windows_executable_permissions()`` with the Unix execute bit set, regardless of case, so that Samba
+    grants Windows clients ``FILE_EXECUTE`` access over the SMB share serving ``distro_mirror``.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    exe_path = tmp_path / "sources" / "setup.exe"
+    exe_path.parent.mkdir(parents=True)
+    exe_path.write_bytes(b"MZ")
+    exe_path.chmod(0o644)
+    dll_path = tmp_path / "SOURCES" / "SOMELIB.DLL"
+    dll_path.parent.mkdir(parents=True)
+    dll_path.write_bytes(b"MZ")
+    dll_path.chmod(0o644)
+    com_path = tmp_path / "command.com"
+    com_path.write_bytes(b"")
+    com_path.chmod(0o644)
+
+    # Act
+    manager.harden_windows_executable_permissions(str(tmp_path))
+
+    # Assert
+    assert os.stat(exe_path).st_mode & 0o777 == 0o755
+    assert os.stat(dll_path).st_mode & 0o777 == 0o755
+    assert os.stat(com_path).st_mode & 0o777 == 0o755
+
+
+def test_harden_windows_executable_permissions_leaves_other_files_untouched(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Regression guard: files that are not Windows executables (e.g. ``.cab``/``.txt``) must not be given an
+    execute bit they shouldn't have; the fix must not broadly chmod every imported file.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    cab_path = tmp_path / "sources" / "install.cab"
+    cab_path.parent.mkdir(parents=True)
+    cab_path.write_bytes(b"")
+    cab_path.chmod(0o644)
+    txt_path = tmp_path / "readme.txt"
+    txt_path.write_bytes(b"")
+    txt_path.chmod(0o644)
+
+    # Act
+    manager.harden_windows_executable_permissions(str(tmp_path))
+
+    # Assert
+    assert os.stat(cab_path).st_mode & 0o777 == 0o644
+    assert os.stat(txt_path).st_mode & 0o777 == 0o644
+
+
+def test_harden_windows_executable_permissions_does_not_follow_symlinks(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Security regression guard: a symlink inside the import tree (e.g. pointing at a file outside the staged
+    ``distro_mirror`` tree) must never be chmod'd -- following it would let a crafted import source grant the
+    execute bit to an arbitrary file on the host, since ``cobblerd`` runs as root.
+    """
+    # Arrange
+    outside_target = tmp_path.parent / "outside-target.exe"
+    outside_target.write_bytes(b"MZ")
+    outside_target.chmod(0o600)
+    staged_dir = tmp_path / "staged"
+    staged_dir.mkdir()
+    symlink_path = staged_dir / "setup.exe"
+    symlink_path.symlink_to(outside_target)
+
+    manager = import_signatures.get_import_manager(cobbler_api)
+
+    # Act
+    manager.harden_windows_executable_permissions(str(staged_dir))
+
+    # Assert
+    assert os.stat(outside_target).st_mode & 0o777 == 0o600
+
+
+def test_harden_windows_executable_permissions_strips_setuid_setgid(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Security regression guard: a pre-existing setuid/setgid bit on an imported file must never be carried
+    forward onto a now-executable file.
+    """
+    # Arrange
+    exe_path = tmp_path / "setup.exe"
+    exe_path.write_bytes(b"MZ")
+    exe_path.chmod(0o4644)  # setuid + rw-r--r--
+
+    manager = import_signatures.get_import_manager(cobbler_api)
+
+    # Act
+    manager.harden_windows_executable_permissions(str(tmp_path))
+
+    # Assert
+    mode = os.stat(exe_path).st_mode
+    assert mode & 0o777 == 0o755
+    assert not mode & stat.S_ISUID
+
+
+def test_import_run_skips_hardening_for_direct_source(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Security regression guard: ``run()`` must not chmod files under a ``direct_source`` (uncopied, externally
+    managed) import tree -- Cobbler doesn't own those files and has no business changing their permissions.
+    """
+    manager = import_signatures.get_import_manager(cobbler_api)
+    harden_spy = mocker.patch.object(manager, "harden_windows_executable_permissions")
+    mocker.patch.object(manager, "import_winpe")
+    mocker.patch.object(manager, "scan_signatures", return_value="windows")
+
+    def _import_walker(
+        path: str, func: Callable[[Any, str, List[str]], None], results: Any
+    ) -> None:
+        return None
+
+    mocker.patch(
+        "cobbler.modules.managers.import_signatures.import_walker",
+        side_effect=_import_walker,
+    )
+
+    # Act
+    manager.run(
+        path=str(tmp_path),
+        name="test-direct-source",
+        breed="windows",
+        direct_source=True,
+    )
+
+    # Assert
+    harden_spy.assert_not_called()
 
 
 def test_configure_tree_location_without_direct_source_creates_symlink(
