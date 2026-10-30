@@ -1056,7 +1056,13 @@ def subprocess_sp(
         ) from os_error
 
     logger.info("received on stdout: %s", out)
-    logger.debug("received on stderr: %s", err)
+    if return_code != 0:
+        # Escalate stderr to a level the default INFO file handler captures so that the actual
+        # failure detail (e.g. permission errors from setfacl, rsync, xorrisofs, dnf, etc.) is not
+        # silently lost from cobbler.log.
+        logger.error("received on stderr: %s", err)
+    else:
+        logger.debug("received on stderr: %s", err)
     return out, return_code
 
 

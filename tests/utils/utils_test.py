@@ -531,6 +531,61 @@ def test_subprocess_sp():
     assert result_rc == 0
 
 
+def test_subprocess_sp_logs_stderr_at_error_level_on_failure(
+    caplog: "pytest.LogCaptureFixture",
+):
+    """
+    A failing subprocess's stderr must be logged at a level the default INFO-level file handler
+    actually captures (i.e. at least INFO), so the real failure detail is not silently dropped
+    from cobbler.log.
+    """
+    # Arrange
+    caplog.set_level("DEBUG")
+
+    # Act
+    _, result_rc = utils.subprocess_sp(
+        "echo 'Permission denied' 1>&2; exit 1", shell=True
+    )
+
+    # Assert
+    assert result_rc == 1
+    matching_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("received on stderr:")
+    ]
+    assert len(matching_records) == 1
+    assert "Permission denied" in matching_records[0].message
+    assert matching_records[0].levelname == "ERROR"
+
+
+def test_subprocess_sp_logs_stderr_at_debug_level_on_success(
+    caplog: "pytest.LogCaptureFixture",
+):
+    """
+    A successful subprocess's stderr (routine diagnostic chatter many well-behaved CLI tools
+    write) must stay at DEBUG level, so it does not flood cobbler.log at the default INFO level.
+    """
+    # Arrange
+    caplog.set_level("DEBUG")
+
+    # Act
+    _, result_rc = utils.subprocess_sp(
+        "echo 'Just some diagnostic chatter' 1>&2; exit 0", shell=True
+    )
+
+    # Assert
+    assert result_rc == 0
+    matching_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("received on stderr:")
+    ]
+    assert len(matching_records) == 1
+    assert "Just some diagnostic chatter" in matching_records[0].message
+    assert matching_records[0].levelname == "DEBUG"
+
+
 @pytest.mark.parametrize(
     "input_command,expected_exception,expected_result",
     [
