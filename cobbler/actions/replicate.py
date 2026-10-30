@@ -357,7 +357,10 @@ class Replicate:
             self.logger.debug("* Adding Profiles Required By SubProfiles")
             while True:
                 loop_exit = True
-                for pro in self.must_include["profile"]:
+                # Iterate over a snapshot of the keys: this loop body may add new entries to
+                # "profile" (the very dict being iterated) below, which would otherwise raise
+                # "RuntimeError: dictionary changed size during iteration".
+                for pro in list(self.must_include["profile"]):
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:

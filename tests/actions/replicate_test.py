@@ -193,6 +193,54 @@ def test_generate_include_map(
     assert replicate_obj.must_include == expected_must_include
 
 
+def test_generate_include_map_subprofile_parent_not_pre_included(
+    replicate_obj: replicate.Replicate,
+):
+    """
+    Test that asserts that generate_include_map() can pull in a matched subprofile's parent
+    profile -- which is not itself matched by any pattern -- without raising
+    ``RuntimeError: dictionary changed size during iteration``. This is an ordinary setup (a
+    shared base profile plus per-arch/variant subprofiles), not an edge case.
+    """
+    # Arrange
+    replicate_obj.sync_all = False
+    replicate_obj.distro_patterns = []
+    replicate_obj.profile_patterns = ["leap161-sub*"]
+    replicate_obj.system_patterns = []
+    replicate_obj.repo_patterns = []
+    replicate_obj.image_patterns = []
+    replicate_obj.remote_data = {
+        "distro": [],
+        "profile": [
+            {
+                "name": "leap161-base",
+                "parent": "",
+                "distro": "<<inherit>>",
+                "repos": [],
+            },
+            {
+                "name": "leap161-sub1",
+                "parent": "leap161-base",
+                "distro": "<<inherit>>",
+                "repos": [],
+            },
+        ],
+        "system": [],
+        "repo": [],
+        "image": [],
+    }
+
+    # Act
+    replicate_obj.generate_include_map()
+
+    # Assert: both the explicitly-matched subprofile and its pulled-in, unmatched parent are
+    # included.
+    assert replicate_obj.must_include["profile"] == {
+        "leap161-sub1": 1,
+        "leap161-base": 1,
+    }
+
+
 def test_run(
     mocker: MockerFixture, cobbler_api: CobblerAPI, replicate_obj: replicate.Replicate
 ):
