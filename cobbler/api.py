@@ -1391,8 +1391,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty Distro object.
         """
-        self.log("new_distro", kwargs)
-        return distro.Distro(self, is_subobject, **kwargs)
+        new_obj = distro.Distro(self, is_subobject, **kwargs)
+        self.log("new_distro", [new_obj.uid])
+        return new_obj
 
     def new_profile(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1404,8 +1405,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty Profile object.
         """
-        self.log("new_profile", kwargs)
-        return profile_module.Profile(self, is_subobject, **kwargs)
+        new_obj = profile_module.Profile(self, is_subobject, **kwargs)
+        self.log("new_profile", [new_obj.uid])
+        return new_obj
 
     def new_system(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1417,8 +1419,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty System object.
         """
-        self.log("new_system", kwargs)
-        return system_module.System(self, is_subobject, **kwargs)
+        new_obj = system_module.System(self, is_subobject, **kwargs)
+        self.log("new_system", [new_obj.uid])
+        return new_obj
 
     def new_repo(self, is_subobject: bool = False, **kwargs: Any) -> "repo.Repo":
         """
@@ -1428,8 +1431,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty repo object.
         """
-        self.log("new_repo", kwargs)
-        return repo.Repo(self, is_subobject, **kwargs)
+        new_obj = repo.Repo(self, is_subobject, **kwargs)
+        self.log("new_repo", [new_obj.uid])
+        return new_obj
 
     def new_image(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1441,8 +1445,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty image object.
         """
-        self.log("new_image", kwargs)
-        return image_module.Image(self, is_subobject, **kwargs)
+        new_obj = image_module.Image(self, is_subobject, **kwargs)
+        self.log("new_image", [new_obj.uid])
+        return new_obj
 
     def new_menu(self, is_subobject: bool = False, **kwargs: Any) -> "menu.Menu":
         """
@@ -1452,8 +1457,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty Menu object.
         """
-        self.log("new_menu", kwargs)
-        return menu.Menu(self, is_subobject, **kwargs)
+        new_obj = menu.Menu(self, is_subobject, **kwargs)
+        self.log("new_menu", [new_obj.uid])
+        return new_obj
 
     def new_network_interface(
         self, **kwargs: Any
@@ -1464,8 +1470,9 @@ class CobblerAPI:
 
         :return: An empty Network Interface object.
         """
-        self.log("new_network_interface", kwargs)
-        return network_interface.NetworkInterface(self, **kwargs)
+        new_obj = network_interface.NetworkInterface(self, **kwargs)
+        self.log("new_network_interface", [new_obj.uid])
+        return new_obj
 
     def new_template(self, **kwargs: Any) -> "template.Template":
         """
@@ -1474,8 +1481,9 @@ class CobblerAPI:
 
         :return: An empty Template object.
         """
-        self.log("new_template", kwargs)
-        return template.Template(self, **kwargs)
+        new_obj = template.Template(self, **kwargs)
+        self.log("new_template", [new_obj.uid])
+        return new_obj
 
     def new_distro_group(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1487,8 +1495,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty DistroGroup object.
         """
-        self.log("new_distro_group", kwargs)
-        return distro_group.DistroGroup(self, is_subobject, **kwargs)
+        new_obj = distro_group.DistroGroup(self, is_subobject, **kwargs)
+        self.log("new_distro_group", [new_obj.uid])
+        return new_obj
 
     def new_profile_group(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1500,8 +1509,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty ProfileGroup object.
         """
-        self.log("new_profile_group", kwargs)
-        return profile_group.ProfileGroup(self, is_subobject, **kwargs)
+        new_obj = profile_group.ProfileGroup(self, is_subobject, **kwargs)
+        self.log("new_profile_group", [new_obj.uid])
+        return new_obj
 
     def new_system_group(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1513,8 +1523,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty SystemGroup object.
         """
-        self.log("new_system_group", kwargs)
-        return system_group.SystemGroup(self, is_subobject, **kwargs)
+        new_obj = system_group.SystemGroup(self, is_subobject, **kwargs)
+        self.log("new_system_group", [new_obj.uid])
+        return new_obj
 
     # ==========================================================================
     def add_remove_items(self, items: List["TransactionTuple"]) -> None:
