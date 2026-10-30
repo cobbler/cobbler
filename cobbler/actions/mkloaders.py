@@ -100,6 +100,11 @@ class MkLoaders:
             self.bootloaders_dir.joinpath(pathlib.Path("undionly.pxe")),
             skip_existing=True
         )
+        symlink(
+            self.ipxe_folder.joinpath("undionly.kpxe"),
+            self.bootloaders_dir.joinpath(pathlib.Path("undionly.kpxe")),
+            skip_existing=True
+        )
 
     def make_syslinux(self):
         """
