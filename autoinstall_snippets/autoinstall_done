@@ -1,3 +1,4 @@
+#import cobbler.tftpgen
 #set system_name = $getVar('system_name','')
 #set profile_name = $getVar('profile_name','')
 #if $system_name != ''
@@ -36,8 +37,10 @@
     #if $autoinstall != ''
         #if $breed == 'redhat'
             #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.ks" % (srv, object_type, object_name)
-        #else if $breed == 'suse'
+        #else if $breed == 'suse' and $os_version in $cobbler.tftpgen.suse_yast:
             #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.xml" % (srv, object_type, object_name)
+        #else if $breed == 'suse':
+            #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.json" % (srv, object_type, object_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.ks" % (srv, object_type, object_name)
         #else if $breed == 'vmware'
