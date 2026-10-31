@@ -314,6 +314,26 @@ def test_blender_inherit(
     assert result.get("kernel_options") == {"test": "bar"}
 
 
+def test_blender_resolves_inherited_interface_bridge(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+    create_system: Any,
+):
+    """Test that blender resolves inherited network interface properties."""
+    # Arrange
+    test_distro = create_distro()
+    test_profile: Profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+
+    # Act
+    result = utils.blender(cobbler_api, False, test_system)
+
+    # Assert
+    assert result["interfaces"]["default"]["virt_bridge"] == "virbr0"
+    assert result["virt_bridge_default"] == "virbr0"
+
+
 @pytest.mark.parametrize(
     "testinput,expected_result,expected_exception",
     [
