@@ -47,6 +47,40 @@ def test_create_profile(
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
+)
+def test_get_profile_handle_forwards_token_for_transaction_staged_item(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: the type-specific ``get_profile_handle`` (unlike the generic
+    ``get_item_handle``) must forward its token so a profile created/saved
+    earlier in the same still-open transaction can be re-resolved, exactly
+    as ``copy``/``rename`` commands do after mutating an item.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+
+    # Act
+    remote.transaction_begin(token)
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+
+    # Assert
+    # without a token, the transaction-staged profile is correctly invisible
+    assert remote.get_profile_handle("testprofile0") == "~"
+    # with the token, it must resolve to the staged item's handle
+    assert remote.get_profile_handle("testprofile0", token) == profile
+
+    assert remote.transaction_commit(token)
+    assert remote.get_profile_handle("testprofile0") == profile
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
     "create_testprofile",
 )
 def test_modify_profile(

@@ -2131,115 +2131,137 @@ class CobblerXMLRPCInterface:
                 return unsaved_item_tuple.item.uid
         return self.xmlrpc_hacks(None)  # type: ignore
 
-    def get_distro_handle(self, name: str):
+    def get_distro_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a distribution which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("distro", name)
+        return self.get_item_handle("distro", name, token)
 
-    def get_profile_handle(self, name: str):
+    def get_profile_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a profile which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("profile", name)
+        return self.get_item_handle("profile", name, token)
 
-    def get_system_handle(self, name: str):
+    def get_system_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a system which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("system", name)
+        return self.get_item_handle("system", name, token)
 
-    def get_repo_handle(self, name: str):
+    def get_repo_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a repository which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("repo", name)
+        return self.get_item_handle("repo", name, token)
 
-    def get_image_handle(self, name: str):
+    def get_image_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for an image which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("image", name)
+        return self.get_item_handle("image", name, token)
 
-    def get_menu_handle(self, name: str):
+    def get_menu_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a menu which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("menu", name)
+        return self.get_item_handle("menu", name, token)
 
-    def get_network_interface_handle(self, name: str):
+    def get_network_interface_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a network interface which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("network_interface", name)
+        return self.get_item_handle("network_interface", name, token)
 
-    def get_template_handle(self, name: str):
+    def get_template_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a template which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("template", name)
+        return self.get_item_handle("template", name, token)
 
-    def get_distro_group_handle(self, name: str):
+    def get_distro_group_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a distro group which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("distro_group", name)
+        return self.get_item_handle("distro_group", name, token)
 
-    def get_profile_group_handle(self, name: str):
+    def get_profile_group_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a profile group which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("profile_group", name)
+        return self.get_item_handle("profile_group", name, token)
 
-    def get_system_group_handle(self, name: str):
+    def get_system_group_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a system group which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("system_group", name)
+        return self.get_item_handle("system_group", name, token)
 
     def _transaction_get_modified(self, token: str, obj: "InheritableItem"):
         """
