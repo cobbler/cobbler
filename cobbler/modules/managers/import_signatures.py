@@ -960,17 +960,25 @@ class _ImportSignatureManager(ManagerModule):
         repo.breed = enums.RepoBreeds.APT
         repo.arch = enums.RepoArchs.to_enum(distribution.arch.value)
         repo.keep_updated = True
-        repo.apt_components = "main universe"  # TODO: make a setting?
-        repo.apt_dists = (
-            f"{distribution.os_version} {distribution.os_version}-updates"
+        repo.apt.dists = (
+            f"{distribution.os_version} {distribution.os_version}-updates "
             f"{distribution.os_version}-security"
         )
         repo.name = distribution.name
         repo.os_version = distribution.os_version
+        # Leave the mirror as reference-only metadata: don't have `cobbler reposync`
+        # silently start pulling a full archive mirror (potentially tens of GB) to
+        # local disk/bandwidth on every import. An admin who wants the repo actually
+        # mirrored locally can opt in afterwards via ``repo.mirror_locally = True``.
+        repo.mirror_locally = False
 
         if distribution.breed == "ubuntu":
+            # TODO: make a setting?
+            repo.apt.components = "main restricted universe multiverse"
             repo.mirror = mirror
         else:
+            # TODO: make a setting?
+            repo.apt.components = "main contrib non-free non-free-firmware"
             # NOTE : The location of the mirror should come from timezone
             repo.mirror = (
                 f"http://ftp.{'us'}.debian.org/debian/dists/{distribution.os_version}"

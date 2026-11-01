@@ -416,6 +416,65 @@ def test_import_run_skips_hardening_for_direct_source(
     harden_spy.assert_not_called()
 
 
+def test_apt_repo_adder_debian_sets_breed_correct_components_and_dists(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: ``apt_repo_adder()`` used to set the now-removed flat ``repo.apt_components``/
+    ``repo.apt_dists`` attributes, which plain Python accepts as new instance attributes and silently
+    discards -- the real ``repo.apt.components``/``repo.apt.dists`` (``APTOption``) stayed empty. It also
+    used a Ubuntu-only component list ("main universe") regardless of breed, and its ``dists`` f-string was
+    missing a space before the "-security" segment. For a Debian-breed import, the generated repo must get a
+    non-empty, Debian-correct component list, a correctly spaced dists string, and a real mirror URL.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    distro = cobbler_api.new_distro()
+    distro.breed = "debian"
+    distro.os_version = "trixie"
+    distro.name = "test_apt_repo_adder_debian"
+
+    # Act
+    manager.apt_repo_adder(distro)
+
+    # Assert
+    repo = cobbler_api.find_repo(name=distro.name)
+    assert repo is not None
+    assert not isinstance(repo, list)
+    assert repo.apt.components == ["main", "contrib", "non-free", "non-free-firmware"]
+    assert repo.apt.dists == ["trixie", "trixie-updates", "trixie-security"]
+    assert repo.mirror == "http://ftp.us.debian.org/debian/dists/trixie"
+    assert repo.mirror_locally is False
+
+
+def test_apt_repo_adder_ubuntu_sets_breed_correct_components_and_dists(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Same regression as the Debian test above, but for an Ubuntu-breed import: Ubuntu does use "universe", but
+    the previous hardcoded "main universe" list is missing "restricted"/"multiverse" and (via bug 1) was
+    never actually applied anyway. Confirms the Ubuntu-specific component list is distinct from Debian's.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    distro = cobbler_api.new_distro()
+    distro.breed = "ubuntu"
+    distro.os_version = "jammy"
+    distro.name = "test_apt_repo_adder_ubuntu"
+
+    # Act
+    manager.apt_repo_adder(distro)
+
+    # Assert
+    repo = cobbler_api.find_repo(name=distro.name)
+    assert repo is not None
+    assert not isinstance(repo, list)
+    assert repo.apt.components == ["main", "restricted", "universe", "multiverse"]
+    assert repo.apt.dists == ["jammy", "jammy-updates", "jammy-security"]
+    assert repo.mirror
+    assert repo.mirror_locally is False
+
+
 def test_configure_tree_location_without_direct_source_creates_symlink(
     cobbler_api: CobblerAPI, tmp_path: pathlib.Path
 ):
