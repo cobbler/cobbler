@@ -2,8 +2,8 @@
 cat<<EOF>/etc/apt/sources.list
 #set $repo_data = $getVar("repo_data",[])
 #for $repo in $repo_data
- #for $dist in $repo.apt_dists
- #set $comps = " ".join($repo.apt_components)
+ #for $dist in $repo.apt.dists
+ #set $comps = " ".join($repo.apt.components)
  #if $repo.comment != ""
 # ${repo.comment}
  #end if
