@@ -387,6 +387,57 @@ def test_reposync_apt(
         )
 
 
+def test_reposync_apt_strips_dists_suffix_from_mirror(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    repo: Repo,
+    reposync_object: reposync.RepoSync,
+):
+    """
+    ``import_signatures.py``'s ``apt_repo_adder()`` sets ``repo.mirror`` for the "debian"
+    breed to a URL that already ends in ``/dists/<suite>`` (e.g.
+    ``http://ftp.us.debian.org/debian/dists/trixie``), unlike the "ubuntu" breed's bare
+    archive root. ``apt_sync()`` must strip that suffix before building debmirror's
+    ``--root``, since debmirror appends ``dists/<dist>`` itself via ``--dist`` - otherwise
+    the resulting URL is doubled (``.../dists/trixie/dists/trixie/Release``) and every
+    download 404s.
+    """
+    # Arrange
+    test_repo = repo
+    test_repo.breed = enums.RepoBreeds.APT
+    test_repo.arch = enums.RepoArchs.X86_64
+    test_repo.apt.components = ["main"]
+    test_repo.apt.dists = ["trixie"]
+    test_repo.mirror = "http://ftp.us.debian.org/debian/dists/trixie"
+    test_repo.mirror_type = enums.MirrorType.BASEURL
+    test_settings = cobbler_api.settings()
+    repo_path = os.path.join(test_settings.webdir, "repo_mirror", test_repo.name)
+    mocked_subprocess = mocker.patch(
+        "cobbler.utils.subprocess_call", autospec=True, return_value=0
+    )
+    mocker.patch("os.path.exists", return_value=True)
+
+    # Act
+    reposync_object.apt_sync(test_repo)
+
+    # Assert
+    mocked_subprocess.assert_called_with(
+        [
+            "/usr/bin/debmirror",
+            "--nocleanup",
+            "--method=http",
+            "--host=ftp.us.debian.org",
+            "--root=/debian",
+            "--dist=trixie",
+            "--section=main",
+            repo_path,
+            "--nosource",
+            "-a=amd64",
+        ],
+        shell=False,
+    )
+
+
 @pytest.mark.parametrize(
     "input_mirror_type,input_mirror,expected_exception",
     [
