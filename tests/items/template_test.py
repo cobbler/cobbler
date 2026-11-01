@@ -90,3 +90,31 @@ def test_content_setter_writes_under_autoinstall_templates_dir(
     # Assert
     assert (tmp_path / relative_path).read_text(encoding="UTF-8") == "# test content\n"
     assert test_template.content == "# test content\n"
+
+
+def test_to_dict_includes_non_empty_content(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Regression test: ``content`` is backed by the name-mangled ``self.__content``
+    (stored as ``_Template__content`` in ``self.__dict__``), which ``to_dict()``'s
+    attribute filter used to drop entirely (anything containing "__" was treated
+    as a Python dunder and excluded), silently reporting empty content via
+    ``to_dict()``/``get_template``/``template export`` regardless of what was
+    actually stored.
+    """
+    # Arrange
+    relative_path = "test_to_dict_content.j2"
+    cobbler_api.settings().autoinstall_templates_dir = str(tmp_path)
+    (tmp_path / relative_path).touch()
+    test_template = Template(
+        cobbler_api,
+        uri={"schema": enums.TemplateSchema.FILE.value, "path": relative_path},
+    )
+    test_template.content = "# real content\n"
+
+    # Act
+    result = test_template.to_dict()
+
+    # Assert
+    assert result["content"] == "# real content\n"

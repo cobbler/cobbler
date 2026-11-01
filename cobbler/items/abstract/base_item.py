@@ -64,7 +64,7 @@ class BaseItem(ABC):
         """
         return (
             name[:1] == "_"
-            and "__" not in name
+            and not (name.startswith("__") and name.endswith("__"))
             and name
             not in {
                 "_cache",
@@ -74,6 +74,23 @@ class BaseItem(ABC):
                 "_in_transaction",
             }
         )
+
+    @staticmethod
+    def _dict_key_to_attribute_name(name: str) -> str:
+        """
+        Derive the public attribute name a backing ``self.__dict__`` key should
+        be exposed as in ``to_dict()``. Handles both plain single-underscore
+        backing attributes (``_content`` -> ``content``) and Python's
+        name-mangled private attributes (``_Template__content`` ->
+        ``content``), which ``self.__dict__`` stores under the mangled form
+        for any ``self.__attr`` assignment made inside the owning class.
+
+        :param name: The raw ``self.__dict__`` key.
+        """
+        mangled = re.match(r"^_[A-Za-z_]\w*__(\w+)$", name)
+        if mangled:
+            return mangled.group(1).lower()
+        return name[1:].lower()
 
     @classmethod
     def __find_compare(
@@ -572,6 +589,15 @@ class BaseItem(ABC):
         for key in ordered_keys:
             lowered_key = key.lower()
             private_key = "_" + lowered_key
+            if not hasattr(self, private_key):
+                # Not a plain "_attr" backing attribute - check whether it is instead
+                # backed by a name-mangled "self.__attr" (stored as
+                # "_ClassName__attr" in self.__dict__, e.g. Template.content).
+                for klass in type(self).__mro__:
+                    mangled_key = f"_{klass.__name__}__{lowered_key}"
+                    if hasattr(self, mangled_key):
+                        private_key = mangled_key
+                        break
             # The following also works for child classes because self is a child class at this point and not only an
             # Item.
             if hasattr(self, private_key):
@@ -612,7 +638,7 @@ class BaseItem(ABC):
             self.logger.warning("%s", self.__dict__.keys())
         for key, key_value in self.__dict__.items():
             if BaseItem._is_dict_key(key):
-                new_key = key[1:].lower()
+                new_key = BaseItem._dict_key_to_attribute_name(key)
                 if isinstance(key_value, enum.Enum):
                     if resolved:
                         value[new_key] = getattr(self, new_key).value
