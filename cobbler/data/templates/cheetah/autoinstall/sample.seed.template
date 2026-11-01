@@ -120,7 +120,10 @@ tasksel tasksel/first multiselect standard
 # Individual additional packages to install
 # wget is REQUIRED otherwise quite a few things won't work
 # later in the build (like late-command scripts)
-d-i pkgsel/include string ntp ssh wget
+# ntp/ssh are obsolete package names (superseded by ntpsec/systemd-timesyncd and
+# openssh-client/openssh-server respectively) and have no installation candidate
+# on modern releases (e.g. Debian trixie), which aborts package selection outright.
+d-i pkgsel/include string openssh-server wget
 
 # Debian needs this for the installer to avoid any question for grub
 # Please verify that it suit your needs as it may overwrite any usb stick
