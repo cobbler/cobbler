@@ -96,6 +96,27 @@ d-i passwd/make-user boolean false
 
 $SNIPPET('built-in-preseed_apt_repo_config')
 
+#set $repo_data = $getVar('repo_data', [])
+#if len($repo_data) > 0
+# A curated local repository (see the apt-setup/local0/repository line above) is
+# configured. The non-free-firmware component is added to the default mirror/http/*
+# apt source regardless of the components configured above (current Debian policy
+# enables it by default), which aborts "Configure the package manager" with a 404
+# if the curated mirror does not carry it.
+d-i apt-setup/non-free-firmware boolean false
+# base-installer's post-base-installer.d/50install-firmware hook unconditionally
+# overrides the setting above back to true (bypassing any preseed) whenever it
+# detects CPU microcode is applicable (Intel/AMD), since the microcode packages
+# live in non-free-firmware. Its own early-exit guard is this setting, so disable
+# firmware lookup entirely rather than relying on the non-free-firmware toggle.
+d-i hw-detect/firmware-lookup select never
+# apt-setup's 91security/92updates generators default to adding a security.debian.org
+# entry and a "<suite>-updates" entry against the curated mirror host, neither of
+# which the curated mirror carries (security.debian.org is also unreachable in an
+# air-gapped network). Select no additional services so neither is added.
+d-i apt-setup/services-select multiselect
+#end if
+
 # Enable deb-src lines
 # d-i apt-setup/local0/source boolean true
 

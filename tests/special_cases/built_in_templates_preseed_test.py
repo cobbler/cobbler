@@ -240,6 +240,7 @@ def test_built_in_sample_seed(
         "# Additional repositories, local[0-9] available",
         "",
         "",
+        "",
         "# Enable deb-src lines",
         "# d-i apt-setup/local0/source boolean true",
         "",
