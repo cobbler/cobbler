@@ -1,5 +1,12 @@
 """
 Replicate from a Cobbler master.
+
+.. warning::
+   Replication is only tested and supported between two Cobbler servers running the exact
+   same Cobbler version. Replicating between different versions (e.g. a 4.0.0 master and a
+   4.1.0 slave, or vice versa) is untested at this time and may fail outright or silently
+   transfer incompatible/incomplete data, since the remote server's ``to_dict()`` output is
+   fed more or less directly into local item construction.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -51,6 +58,10 @@ def _strip_non_constructible_keys(data: Dict[str, Any]) -> Dict[str, Any]:
 class Replicate:
     """
     This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
+
+    .. warning::
+       Only tested and supported between two Cobbler servers running the exact same version.
+       Mixed-version replication is untested at this time.
     """
 
     def __init__(self, api: "CobblerAPI") -> None:
