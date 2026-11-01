@@ -531,7 +531,7 @@ def blender(
     if root_obj.COLLECTION_TYPE in ("profile", "system"):  # type: ignore
         repo_data: List[Dict[Any, Any]] = []
         for repo in results.get("repos", []):
-            repo = api_handle.find_repo(name=repo)
+            repo = api_handle.find_repo(uid=repo)
             if repo and not isinstance(repo, list):
                 repo_data.append(repo.to_dict())
         # Sorting is courtesy of https://stackoverflow.com/a/73050/4730773

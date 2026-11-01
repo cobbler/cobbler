@@ -20,6 +20,7 @@ from cobbler import enums, utils
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
+from cobbler.items.repo import Repo
 from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
@@ -312,6 +313,33 @@ def test_blender_inherit(
     assert isinstance(result, dict)
     assert set(result.get("dns", {}).get("name_servers", [])) == {"8.8.4.4", "8.8.8.8"}
     assert result.get("kernel_options") == {"test": "bar"}
+
+
+def test_blender_repo_data(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+):
+    """
+    Regression test: ``profile.repos``/``system.repos`` store repo UIDs (not names), but
+    ``blender()`` used to look the repos up via ``find_repo(name=...)``, so ``repo_data`` came
+    back empty for every profile/system that had a repo attached.
+    """
+    # Arrange
+    test_repo: Repo = cobbler_api.new_repo()
+    test_repo.name = "test_blender_repo_data_repo"
+    cobbler_api.add_repo(test_repo)
+    test_distro = create_distro()
+    test_profile: Profile = create_profile(test_distro.uid)
+    test_profile.repos = [test_repo.uid]
+
+    # Act
+    result = utils.blender(cobbler_api, False, test_profile)
+
+    # Assert
+    assert [repo_dict["uid"] for repo_dict in result.get("repo_data", [])] == [
+        test_repo.uid
+    ]
 
 
 @pytest.mark.parametrize(
