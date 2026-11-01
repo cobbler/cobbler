@@ -775,6 +775,49 @@ def test_build_kernel_options_casper_live_server_with_remote_boot_iso(
     assert "ds='nocloud-net;s=" in result
 
 
+def test_write_pxe_file_space_between_initrd_and_kernel_options(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test: write_pxe_file() built the "append" line as
+    f"append initrd={path}" directly concatenated with the rendered kernel options string, with no
+    separating space. Since the kernel options string itself has no leading space (its builder
+    strips it), this produced a single run-on PXELINUX token, e.g.
+    "initrd=/images/x/initrdds='nocloud-net;...'" -- which fails to load as a filename and hangs
+    the PXE boot at "Loading initial ramdisk ...".
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "ubuntu"
+    test_distro.os_version = "noble"
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-user-data"  # type: ignore
+    test_system.netboot_enabled = True
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.write_pxe_file(
+        None,
+        test_system,
+        test_profile,
+        test_distro,
+        enums.Archs.X86_64,
+        bootloader_format=enums.BootLoader.PXE,
+    )
+
+    # Assert
+    append_line = next(
+        line for line in result.splitlines() if "append initrd=" in line
+    )
+    initrd_token = append_line.split()[1]
+    assert initrd_token.startswith("initrd=")
+    assert "ds=" not in initrd_token
+
+
 def test_build_kernel_options_casper_live_server_without_remote_boot_iso(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], Distro],

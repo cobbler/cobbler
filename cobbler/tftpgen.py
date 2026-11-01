@@ -1300,7 +1300,7 @@ class TFTPGen:
         metadata["kernel_options"] = kernel_options
 
         if "initrd_path" in metadata:
-            append_line = f"append initrd={metadata['initrd_path']}"
+            append_line = f"append initrd={metadata['initrd_path']} "
         else:
             append_line = "append "
         # TODO if cloud-init then add nocloud-net to kernel options
