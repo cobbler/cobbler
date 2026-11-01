@@ -37,9 +37,9 @@ def test_grubimage_run(cobbler_api: CobblerAPI, mocker: "MockerFixture"):
     # Assert
     # pylint: disable=no-member
     # On a full install: 3 common formats, 5 syslinux links and 9 bootloader formats
-    # In our test container we have: shim (2x), ipxe (1x), syslinux v4 (4x) and 3 grubs (4x)
-    # On GH we have: shim (2x), ipxe (1x), syslinux v4 (4x) and 3 grubs (3x)
-    assert mkloaders.symlink.call_count == 10  # type: ignore[reportFunctionMemberAccess]
+    # In our test container we have: shim (2x), ipxe (1x), syslinux v4 (5x) and 3 grubs (4x)
+    # On GH we have: shim (2x), ipxe (1x), syslinux v4 (5x) and 3 grubs (3x)
+    assert mkloaders.symlink.call_count == 11  # type: ignore[reportFunctionMemberAccess]
     # In our test container we have: x86_64, arm64-efi, i386-efi & i386-pc-pxe
     # On GH we have: x86_64, i386-efi & i386-pc-pxe
     assert mkloaders.mkimage.call_count == 3  # type: ignore[reportFunctionMemberAccess]
@@ -129,6 +129,41 @@ def test_symlink_target_missing(tmp_path: pathlib.Path):
     # Act & Assert
     with pytest.raises(FileNotFoundError):
         mkloaders.symlink(target, link)
+
+
+def test_make_syslinux_deploys_linux_c32_without_libcom32_on_syslinux_4(
+    cobbler_api: CobblerAPI, mocker: "MockerFixture", tmp_path: pathlib.Path
+):
+    """
+    Regression test: syslinux 4.x's "linux.c32" is a statically self-contained COM32 module and does
+    not depend on "libcom32.c32" (that dependency is new in syslinux 5's COM32R format, per
+    https://wiki.syslinux.org/wiki/index.php?title=Library_modules). make_syslinux() used to gate the
+    "linux.c32" symlink on the exact same "syslinux_version > 4 and libcom32.c32 exists" condition as
+    the libcom32.c32 companion copy, so on a syslinux 4.x install "linux.c32" was never deployed at
+    all even though it is present and usable standalone -- breaking any Windows/wimboot profile that
+    chainloads via it.
+    """
+    # Arrange
+    mocker.patch(
+        "cobbler.actions.mkloaders.get_syslinux_version", return_value=4
+    )
+    mocker.patch("cobbler.actions.mkloaders.utils.command_existing", return_value=True)
+    mock_symlink = mocker.patch("cobbler.actions.mkloaders.symlink")
+    test_mkloaders = mkloaders.MkLoaders(cobbler_api)
+    syslinux_folder = tmp_path / "syslinux"
+    syslinux_folder.mkdir()
+    (syslinux_folder / "linux.c32").touch()
+    # No libcom32.c32 present, matching a real syslinux 4.x install.
+    test_mkloaders.syslinux_folder = syslinux_folder
+    test_mkloaders.bootloaders_dir = tmp_path / "bootloaders"
+
+    # Act
+    test_mkloaders.make_syslinux()
+
+    # Assert
+    symlinked_names = {call.args[1].name for call in mock_symlink.call_args_list}
+    assert "linux.c32" in symlinked_names
+    assert "libcom32.c32" not in symlinked_names
 
 
 def test_get_syslinux_version(mocker: "MockerFixture"):

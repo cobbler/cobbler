@@ -164,17 +164,23 @@ class MkLoaders:
             skip_existing=True,
         )
         # Make linux.c32 for syslinux + wimboot
-        libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
-        if syslinux_version > 4 and libcom32_c32_path.exists():
+        # Unlike syslinux 5+'s COM32R modules, syslinux 4.x's COM32 modules (including linux.c32)
+        # are statically self-contained and never depend on libcom32.c32 -- so this symlink must not
+        # be gated on the same condition as the libcom32.c32 companion copy below, or linux.c32 is
+        # never deployed at all on syslinux 4.x even though it exists and works standalone there.
+        linux_c32_path = self.syslinux_folder.joinpath("linux.c32")
+        if linux_c32_path.exists():
             symlink(
-                self.syslinux_folder.joinpath("linux.c32"),
+                linux_c32_path,
                 self.bootloaders_dir.joinpath("linux.c32"),
                 skip_existing=True,
             )
-            # Make libcom32.c32
-            # 'linux.c32' depends on 'libcom32.c32'
+        # Make libcom32.c32
+        # 'linux.c32' depends on 'libcom32.c32' starting with syslinux 5.
+        libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
+        if syslinux_version > 4 and libcom32_c32_path.exists():
             symlink(
-                self.syslinux_folder.joinpath("libcom32.c32"),
+                libcom32_c32_path,
                 self.bootloaders_dir.joinpath("libcom32.c32"),
                 skip_existing=True,
             )
