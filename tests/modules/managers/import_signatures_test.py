@@ -210,6 +210,41 @@ def test_get_proposed_name_direct_source_uses_mirror_name_for_shallow_path(
     assert result == "rocky10"
 
 
+def test_get_proposed_name_direct_source_disambiguates_gtk_variant(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression guard: Debian/Ubuntu installer media ships a "gtk" (graphical installer) kernel/initrd
+    pair alongside the base netboot one (e.g. "install.amd/gtk/vmlinuz" next to "install.amd/vmlinuz").
+    Under a classic (copied) import, each variant's own subdirectory differentiates the proposed name via
+    the path-depth heuristic. Under direct-mode imports, ``get_proposed_name()`` always falls back to the
+    caller-supplied mirror name regardless of which subdirectory the kernel came from, so the "gtk" variant
+    used to propose the exact same name as the base variant -- "xen" and "PAE" variants already had an
+    explicit kernel-path substring check to disambiguate them, but "gtk" did not, silently dropping the gtk
+    distro/profile as a duplicate during a real debian13 import under ``managers.dynamic_httpd``.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.name = "debian13"
+    manager.network_root = None
+    manager.direct_source = True
+
+    # Act
+    base_name = manager.get_proposed_name(
+        "/srv/www/cobbler/distro_mirror/debian13-x86_64",
+        kernel="/srv/www/cobbler/distro_mirror/debian13-x86_64/install.amd/vmlinuz",
+    )
+    gtk_name = manager.get_proposed_name(
+        "/srv/www/cobbler/distro_mirror/debian13-x86_64",
+        kernel="/srv/www/cobbler/distro_mirror/debian13-x86_64/install.amd/gtk/vmlinuz",
+    )
+
+    # Assert
+    assert base_name == "debian13"
+    assert gtk_name == "debian13-gtk"
+    assert base_name != gtk_name
+
+
 def test_add_entry_direct_source_shallow_path_names_correctly(
     cobbler_api: CobblerAPI,
     mocker: MockerFixture,

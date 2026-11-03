@@ -654,6 +654,16 @@ class _ImportSignatureManager(ManagerModule):
                 name += "-PAE"
             if kernel.find("xen") != -1 and name.find("xen") == -1:
                 name += "-xen"
+            # Debian/Ubuntu installer media ships a "gtk" (graphical installer) kernel/initrd pair
+            # alongside the base netboot one, e.g. "install.amd/gtk/vmlinuz" next to
+            # "install.amd/vmlinuz". Under the directory-depth-based naming used for a classic
+            # (copied) import, each variant's own subdirectory already differentiates the proposed
+            # name; under "direct_source" (managers.dynamic_httpd) mode, "name" above is always just
+            # the caller-supplied mirror name regardless of which subdirectory the kernel came from,
+            # so without this check the "gtk" variant proposes the exact same name as the base
+            # variant and is silently dropped as a duplicate.
+            if kernel.find("gtk") != -1 and name.find("gtk") == -1:
+                name += "-gtk"
 
         # Clear out some cruft from the proposed name
         name = name.replace("--", "-")
