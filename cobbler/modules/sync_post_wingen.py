@@ -33,9 +33,12 @@ To create boot files per profile/system, the trigger uses the following metadata
       installed. To run a script, its filename is substituted into the answerfile template. Any valid Windows
       commands can be used in the script, but its usual purpose is to download and run the script for the profile
       from ``http://@@http_server@@/cblr/svc/op/autoinstall/profile/@@profile_name@@``, for this the script is
-      passed profile name as parameter . The post-installation script is created by a trigger from the
-      ``post_inst_cmd.template`` template  in the ``sources/$OEM$/$1`` distro directory only if it exists.
-      The Windows Installer copies the contents of  this directory to the target host during installation.
+      passed profile name as parameter. The post-installation script is created by a trigger from the
+      ``post_inst_cmd.template`` template in the distro's own ``images`` directory (alongside the answerfile) and
+      is downloaded over HTTP and run once by a ``FirstLogonCommands`` entry in the answerfile -- it is not placed
+      via Windows's own ``sources/$OEM$/$1`` copy-to-target mechanism, since that requires write access to the
+      distro's own source tree, which a ``managers.dynamic_httpd`` direct-source import (e.g. a loop-mounted ISO)
+      serves read-only.
     * any other key/value pairs that can be used in ``startnet.template``, ``answerfile.template``,
       ``post_inst_cmd.template`` templates
 """
@@ -425,7 +428,6 @@ def run(api: "CobblerAPI", args: Any):
         )
 
     def gen_win_files(distro: "Distro", meta: Dict[str, Any]):
-        distro_path = distro.find_distro_path()
         distro_dir = wim_file_name = os.path.join(
             settings.tftpboot_location, "images", distro.name
         )
@@ -456,23 +458,20 @@ def run(api: "CobblerAPI", args: Any):
             )
 
         if "post_install_script" in meta:
-            post_install_dir = distro_path
-
-            if distro.os_version not in ("xp", "2003"):
-                post_install_dir = os.path.join(post_install_dir, "sources")
-
-            post_install_dir = os.path.join(post_install_dir, "$OEM$", "$1")
-
-            if not os.path.exists(post_install_dir):
-                filesystem_helpers.mkdir(post_install_dir)
-
+            # Previously written into distro_path/[sources/]$OEM$/$1 so Windows's own
+            # pre-first-logon $OEM$ copy mechanism would place it at C:\. That mechanism requires
+            # the file to live inside the distro's own source tree, which direct_source
+            # (managers.dynamic_httpd) imports serve read-only (e.g. a loop-mounted ISO) -- writing
+            # there always failed. The answerfile's FirstLogonCommands now downloads this file over
+            # HTTP instead of relying on $OEM$ to have copied it (see answerfile.template), so it can
+            # be written to the same already-writable location as every other sync-generated Windows
+            # file (distro_dir/web_dir), with no distro-tree write at all.
             data = templ.render(windows_post_inst_cmd_template.content, meta, None)
-            post_install_script = os.path.join(
-                post_install_dir, meta["post_install_script"]
-            )
+            post_install_script = os.path.join(distro_dir, meta["post_install_script"])
             logger.info("Build post install script: %s", post_install_script)
             with open(post_install_script, "w", encoding="UTF-8") as pi_file:
                 pi_file.write(data)
+            tgen.copy_single_distro_file(post_install_script, web_dir, False)
 
         if "answerfile" in meta:
             data = templ.render(windows_answerfile_template.content, meta, None)

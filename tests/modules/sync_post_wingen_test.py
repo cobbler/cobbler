@@ -167,14 +167,22 @@ def test_run_creates_tftpboot_images_dir_when_missing(
     mocker: "MockerFixture", tmp_path: "pathlib.Path"
 ):
     """
-    Regression guard: under managers.dynamic_tftp, write_boot_files() (which normally creates
-    "tftpboot_location/images/<name>" earlier in the same sync run) is a no-op, since TFTP content
-    is served on demand instead of being materialized. gen_win_files() still unconditionally wrote
-    into that directory (the answerfile, the patched bootmgr/loader, winpe.wim, etc.) without ever
-    creating it itself, so every such write failed with FileNotFoundError the first time a sync ran
-    under the dynamic TFTP manager. Exercise just the vulnerable path (an "answerfile" write, the
-    first file gen_win_files() writes into distro_dir) against a tftpboot_location that does not
-    already contain the distro's images directory.
+    Regression guard for two bugs, both only reachable with a real wimboot-delivered Windows distro:
+
+    1. Under managers.dynamic_tftp, write_boot_files() (which normally creates
+       "tftpboot_location/images/<name>" earlier in the same sync run) is a no-op, since TFTP
+       content is served on demand instead of being materialized. gen_win_files() still
+       unconditionally wrote into that directory (the answerfile, the patched bootmgr/loader,
+       winpe.wim, etc.) without ever creating it itself, so every such write failed with
+       FileNotFoundError on the very first sync.
+    2. gen_win_files()'s post_install_script write used to go into
+       "<distro source tree>/sources/$OEM$/$1", relying on Windows's own pre-first-logon copy
+       mechanism to place it at C:\\. For a managers.dynamic_httpd direct-source import (e.g. a
+       loop-mounted ISO), that source tree is read-only, so the write always failed. The answerfile's
+       FirstLogonCommands now downloads this file over HTTP instead (see answerfile.template), so it
+       is written to the same already-writable distro_dir/web_dir location as every other
+       sync-generated Windows file, with no distro-tree write at all -- this test asserts it lands
+       there, not under $OEM$.
     """
     # Arrange
     tftpboot_location = tmp_path / "tftpboot"
@@ -248,7 +256,6 @@ def test_run_creates_tftpboot_images_dir_when_missing(
     distro.os_version = "11"
     distro.kernel = str(tftpboot_location / "wimboot")
     distro.source_tree_path = str(distro_source)
-    distro.find_distro_path.return_value = str(distro_source)
 
     profile = mocker.MagicMock()
     profile.name = "win11-x86_64"
@@ -259,7 +266,12 @@ def test_run_creates_tftpboot_images_dir_when_missing(
 
     mocker.patch(
         "cobbler.modules.sync_post_wingen.utils.blender",
-        return_value={"autoinstall_meta": {"answerfile": "autounattended.xml"}},
+        return_value={
+            "autoinstall_meta": {
+                "answerfile": "autounattended.xml",
+                "post_install_script": "post_install.cmd",
+            }
+        },
     )
 
     # Act
@@ -272,3 +284,10 @@ def test_run_creates_tftpboot_images_dir_when_missing(
     )
     assert answerfile_path.is_file()
     assert answerfile_path.read_text(encoding="UTF-8") == "rendered answerfile"
+
+    post_install_path = (
+        tftpboot_location / "images" / "win11-x86_64" / "post_install.cmd"
+    )
+    assert post_install_path.is_file()
+    assert post_install_path.read_text(encoding="UTF-8") == "rendered post-install"
+    assert not (distro_source / "sources" / "$OEM$").exists()

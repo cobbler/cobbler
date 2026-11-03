@@ -48,7 +48,21 @@ echo assign letter=C >>disk.scr
 diskpart.exe /s disk.scr
 bootsect.exe /nt52 c: /force /mbr
 #end if
-xcopy $distro_share\\$OEM\$\\$1 c: /y /s /e
+## Downloaded over HTTP rather than xcopy'd from $distro_share\$OEM$\$1: that relied on the
+## distro's own source tree being writable (for Cobbler to have placed the file there in the first
+## place), which a managers.dynamic_httpd direct-source import (e.g. a loop-mounted ISO) never is.
+## boot.wim has no PowerShell (see the comment on the WinHTTP/cscript nopxe call below), hence VBScript.
+#if "post_install_script" in $autoinstall_meta
+#set $post_install_url = $getVar('autoinstall_scheme', 'http') + '://' + $http_server + '/cobbler/images/' + $distro_name + '/' + $autoinstall_meta["post_install_script"]
+echo Set http = CreateObject("WinHttp.WinHttpRequest.5.1") > getpostinstall.vbs
+echo http.Open "GET", "$post_install_url", False >> getpostinstall.vbs
+echo http.Send >> getpostinstall.vbs
+echo Set fso = CreateObject("Scripting.FileSystemObject") >> getpostinstall.vbs
+echo Set outFile = fso.CreateTextFile("c:\post_install.cmd", True) >> getpostinstall.vbs
+echo outFile.Write http.ResponseText >> getpostinstall.vbs
+echo outFile.Close >> getpostinstall.vbs
+cscript //nologo //b getpostinstall.vbs
+#end if
 #end if
 #set $unattended = ""
 #if "answerfile" in $autoinstall_meta

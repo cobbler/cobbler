@@ -279,7 +279,11 @@
                 <SynchronousCommand wcm:action="add">
                     <RequiresUserInput>false</RequiresUserInput>
                     <Order>2</Order>
-                    <CommandLine>c:\post_install.cmd @@profile_name@@</CommandLine>
+                    <!-- Downloaded over HTTP rather than relying on Windows's own sources-OEM-$1
+                         copy-to-target mechanism: that mechanism requires write access to the
+                         distro's own source tree, which a managers.dynamic_httpd direct-source
+                         import (e.g. a loop-mounted ISO) serves read-only. -->
+                    <CommandLine>cmd /C powershell -command "&amp; {\$WebClient = New-Object System.Net.WebClient; \$WebClient.DownloadFile('http://@@http_server@@/cobbler/images/@@distro_name@@/post_install.cmd','c:\post_install.cmd')}" &amp;&amp; c:\post_install.cmd @@profile_name@@</CommandLine>
                 </SynchronousCommand>
             </FirstLogonCommands>
             <AutoLogon>
