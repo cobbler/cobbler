@@ -1347,13 +1347,16 @@ class _ImportSignatureManager(ManagerModule):
         decisions and the final permission change are made on an open file descriptor (opened with
         ``O_NOFOLLOW``), not on the pathname, so a symlink swapped in between a path check and the chmod
         (a classic TOCTOU race) cannot retarget the change at a file outside the staged tree; hardlinked files
-        and files not owned by the user running the import are skipped outright, and any pre-existing
-        setuid/setgid bit is stripped rather than carried forward onto a now-executable file.
+        are skipped outright, and any pre-existing setuid/setgid bit is stripped rather than carried forward
+        onto a now-executable file. Ownership of the imported file is deliberately not checked: cobblerd
+        normally runs as root, and the staged files routinely end up owned by whatever uid did the actual
+        copy/extraction (not cobblerd's own euid) -- a uid-match requirement would make this a no-op for
+        exactly the deployment it exists to fix. ``chmod`` already enforces real permission semantics (the
+        owner or a sufficiently privileged process), and a genuine permission failure is caught below.
 
         :param path: The directory (recursively) to scan for Windows executables whose permissions need fixing.
         """
         root_realpath = os.path.realpath(path)
-        current_euid = os.geteuid()
         for root, _subdirs, fnames in os.walk(path):
             for fname in fnames:
                 if not fname.lower().endswith(WINDOWS_EXECUTABLE_EXTENSIONS):
@@ -1371,8 +1374,6 @@ class _ImportSignatureManager(ManagerModule):
                     if not stat.S_ISREG(file_stat.st_mode):
                         continue
                     if file_stat.st_nlink > 1:
-                        continue
-                    if file_stat.st_uid != current_euid:
                         continue
                     current_mode = stat.S_IMODE(file_stat.st_mode)
                     new_mode = current_mode

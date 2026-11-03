@@ -461,6 +461,54 @@ def test_harden_windows_executable_permissions_strips_setuid_setgid(
     assert not mode & stat.S_ISUID
 
 
+def test_harden_windows_executable_permissions_sets_execute_bit_despite_uid_mismatch(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Regression test: cobblerd runs as root, but Windows media is routinely staged into
+    ``distro_mirror`` by a tool (rsync, an interactive extraction step, etc.) that leaves the
+    imported files owned by some other uid -- a real, common case, not an edge case. ``chmod``
+    succeeds for root (or the real owner) regardless of whose uid is on the file, so skipping a
+    file merely because its owner doesn't match the running process's euid makes the fix a no-op
+    for exactly the deployment it exists to protect, silently leaving ``setup.exe`` at mode 644 and
+    letting Samba's ``STATUS_ACCESS_DENIED`` bug this function fixes resurface.
+    """
+    # Arrange
+    exe_path = tmp_path / "setup.exe"
+    exe_path.write_bytes(b"MZ")
+    exe_path.chmod(0o644)
+    mocker.patch("os.geteuid", return_value=0)
+    real_fstat = os.fstat
+
+    def fake_fstat(fd: int) -> os.stat_result:
+        real = real_fstat(fd)
+        # Simulate the file being owned by a different uid than the running (root) process.
+        return os.stat_result(
+            (
+                real.st_mode,
+                real.st_ino,
+                real.st_dev,
+                real.st_nlink,
+                real.st_uid + 1,
+                real.st_gid,
+                real.st_size,
+                real.st_atime,
+                real.st_mtime,
+                real.st_ctime,
+            )
+        )
+
+    mocker.patch("os.fstat", side_effect=fake_fstat)
+
+    manager = import_signatures.get_import_manager(cobbler_api)
+
+    # Act
+    manager.harden_windows_executable_permissions(str(tmp_path))
+
+    # Assert
+    assert os.stat(exe_path).st_mode & 0o777 == 0o755
+
+
 def test_import_run_skips_hardening_for_direct_source(
     cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
 ):
