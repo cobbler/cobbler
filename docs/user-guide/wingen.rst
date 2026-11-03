@@ -35,24 +35,17 @@ Installation Quickstart guide
             writeable = no
             printable = no
 
-  This ``path`` assumes a classic (mirrored) import, where ``cobbler import`` copies the distro
-  tree into ``/var/www/cobbler/distro_mirror/<name>`` and Cobbler creates a
-  ``/var/www/cobbler/links/<name>`` symlink to it, which ``startnet.template``/``answerfile.template``
-  reach as ``\\<server>\DISTRO\links\<name>\...``.
-
-  Cobbler does not manage Samba itself in either import mode, so this is the only case it sets
-  ``links/<name>`` up for you automatically -- it happens to do so because that same symlink is
-  also how Apache serves the install tree under this import mode, not because of Samba specifically.
-
-  If the distro was imported with ``managers.dynamic_httpd`` (a local, writable ``--path`` with no
-  ``--network-root``, scanned in place instead of copied, e.g. a loop-mounted ISO), Cobbler does
-  *not* create ``links/<name>`` -- the install tree is served dynamically via
-  ``/cblr/svc/tree/<name>/`` instead, and creating a filesystem symlink purely for Samba's sake
-  would defeat the point of that import mode (avoiding the file I/O of a full copy). In this case,
-  make the share resolve ``links/<name>`` to the distro's actual source tree yourself -- e.g. a
-  one-time ``ln -s`` into ``/var/www/cobbler/links/<name>``, or a separate share/mount layout of
-  your own choosing. ``distro.source_tree_path`` (visible via ``cobbler report --name=<name>``) is
-  the exact path to point at.
+  Cobbler creates a ``/var/www/cobbler/links/<name>`` symlink to the distro's source tree for every
+  Windows import, which ``startnet.template``/``answerfile.template`` reach as
+  ``\\<server>\DISTRO\links\<name>\...`` -- setup.exe/winnt32.exe and the answerfile's Samba-UNC
+  references read straight through this raw Samba share with zero Cobbler code involved, so this is
+  the one case Cobbler creates a real filesystem entry even for a ``managers.dynamic_httpd``
+  direct-source import (a local, writable ``--path`` with no ``--network-root``, scanned in place
+  instead of copied, e.g. a loop-mounted ISO) -- it lives entirely inside ``webdir``, a directory
+  Cobbler already owns, and is one fixed-size symlink regardless of the import's size, so it doesn't
+  conflict with that import mode's reason for existing (avoiding the file I/O of a full copy).
+  Cobbler still does not manage Samba itself (the share definition above remains a manual
+  prerequisite in either import mode).
 
 * import the Windows distro:
 

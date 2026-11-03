@@ -345,6 +345,35 @@ def test_remove_cleans_up_direct_source_overlay_dir(
     assert not os.path.exists(overlay_dir)
 
 
+def test_remove_cleans_up_webdir_links_symlink(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    cobbler_api: CobblerAPI,
+    tmp_path: Path,
+):
+    """
+    Removing a distro must also remove its ``webdir/links/<name>`` symlink, whether it came from a
+    classic import or (Windows-specific) direct_source import -- otherwise it is left dangling,
+    pointing at content that may no longer exist.
+    """
+    # Arrange
+    webdir = tmp_path / "webdir"
+    links_dir = webdir / "links"
+    links_dir.mkdir(parents=True)
+    cobbler_api.settings().webdir = str(webdir)
+    name = "test_remove_cleans_up_webdir_links_symlink"
+    item1 = create_distro(name)
+    dest_link = links_dir / name
+    dest_link.symlink_to(tmp_path)
+    assert os.path.islink(dest_link)
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    assert not os.path.lexists(dest_link)
+
+
 def test_remove_without_source_tree_path_does_not_touch_overlay(
     create_distro: Callable[[str], distro.Distro],
     distro_collection: distros.Distros,

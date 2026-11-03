@@ -86,6 +86,12 @@ class Distros(collection.Collection[distro.Distro]):
         # look through all mirrored directories and find if any directory is holding this particular distribution's
         # kernel and initrd
         settings = self.api.settings()
+
+        if with_delete:
+            # Named after this distro's own name, which is unique, so unlike the mirrored storage
+            # and overlay cleanup above, no "is another distro still using this" check is needed.
+            filesystem_helpers.rmfile(os.path.join(settings.webdir, "links", ref.name))
+
         possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
         path = None
         kernel = ref.kernel

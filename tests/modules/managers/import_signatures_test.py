@@ -284,8 +284,10 @@ def test_configure_tree_location_direct_source(
     cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
 ):
     """
-    With ``direct_source`` True, ``configure_tree_location()`` must not create a ``webdir/links/<name>`` symlink
-    and must point the tree at the new ``/cblr/svc/tree/<name>/`` URL instead.
+    With ``direct_source`` True, ``configure_tree_location()`` must point the tree at the new
+    ``/cblr/svc/tree/<name>/`` URL, and -- for a non-Windows breed -- must not create a
+    ``webdir/links/<name>`` symlink (see ``test_configure_tree_location_direct_source_windows_creates_symlink``
+    for the Windows-specific exception, needed for Samba/setup.exe access).
     """
     # Arrange
     manager = import_signatures.get_import_manager(cobbler_api)
@@ -311,6 +313,47 @@ def test_configure_tree_location_direct_source(
         distro.autoinstall_meta["tree"]
         == f"{protocol}://@@http_server@@/cblr/svc/tree/{distro.name}/"
     )
+
+
+def test_configure_tree_location_direct_source_windows_creates_symlink(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Unlike every other breed, a direct_source Windows distro must still get a
+    ``webdir/links/<name>`` symlink to its original source root: setup.exe/winnt32.exe and the
+    answerfile's Samba-UNC references read straight through a raw Samba share with zero Cobbler
+    code involved, so the dynamic ``/cblr/svc/tree/`` endpoint (used for the install tree URL
+    itself, unaffected by this) cannot help there. The tree URL must still be the dynamic endpoint,
+    not the symlink-based one -- this symlink exists for Samba/setup.exe access only.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.rootdir = str(tmp_path)
+    manager.path = str(tmp_path)
+    manager.network_root = None
+    manager.direct_source = True
+    distro = cobbler_api.new_distro()
+    distro.name = "test_configure_tree_location_direct_source_windows_creates_symlink"  # type: ignore[method-assign]
+    distro.breed = "windows"
+    dest_link = os.path.join(cobbler_api.settings().webdir, "links", distro.name)
+    if os.path.lexists(dest_link):
+        os.remove(dest_link)
+
+    # Act
+    try:
+        manager.configure_tree_location(distro)
+
+        # Assert
+        assert os.path.islink(dest_link)
+        assert os.path.realpath(dest_link) == os.path.realpath(str(tmp_path))
+        protocol = cobbler_api.settings().autoinstall_scheme
+        assert (
+            distro.autoinstall_meta["tree"]
+            == f"{protocol}://@@http_server@@/cblr/svc/tree/{distro.name}/"
+        )
+    finally:
+        if os.path.lexists(dest_link):
+            os.remove(dest_link)
 
 
 def test_harden_windows_executable_permissions_sets_execute_bit_on_exe_dll_com(

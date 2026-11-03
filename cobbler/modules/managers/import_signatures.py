@@ -749,29 +749,25 @@ class _ImportSignatureManager(ManagerModule):
         if self.network_root is None:
             protocol = self.api.settings().autoinstall_scheme
             if self.direct_source:
-                # Nothing was copied into webdir, so there is no symlink target to create. The tree is served
-                # directly from its original location by a dynamic tree-serving endpoint instead.
+                # Nothing was copied into webdir, so the install tree itself is served directly from
+                # its original location by a dynamic tree-serving endpoint instead of a symlink.
                 tree = (
                     f"{protocol}://@@http_server@@/cblr/svc/tree/{distribution.name}/"
                 )
                 self.set_install_tree(distribution, tree)
+                if distribution.breed == "windows":  # type: ignore[reportUnknownMemberType]
+                    # Unlike every other breed, Windows's own setup.exe/winnt32.exe and the
+                    # answerfile's Samba-UNC references (startnet.template's $distro_share) read
+                    # straight through a raw Samba share with zero Cobbler code involved -- the
+                    # dynamic tree endpoint above can't help there, since Samba resolves paths on
+                    # the real filesystem, not through Cobbler. This symlink lives entirely inside
+                    # webdir (a directory Cobbler already owns and manages), not inside the
+                    # (possibly read-only) source tree itself, so it doesn't conflict with
+                    # managers.dynamic_httpd's reason for existing: it is one fixed-size filesystem
+                    # entry regardless of the import's size, not I/O proportional to the import.
+                    self._create_webdir_links_symlink(base, distribution.name)
             else:
-                dest_link = os.path.join(
-                    self.settings.webdir, "links", distribution.name
-                )
-                # create the links directory only if we are mirroring because with SELinux Apache can't symlink to
-                # NFS (without some doing)
-                if not os.path.exists(dest_link):
-                    try:
-                        self.logger.info(
-                            "trying symlink: %s -> %s", str(base), str(dest_link)
-                        )
-                        os.symlink(base, dest_link)
-                    except Exception:
-                        # FIXME: This shouldn't happen but I've seen it ... debug ...
-                        self.logger.warning(
-                            "symlink creation failed: %s, %s", base, dest_link
-                        )
+                self._create_webdir_links_symlink(base, distribution.name)
                 tree = f"{protocol}://@@http_server@@/cblr/links/{distribution.name}"
                 self.set_install_tree(distribution, tree)
         else:
@@ -781,6 +777,24 @@ class _ImportSignatureManager(ManagerModule):
             tail = filesystem_helpers.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distribution, tree)
+
+    def _create_webdir_links_symlink(self, base: str, distro_name: str) -> None:
+        """
+        Create ``webdir/links/<distro_name>`` -> ``base`` if it does not already exist.
+
+        :param base: The distro's source root to link to.
+        :param distro_name: The name of the distro, used as the symlink's filename.
+        """
+        dest_link = os.path.join(self.settings.webdir, "links", distro_name)
+        # create the links directory only if we are mirroring because with SELinux Apache can't symlink to
+        # NFS (without some doing)
+        if not os.path.exists(dest_link):
+            try:
+                self.logger.info("trying symlink: %s -> %s", str(base), str(dest_link))
+                os.symlink(base, dest_link)
+            except Exception:
+                # FIXME: This shouldn't happen but I've seen it ... debug ...
+                self.logger.warning("symlink creation failed: %s, %s", base, dest_link)
 
     def set_install_tree(self, distribution: "Distro", url: str) -> None:
         """
