@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import urllib.request
@@ -388,6 +389,92 @@ def safe_filter(var: Optional[str]) -> None:
         return None
     if var.find("..") != -1 or var.find(";") != -1:
         raise CX("Invalid characters found in input")
+
+
+#: Per-distro writable overlay root for files that direct_source (managers.dynamic_httpd) import
+#: logic must write but cannot write into the original (possibly read-only, e.g. loop-mounted
+#: ISO9660/UDF) source tree. Mirrors the "/var/lib/cobbler/<purpose>" convention already used for
+#: triggers/collections dirs (api.py's __directory_startup_preparations()), rather than a new
+#: Settings field, since this is an internal implementation detail, not an admin-facing location.
+DISTRO_OVERLAY_DIR = "/var/lib/cobbler/distro_overlay"
+
+
+def _distro_overlay_key(source_root: str) -> str:
+    """
+    Deterministic, filesystem-safe overlay directory name for a direct_source distro's original scan
+    root. Keyed on ``source_root`` (``self.rootdir``/``self.path`` at import time, ``distro.source_
+    tree_path`` at sync time) rather than the distro's name or uid: Windows's derived-file writes
+    (``extract_winpe()``) happen *before* any Distro object (hence any name/uid) exists for this
+    import, and the eventual distro name is the caller-supplied mirror name plus an arch suffix
+    (``<name>-<arch>``) anyway. ``source_root`` is the one identity value identical at both write
+    time and every later read (import_signatures.py's add_entry() copies ``self.rootdir`` verbatim
+    into ``new_distro.source_tree_path``, ~line 489-490).
+    """
+    normalized = os.path.normpath(source_root)
+    slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", os.path.basename(normalized)) or "root"
+    digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:12]
+    return f"{slug}-{digest}"
+
+
+def get_distro_overlay_dir(source_root: str) -> str:
+    """Root overlay directory for a direct_source distro's original scan root (``source_root``)."""
+    return os.path.join(DISTRO_OVERLAY_DIR, _distro_overlay_key(source_root))
+
+
+def _distro_overlay_candidate(source_root: str, relative_path: str) -> Tuple[str, str]:
+    """Shared traversal-guarded (overlay_dir, candidate) resolution for the functions below."""
+    overlay_dir = get_distro_overlay_dir(source_root)
+    candidate = os.path.normpath(os.path.join(overlay_dir, relative_path.lstrip("/")))
+    if os.path.commonpath([overlay_dir, candidate]) != overlay_dir:
+        raise CX(f"Refusing to resolve outside of the distro overlay directory: {relative_path!r}")
+    return overlay_dir, candidate
+
+
+def get_distro_overlay_write_path(source_root: str, relative_path: str) -> str:
+    """
+    Return the writable overlay path to WRITE a derived FILE at ``relative_path`` to, creating its
+    parent directory (not the file itself) first.
+    """
+    _, candidate = _distro_overlay_candidate(source_root, relative_path)
+    mkdir(os.path.dirname(candidate))
+    return candidate
+
+
+def get_distro_overlay_write_dir(source_root: str, relative_path: str) -> str:
+    """
+    Like :func:`get_distro_overlay_write_path`, but for callers (e.g. ``createrepo --outputdir``)
+    that need a writable DIRECTORY itself to exist and use directly, not just the parent of a file
+    they are about to create.
+    """
+    _, candidate = _distro_overlay_candidate(source_root, relative_path)
+    mkdir(candidate)
+    return candidate
+
+
+def resolve_distro_overlay_root(source_root: str, relative_path: str) -> str:
+    """
+    Decide which root a READ of ``relative_path`` for a direct_source distro should be served from:
+    this distro's overlay directory, if it already contains a file there, else the distro's own
+    original ``source_root``. Returns a directory (not a joined file path) so callers that need their
+    own traversal-guarded root+relative resolution (``cobbler.services.files``'s existing
+    ``resolve_within_root()``) can run their own guard against whichever root this picks, instead of
+    this helper collapsing both inputs into one path itself.
+    """
+    overlay_dir, candidate = _distro_overlay_candidate(source_root, relative_path)
+    if os.path.exists(candidate):
+        return overlay_dir
+    return source_root
+
+
+def resolve_distro_overlay_read_path(source_root: str, relative_path: str) -> str:
+    """Resolve ``relative_path`` for reading: the overlay wins if present, else ``source_root``."""
+    root = resolve_distro_overlay_root(source_root, relative_path)
+    return os.path.join(root, relative_path.lstrip("/"))
+
+
+def remove_distro_overlay_dir(source_root: str) -> None:
+    """Remove a direct_source distro's overlay directory tree. A no-op if it never existed."""
+    rmtree(get_distro_overlay_dir(source_root))
 
 
 def __create_if_not_exists(path: pathlib.Path) -> None:

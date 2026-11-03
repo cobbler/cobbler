@@ -365,3 +365,208 @@ def test_create_json_database_dirs(mocker: "MockerFixture"):
     mock_mkdir.assert_any_call("/var/lib/cobbler/collections")
     # 1 collections parent directory + (1 child directory per item type * 11 item types atm)
     assert mock_mkdir.call_count == 12
+
+
+# --------------------------------------------------------------------------------------------
+# Distro overlay helpers
+# --------------------------------------------------------------------------------------------
+
+
+@pytest.fixture(name="overlay_root")
+def fixture_overlay_root(tmp_path: Path, mocker: "MockerFixture") -> Path:
+    """
+    Redirect ``DISTRO_OVERLAY_DIR`` to a ``tmp_path`` subdirectory for every overlay test, so
+    nothing touches the real ``/var/lib/cobbler/distro_overlay``.
+    """
+    overlay_root = tmp_path / "distro_overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    return overlay_root
+
+
+def test_get_distro_overlay_dir_is_deterministic_and_distinct_per_source_root(
+    overlay_root: Path,
+):
+    """
+    The same ``source_root`` must always map to the same overlay directory, and different
+    ``source_root``s must map to different ones.
+    """
+    # Arrange
+    source_a = "/mnt/rocky10"
+    source_b = "/mnt/debian13"
+
+    # Act
+    dir_a_first = filesystem_helpers.get_distro_overlay_dir(source_a)
+    dir_a_second = filesystem_helpers.get_distro_overlay_dir(source_a)
+    dir_b = filesystem_helpers.get_distro_overlay_dir(source_b)
+
+    # Assert
+    assert dir_a_first == dir_a_second
+    assert dir_a_first != dir_b
+    assert dir_a_first.startswith(str(overlay_root))
+
+
+def test_get_distro_overlay_write_path_creates_parent_dir_and_returns_path_under_overlay_root(
+    overlay_root: Path,
+):
+    """
+    ``get_distro_overlay_write_path()`` must create the parent directory of the returned path
+    (not the file itself), and the returned path must live under the overlay root.
+    """
+    # Arrange
+    source_root = "/mnt/rocky10"
+
+    # Act
+    result = filesystem_helpers.get_distro_overlay_write_path(
+        source_root, os.path.join("boot", "winpe.wim")
+    )
+
+    # Assert
+    assert result.startswith(str(overlay_root))
+    assert result.endswith(os.path.join("boot", "winpe.wim"))
+    assert os.path.isdir(os.path.dirname(result))
+    assert not os.path.exists(result)
+
+
+def test_get_distro_overlay_write_path_rejects_path_traversal(overlay_root: Path):
+    """
+    A ``relative_path`` that would escape the overlay directory must be rejected.
+    """
+    # Arrange
+    source_root = "/mnt/rocky10"
+
+    # Act & Assert
+    with pytest.raises(CX):
+        filesystem_helpers.get_distro_overlay_write_path(
+            source_root, "../../etc/passwd"
+        )
+
+
+def test_get_distro_overlay_write_dir_creates_and_returns_directory_itself(
+    overlay_root: Path,
+):
+    """
+    Unlike ``get_distro_overlay_write_path()``, ``get_distro_overlay_write_dir()`` must create and
+    return the directory itself (e.g. for ``createrepo --outputdir``).
+    """
+    # Arrange
+    source_root = "/mnt/rocky10"
+
+    # Act
+    result = filesystem_helpers.get_distro_overlay_write_dir(
+        source_root, "repodata"
+    )
+
+    # Assert
+    assert result.startswith(str(overlay_root))
+    assert os.path.isdir(result)
+
+
+def test_get_distro_overlay_write_dir_rejects_path_traversal(overlay_root: Path):
+    # Arrange
+    source_root = "/mnt/rocky10"
+
+    # Act & Assert
+    with pytest.raises(CX):
+        filesystem_helpers.get_distro_overlay_write_dir(source_root, "../../etc")
+
+
+def test_resolve_distro_overlay_root_prefers_overlay_dir_when_file_present(
+    overlay_root: Path,
+):
+    """
+    If the overlay directory already contains the requested file, it must win over the original
+    source root.
+    """
+    # Arrange
+    source_root = "/mnt/rocky10"
+    relative_path = os.path.join("boot", "winpe.wim")
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        source_root, relative_path
+    )
+    Path(overlay_file).write_bytes(b"overlay content")
+
+    # Act
+    result = filesystem_helpers.resolve_distro_overlay_root(source_root, relative_path)
+
+    # Assert
+    assert result == filesystem_helpers.get_distro_overlay_dir(source_root)
+
+
+def test_resolve_distro_overlay_root_falls_back_to_source_root_when_absent(
+    overlay_root: Path,
+):
+    """
+    If the overlay directory has no such file, the original source root must be returned.
+    """
+    # Arrange
+    source_root = "/mnt/rocky10"
+    relative_path = os.path.join("boot", "winpe.wim")
+
+    # Act
+    result = filesystem_helpers.resolve_distro_overlay_root(source_root, relative_path)
+
+    # Assert
+    assert result == source_root
+
+
+def test_resolve_distro_overlay_read_path_prefers_overlay_when_present(
+    overlay_root: Path, tmp_path: Path
+):
+    # Arrange
+    source_root = str(tmp_path / "source")
+    relative_path = os.path.join("boot", "winpe.wim")
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        source_root, relative_path
+    )
+    Path(overlay_file).write_bytes(b"overlay content")
+
+    # Act
+    result = filesystem_helpers.resolve_distro_overlay_read_path(
+        source_root, relative_path
+    )
+
+    # Assert
+    assert result == overlay_file
+
+
+def test_resolve_distro_overlay_read_path_falls_back_to_source_root_when_absent(
+    overlay_root: Path, tmp_path: Path
+):
+    # Arrange
+    source_root = str(tmp_path / "source")
+    relative_path = os.path.join("boot", "winpe.wim")
+
+    # Act
+    result = filesystem_helpers.resolve_distro_overlay_read_path(
+        source_root, relative_path
+    )
+
+    # Assert
+    assert result == os.path.join(source_root, relative_path)
+
+
+def test_remove_distro_overlay_dir_is_noop_when_absent(overlay_root: Path):
+    # Arrange
+    source_root = "/mnt/rocky10"
+
+    # Act & Assert (must not raise)
+    filesystem_helpers.remove_distro_overlay_dir(source_root)
+
+
+def test_remove_distro_overlay_dir_removes_existing_overlay(overlay_root: Path):
+    # Arrange
+    source_root = "/mnt/rocky10"
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        source_root, os.path.join("boot", "winpe.wim")
+    )
+    Path(overlay_file).write_bytes(b"overlay content")
+    overlay_dir = filesystem_helpers.get_distro_overlay_dir(source_root)
+    assert os.path.isdir(overlay_dir)
+
+    # Act
+    filesystem_helpers.remove_distro_overlay_dir(source_root)
+
+    # Assert
+    assert not os.path.exists(overlay_dir)

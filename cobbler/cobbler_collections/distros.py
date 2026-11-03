@@ -73,6 +73,16 @@ class Distros(collection.Collection[distro.Distro]):
             rebuild_menu=rebuild_menu,
         )
 
+        if with_delete and ref.source_tree_path:
+            still_in_use = any(
+                dist.source_tree_path == ref.source_tree_path
+                for dist in self.api.distros()
+            )
+            if not still_in_use:
+                filesystem_helpers.rmtree(
+                    filesystem_helpers.get_distro_overlay_dir(ref.source_tree_path)
+                )
+
         # look through all mirrored directories and find if any directory is holding this particular distribution's
         # kernel and initrd
         settings = self.api.settings()

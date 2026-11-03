@@ -13,6 +13,7 @@ from pytest_mock import MockerFixture
 
 from cobbler.api import CobblerAPI
 from cobbler.modules.managers import import_signatures
+from cobbler.utils import filesystem_helpers
 
 
 def _make_signature(**overrides: Any) -> Osversion:
@@ -545,3 +546,316 @@ def test_configure_tree_location_without_direct_source_creates_symlink(
     finally:
         if os.path.lexists(dest_link):
             os.remove(dest_link)
+
+
+# --------------------------------------------------------------------------------------------
+# Distro overlay: Windows winpe/bootmgr sites
+# --------------------------------------------------------------------------------------------
+
+
+def test_extract_winpe_direct_source_writes_to_overlay_not_read_only_source(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Regression guard: for a ``direct_source`` import, ``extract_winpe()`` must write the derived
+    ``winpe.wim`` into this distro's overlay directory, never into ``<distro_path>/boot`` -- the
+    latter may be a genuinely read-only mount (e.g. a loop-mounted ISO9660/UDF image).
+    """
+    # Arrange
+    distro_path = tmp_path / "win11"
+    (distro_path / "sources").mkdir(parents=True)
+    (distro_path / "sources" / "boot.wim").write_bytes(b"fake")
+    overlay_root = tmp_path / "overlay"
+    mocker.patch("cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root))
+    real_mkdir = filesystem_helpers.mkdir
+
+    def _guarded_mkdir(path: str, mode: int = 0o755) -> None:
+        if os.path.commonpath([str(distro_path), os.path.normpath(path)]) == str(
+            distro_path
+        ):
+            raise PermissionError(f"must not write under read-only distro_path: {path}")
+        real_mkdir(path, mode)
+
+    mocker.patch("cobbler.utils.filesystem_helpers.mkdir", side_effect=_guarded_mkdir)
+    mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call", return_value=0
+    )
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.direct_source = True
+
+    # Act
+    winpe_path = manager.extract_winpe(str(distro_path))
+
+    # Assert
+    assert winpe_path.startswith(str(overlay_root))
+    assert os.path.isdir(os.path.dirname(winpe_path))
+
+
+def test_extract_winpe_classic_import_writes_under_distro_path_boot(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Regression guard: with ``direct_source`` at its default (False), ``extract_winpe()`` must
+    behave exactly as it did before this feature -- write ``winpe.wim`` into
+    ``<distro_path>/boot``.
+    """
+    # Arrange
+    distro_path = tmp_path / "win11"
+    (distro_path / "sources").mkdir(parents=True)
+    (distro_path / "sources" / "boot.wim").write_bytes(b"fake")
+    mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call", return_value=0
+    )
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.direct_source = False
+
+    # Act
+    winpe_path = manager.extract_winpe(str(distro_path))
+
+    # Assert
+    assert winpe_path == os.path.join(str(distro_path), "boot", "winpe.wim")
+    assert os.path.isdir(os.path.dirname(winpe_path))
+
+
+# --------------------------------------------------------------------------------------------
+# Distro overlay: non-wimboot Windows kernel detection (distro_adder)
+# --------------------------------------------------------------------------------------------
+
+
+def test_distro_adder_windows_non_wimboot_direct_source_resolves_kernel_through_overlay(
+    cobbler_api: CobblerAPI, mocker: MockerFixture
+):
+    """
+    Regression guard: every supported Windows version except 11 uses a real ``kernel_file``
+    pattern (``pxeboot.n12``) that is derived from ``boot.wim`` before this walk starts. Under
+    ``direct_source``, that derived file lives in the overlay, not ``<self.path>/boot``, so it
+    never appears in the directory walk's own filenames list -- it must be resolved explicitly.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.path = "/mnt/win11"
+    manager.direct_source = True
+    manager.breed = "windows"  # type: ignore[assignment]
+    manager.signature = _make_signature(
+        kernel_file=r"pxeboot\.n12", initrd_file=r"boot\.sdi"
+    )
+    overlay_kernel_path = "/var/lib/cobbler/distro_overlay/fake/boot/pxeboot.n12"
+    resolve_spy = mocker.patch(
+        "cobbler.modules.managers.import_signatures.filesystem_helpers.resolve_distro_overlay_read_path",
+        return_value=overlay_kernel_path,
+    )
+    add_entry_spy = mocker.patch.object(manager, "add_entry", return_value=[])
+    dirname = "/mnt/win11/boot"
+
+    # Act
+    manager.distro_adder([], dirname, ["boot.sdi"])
+
+    # Assert
+    resolve_spy.assert_called_once_with(
+        "/mnt/win11", os.path.join("boot", "pxeboot.n12")
+    )
+    add_entry_spy.assert_called_once_with(
+        dirname, overlay_kernel_path, os.path.join(dirname, "boot.sdi")
+    )
+
+
+def test_distro_adder_windows_non_wimboot_classic_import_does_not_synthesize_kernel(
+    cobbler_api: CobblerAPI, mocker: MockerFixture
+):
+    """
+    Regression guard: with ``direct_source`` at its default (False), ``distro_adder()`` must not
+    synthesize a kernel path via the overlay -- a classic import relies purely on the real
+    ``pxeboot.n12`` file being found by name during the directory walk.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.path = "/srv/www/cobbler/distro_mirror/win11-x86_64"
+    manager.direct_source = False
+    manager.breed = "windows"  # type: ignore[assignment]
+    manager.signature = _make_signature(
+        kernel_file=r"pxeboot\.n12", initrd_file=r"boot\.sdi"
+    )
+    resolve_spy = mocker.patch(
+        "cobbler.modules.managers.import_signatures.filesystem_helpers.resolve_distro_overlay_read_path"
+    )
+    add_entry_spy = mocker.patch.object(manager, "add_entry", return_value=[])
+    dirname = os.path.join(manager.path, "boot")
+
+    # Act
+    manager.distro_adder([], dirname, ["boot.sdi"])
+
+    # Assert
+    resolve_spy.assert_not_called()
+    add_entry_spy.assert_not_called()
+
+
+# --------------------------------------------------------------------------------------------
+# Distro overlay: createrepo/keeprepodata=False via --outputdir
+# --------------------------------------------------------------------------------------------
+
+
+def test_yum_process_comps_file_direct_source_redirects_createrepo_output_to_overlay(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Regression guard: for a direct_source distro, createrepo's output must be redirected into
+    this distro's overlay directory via ``--outputdir`` (``comps_path`` itself may be inside a
+    genuinely read-only mount), and the generated ``.repo`` config's baseurl must point at the
+    dynamic ``/cblr/svc/tree/<name>/`` endpoint rather than the (never-populated, in
+    direct_source mode) ``/cobbler/distro_mirror/...`` static alias.
+    """
+    # Arrange
+    overlay_root = tmp_path / "overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    source_root = tmp_path / "source"
+    comps_path = source_root / "repo1"
+    (comps_path / "base").mkdir(parents=True)
+    (comps_path / "base" / "comps.xml").write_text("<comps/>")
+
+    subprocess_call_mock = mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call",
+        return_value=0,
+    )
+    mocker.patch("cobbler.modules.managers.import_signatures.utils.remove_yum_olddata")
+
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.direct_source = True
+    distribution = cobbler_api.new_distro()
+    distribution.name = "test_yum_direct_source_overlay"  # type: ignore[method-assign]
+    distribution.source_tree_path = str(source_root)
+
+    # Act
+    manager.yum_process_comps_file(str(comps_path), distribution)
+
+    # Assert
+    expected_output_dir = os.path.join(
+        filesystem_helpers.get_distro_overlay_dir(str(source_root)), "repo1"
+    )
+    assert subprocess_call_mock.call_args is not None
+    cmd = subprocess_call_mock.call_args.args[0]
+    assert "--outputdir" in cmd
+    assert cmd[cmd.index("--outputdir") + 1] == expected_output_dir
+    assert cmd[-1] == str(comps_path)
+    assert os.path.isdir(expected_output_dir)
+
+    protocol = cobbler_api.settings().autoinstall_scheme
+    repo_config_path = os.path.join(
+        cobbler_api.settings().webdir,
+        "distro_mirror",
+        "config",
+        f"{distribution.name}-0.repo",
+    )
+    with open(repo_config_path, encoding="UTF-8") as config_file:
+        content = config_file.read()
+    assert (
+        f"baseurl={protocol}://@@http_server@@/cblr/svc/tree/{distribution.name}/repo1\n"
+        in content
+    )
+
+
+def test_yum_process_comps_file_classic_import_writes_repodata_in_place(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Regression guard: for a classic (non-direct_source) import, behavior must stay exactly as it
+    was before this feature -- createrepo scans and writes repodata directly into ``comps_path``
+    (no ``--outputdir``), and the baseurl still uses the static ``/cobbler/distro_mirror/...``
+    alias.
+    """
+    # Arrange
+    distro_mirror_root = tmp_path / "distro_mirror"
+    comps_path = distro_mirror_root / "testdistro-x86_64" / "repo1"
+    (comps_path / "base").mkdir(parents=True)
+    (comps_path / "base" / "comps.xml").write_text("<comps/>")
+
+    subprocess_call_mock = mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call",
+        return_value=0,
+    )
+    mocker.patch("cobbler.modules.managers.import_signatures.utils.remove_yum_olddata")
+    overlay_write_dir_spy = mocker.patch(
+        "cobbler.modules.managers.import_signatures.filesystem_helpers.get_distro_overlay_write_dir"
+    )
+
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.direct_source = False
+    distribution = cobbler_api.new_distro()
+    distribution.name = "test_yum_classic_import"  # type: ignore[method-assign]
+
+    # Act
+    manager.yum_process_comps_file(str(comps_path), distribution)
+
+    # Assert
+    overlay_write_dir_spy.assert_not_called()
+    assert subprocess_call_mock.call_args is not None
+    cmd = subprocess_call_mock.call_args.args[0]
+    assert "--outputdir" not in cmd
+    assert cmd[-1] == str(comps_path)
+
+    protocol = cobbler_api.settings().autoinstall_scheme
+    repo_config_path = os.path.join(
+        cobbler_api.settings().webdir,
+        "distro_mirror",
+        "config",
+        f"{distribution.name}-0.repo",
+    )
+    with open(repo_config_path, encoding="UTF-8") as config_file:
+        content = config_file.read()
+    assert (
+        f"baseurl={protocol}://@@http_server@@/cobbler/distro_mirror/testdistro-x86_64/repo1\n"
+        in content
+    )
+
+
+def test_yum_process_comps_file_direct_source_keeprepodata_true_still_uses_dynamic_tree_baseurl(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: MockerFixture
+):
+    """
+    Regression guard: when existing repodata is kept as-is (``keeprepodata=True``), createrepo is
+    never invoked, but a direct_source distro's baseurl must still point at the dynamic
+    ``/cblr/svc/tree/<name>/`` endpoint, not the static ``/cobbler/distro_mirror/...`` alias
+    (which is never populated in direct_source mode).
+    """
+    # Arrange
+    overlay_root = tmp_path / "overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    source_root = tmp_path / "source"
+    comps_path = source_root / "repo2"
+    (comps_path / "repodata").mkdir(parents=True)
+    (comps_path / "repodata" / "comps-full.xml").write_text("<comps/>")
+
+    subprocess_call_mock = mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call",
+        return_value=0,
+    )
+
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.direct_source = True
+    distribution = cobbler_api.new_distro()
+    distribution.name = "test_yum_direct_source_keeprepodata"  # type: ignore[method-assign]
+    distribution.source_tree_path = str(source_root)
+
+    # Act
+    manager.yum_process_comps_file(str(comps_path), distribution)
+
+    # Assert
+    subprocess_call_mock.assert_not_called()
+    assert manager.found_repos[str(comps_path)] == 1
+
+    protocol = cobbler_api.settings().autoinstall_scheme
+    repo_config_path = os.path.join(
+        cobbler_api.settings().webdir,
+        "distro_mirror",
+        "config",
+        f"{distribution.name}-0.repo",
+    )
+    with open(repo_config_path, encoding="UTF-8") as config_file:
+        content = config_file.read()
+    assert (
+        f"baseurl={protocol}://@@http_server@@/cblr/svc/tree/{distribution.name}/repo2\n"
+        in content
+    )

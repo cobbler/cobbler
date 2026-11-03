@@ -18,6 +18,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from cobbler.services import files
+from cobbler.utils import filesystem_helpers
 
 
 class _Response:
@@ -133,6 +134,55 @@ def test_gzip_file_is_served_as_octet_stream_not_mislabeled(
     assert resp.status == "200 OK"
     assert resp.header("Content-Type") == "application/octet-stream"
     assert not resp.has_header("Content-Encoding")
+
+
+# --------------------------------------------------------------------------------------------
+# Distro overlay
+# --------------------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def overlay_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """
+    Redirect ``DISTRO_OVERLAY_DIR`` to a ``tmp_path`` subdirectory, so nothing touches the real
+    ``/var/lib/cobbler/distro_overlay``.
+    """
+    overlay_dir = tmp_path / "distro_overlay"
+    monkeypatch.setattr(filesystem_helpers, "DISTRO_OVERLAY_DIR", str(overlay_dir))
+    return overlay_dir
+
+
+def test_tree_prefers_overlay_repodata_over_original_read_only_source(
+    tmp_path: Path, stub_remote: MagicMock, overlay_root: Path
+) -> None:
+    root = tmp_path / "tree"
+    (root / "repodata").mkdir(parents=True)
+    (root / "repodata" / "repomd.xml").write_bytes(b"original content")
+    stub_remote.get_distro.return_value = _distro_dict(str(root))
+
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        str(root), "repodata/repomd.xml"
+    )
+    Path(overlay_file).write_bytes(b"overlay content")
+
+    resp, body = _call(_environ("/tree/mydistro/repodata/repomd.xml"))
+
+    assert resp.status == "200 OK"
+    assert body == b"overlay content"
+
+
+def test_tree_falls_back_to_original_source_when_no_overlay_file_exists(
+    tmp_path: Path, stub_remote: MagicMock, overlay_root: Path
+) -> None:
+    root = tmp_path / "tree"
+    (root / "repodata").mkdir(parents=True)
+    (root / "repodata" / "repomd.xml").write_bytes(b"original content")
+    stub_remote.get_distro.return_value = _distro_dict(str(root))
+
+    resp, body = _call(_environ("/tree/mydistro/repodata/repomd.xml"))
+
+    assert resp.status == "200 OK"
+    assert body == b"original content"
 
 
 # --------------------------------------------------------------------------------------------

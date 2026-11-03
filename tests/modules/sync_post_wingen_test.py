@@ -2,6 +2,7 @@
 Test module to verify the functionality of the sync_post_wingen plugin module.
 """
 
+import os
 from typing import TYPE_CHECKING
 
 from cobbler import enums
@@ -62,3 +63,94 @@ def test_run(mocker: "MockerFixture"):
     # Assert
     # FIXME improve assert
     assert result == 0
+
+
+# --------------------------------------------------------------------------------------------
+# _resolve_boot_file()
+# --------------------------------------------------------------------------------------------
+
+
+def test_resolve_boot_file_classic_import_uses_links_boot_dir(mocker: "MockerFixture"):
+    """
+    With no ``source_tree_path`` set (a classic, mirrored import), both derived and non-derived
+    files must be resolved under ``webdir/links/<name>/boot``, exactly as before this feature.
+    """
+    # Arrange
+    settings = mocker.MagicMock(spec=Settings)
+    settings.webdir = "/var/www/cobbler"
+    distro = mocker.MagicMock()
+    distro.name = "mydistro"
+    distro.source_tree_path = ""
+
+    # Act
+    derived_result = sync_post_wingen._resolve_boot_file(  # type: ignore[reportPrivateUsage]
+        settings, distro, "bootmgr.exe", derived=True
+    )
+    non_derived_result = sync_post_wingen._resolve_boot_file(  # type: ignore[reportPrivateUsage]
+        settings, distro, "bcd", derived=False
+    )
+
+    # Assert
+    expected_derived = os.path.join(
+        settings.webdir, "links", distro.name, "boot", "bootmgr.exe"
+    )
+    expected_non_derived = os.path.join(
+        settings.webdir, "links", distro.name, "boot", "bcd"
+    )
+    assert derived_result == expected_derived
+    assert non_derived_result == expected_non_derived
+
+
+def test_resolve_boot_file_direct_source_derived_file_uses_overlay_resolution(
+    mocker: "MockerFixture",
+):
+    """
+    For a direct_source distro, a derived file (e.g. ``winpe.wim``) must be resolved through
+    ``filesystem_helpers.resolve_distro_overlay_read_path()``.
+    """
+    # Arrange
+    settings = mocker.MagicMock(spec=Settings)
+    distro = mocker.MagicMock()
+    distro.name = "mydistro"
+    distro.source_tree_path = "/some/root"
+    overlay_resolve = mocker.patch(
+        "cobbler.modules.sync_post_wingen.filesystem_helpers.resolve_distro_overlay_read_path",
+        return_value="/some/root/overlay/boot/winpe.wim",
+    )
+
+    # Act
+    result = sync_post_wingen._resolve_boot_file(  # type: ignore[reportPrivateUsage]
+        settings, distro, "winpe.wim", derived=True
+    )
+
+    # Assert
+    overlay_resolve.assert_called_once_with(
+        "/some/root", os.path.join("boot", "winpe.wim")
+    )
+    assert result == "/some/root/overlay/boot/winpe.wim"
+
+
+def test_resolve_boot_file_direct_source_non_derived_file_always_uses_original_source_root(
+    mocker: "MockerFixture",
+):
+    """
+    For a direct_source distro, a non-derived file (e.g. ``bcd``) must always come from the
+    original ``source_tree_path``, never through the overlay -- Cobbler never writes it.
+    """
+    # Arrange
+    settings = mocker.MagicMock(spec=Settings)
+    distro = mocker.MagicMock()
+    distro.name = "mydistro"
+    distro.source_tree_path = "/some/root"
+    overlay_resolve = mocker.patch(
+        "cobbler.modules.sync_post_wingen.filesystem_helpers.resolve_distro_overlay_read_path"
+    )
+
+    # Act
+    result = sync_post_wingen._resolve_boot_file(  # type: ignore[reportPrivateUsage]
+        settings, distro, "bcd", derived=False
+    )
+
+    # Assert
+    assert result == os.path.join("/some/root", "boot", "bcd")
+    overlay_resolve.assert_not_called()

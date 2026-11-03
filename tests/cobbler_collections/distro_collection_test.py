@@ -3,7 +3,8 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os.path
-from typing import Callable
+from pathlib import Path
+from typing import TYPE_CHECKING, Callable
 
 import pytest
 
@@ -13,6 +14,10 @@ from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import distros
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import distro
+from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture(name="distro_collection")
@@ -305,6 +310,100 @@ def test_remove(
     assert item1.uid not in distro_collection.listing
     assert len(distro_collection.indexes["name"]) == 0
     assert len(distro_collection.indexes["arch"]) == 0
+
+
+def test_remove_cleans_up_direct_source_overlay_dir(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    tmp_path: Path,
+    mocker: "MockerFixture",
+):
+    """
+    Removing a direct_source distro (one with ``source_tree_path`` set) must also remove its
+    overlay directory, once no other distro still references the same ``source_tree_path``.
+    """
+    # Arrange
+    overlay_root = tmp_path / "distro_overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    source_tree_path = tmp_path / "source"
+    source_tree_path.mkdir()
+    item1 = create_distro("test_remove_cleans_up_direct_source_overlay_dir")
+    item1.source_tree_path = str(source_tree_path)
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        str(source_tree_path), "boot/winpe.wim"
+    )
+    Path(overlay_file).write_bytes(b"content")
+    overlay_dir = filesystem_helpers.get_distro_overlay_dir(str(source_tree_path))
+    assert os.path.isdir(overlay_dir)
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    assert not os.path.exists(overlay_dir)
+
+
+def test_remove_without_source_tree_path_does_not_touch_overlay(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    mocker: "MockerFixture",
+):
+    """
+    For a classic distro (``source_tree_path`` at its default, empty value), removal must not
+    even look up an overlay directory.
+    """
+    # Arrange
+    item1 = create_distro("test_remove_without_source_tree_path_does_not_touch_overlay")
+    assert item1.source_tree_path == ""
+    overlay_dir_spy = mocker.patch(
+        "cobbler.cobbler_collections.distros.filesystem_helpers.get_distro_overlay_dir"
+    )
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    overlay_dir_spy.assert_not_called()
+
+
+def test_remove_keeps_overlay_dir_while_another_distro_shares_same_source_tree_path(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    tmp_path: Path,
+    mocker: "MockerFixture",
+):
+    """
+    If another distro still references the same ``source_tree_path``, removing one of them must
+    not delete the shared overlay directory.
+    """
+    # Arrange
+    overlay_root = tmp_path / "distro_overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    source_tree_path = tmp_path / "source"
+    source_tree_path.mkdir()
+    item1 = create_distro(
+        "test_remove_keeps_overlay_dir_while_another_distro_shares_same_source_tree_path_1"
+    )
+    item1.source_tree_path = str(source_tree_path)
+    item2 = create_distro(
+        "test_remove_keeps_overlay_dir_while_another_distro_shares_same_source_tree_path_2"
+    )
+    item2.source_tree_path = str(source_tree_path)
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        str(source_tree_path), "boot/winpe.wim"
+    )
+    Path(overlay_file).write_bytes(b"content")
+    overlay_dir = filesystem_helpers.get_distro_overlay_dir(str(source_tree_path))
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    assert os.path.isdir(overlay_dir)
 
 
 def test_indexes(
