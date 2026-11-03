@@ -429,6 +429,13 @@ def run(api: "CobblerAPI", args: Any):
         distro_dir = wim_file_name = os.path.join(
             settings.tftpboot_location, "images", distro.name
         )
+        # Under the classic TFTP manager, write_boot_files() already creates this directory earlier
+        # in the same sync run, before this post-sync trigger fires. Under managers.dynamic_tftp,
+        # write_boot_files() is a no-op (TFTP content is served on demand instead of being
+        # materialized), so distro_dir is never created at all, and every write into it below
+        # (the answerfile, the patched bootmgr/loader, winpe.wim, etc.) would fail with
+        # FileNotFoundError. Ensure it exists regardless of which TFTP manager is active.
+        filesystem_helpers.mkdir(distro_dir)
         web_dir = os.path.join(settings.webdir, "images", distro.name)
         is_winpe = "winpe" in meta and meta["winpe"] != ""
         is_bcd = "bcd" in meta and meta["bcd"] != ""
