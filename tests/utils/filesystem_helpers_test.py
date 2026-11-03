@@ -314,6 +314,36 @@ def test_create_web_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     assert mock_copyfile.call_count == 2
 
 
+def test_create_web_dirs_actually_copies_misc_files_into_webroot(
+    tmp_path: Path, mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
+    """
+    Regression test: ``create_web_dirs()`` must leave real, readable copies of
+    ``/var/lib/cobbler/misc``'s files (``anamon``/``anamon.init``) inside ``webdir/misc`` --
+    the built-in ``pre_anamon``/``post_anamon`` Kickstart snippets fetch them from there
+    over HTTP. The previous implementation called ``copyfile(src, webroot_misc)`` with the
+    destination *directory* itself rather than a full destination filename, which made
+    ``shutil.copyfile`` raise ``IsADirectoryError`` for every file in ``/var/lib/cobbler/misc``,
+    silently leaving ``webdir/misc`` empty after ``rmtree_contents()`` had already cleared it --
+    not caught by the existing fully-mocked ``test_create_web_dirs`` above, which never lets
+    ``copyfile`` actually run.
+    """
+    # Arrange
+    settings_mock = mocker.MagicMock()
+    settings_mock.webdir = str(tmp_path)
+    mocker.patch.object(cobbler_api, "settings", return_value=settings_mock)
+
+    # Act
+    filesystem_helpers.create_web_dirs(cobbler_api)
+
+    # Assert
+    webroot_misc = tmp_path / "misc"
+    assert (webroot_misc / "anamon").is_file()
+    assert (webroot_misc / "anamon").stat().st_size > 0
+    assert (webroot_misc / "anamon.init").is_file()
+    assert (webroot_misc / "anamon.init").stat().st_size > 0
+
+
 def test_create_tftpboot_dirs(mocker: "MockerFixture", cobbler_api: CobblerAPI):
     """
     Test to verify the behavior of the create_tftpboot_dirs function.

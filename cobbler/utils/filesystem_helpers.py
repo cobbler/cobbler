@@ -526,7 +526,7 @@ def create_web_dirs(api: "CobblerAPI") -> None:
     misc_path = pathlib.Path("/var/lib/cobbler/misc")
     rmtree_contents(str(webroot_misc))
     for file in [f for f in misc_path.iterdir() if (misc_path / f).is_file()]:
-        copyfile(str((misc_path / file)), str(webroot_misc))
+        copyfile(str(misc_path / file), str(webroot_misc / file.name))
 
 
 def create_tftpboot_dirs(api: "CobblerAPI") -> None:
