@@ -48,6 +48,77 @@ def test_create_profile(
     "create_testdistro",
     "create_testmenu",
 )
+def test_create_and_remove_profile_inside_same_transaction_does_not_crash_commit(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: an item created (new + modify + save) and then removed again within the same still-open
+    transaction must never reach the real collection at all. ``save_item`` never actually inserts a
+    transaction-tracked object into the real collection -- only ``transaction_commit`` does, via
+    ``add_remove_items``'s "to_add" pass. Before this fix, ``remove_item`` unconditionally recorded a
+    removal ``TransactionTuple`` for the object_id, overwriting its earlier "to add" entry; at commit,
+    ``add_remove_items`` would then try to remove an item from the real collection that had never
+    actually been added to it, since it only ever existed as a transaction-local pending add.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+
+    # Act
+    remote.transaction_begin(token)
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+    assert remote.remove_profile(profile, token, False)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_item_handle("profile", "testprofile0") == "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_remove_and_readd_profile_with_same_name_inside_transaction_is_reachable(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: remove an existing profile and add a brand new, differently-uid'd
+    profile under the SAME name within one transaction. ``add_remove_items``
+    processes all of ``to_add`` (which performs the real index insertion via
+    ``Collection.add()``) before any of ``to_remove``, so by the time the old
+    profile's removal runs, the "name" index's "testprofile0" key already
+    points at the new profile's uid, not the old one's. ``remove_single_index_value``
+    used to unconditionally ``pop`` that key regardless of which uid it
+    currently pointed at, silently deleting the new profile's own, still-live
+    name-index entry and leaving it unreachable by name after a successful,
+    exception-free commit.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+    old_profile_uid = remote.get_profile_handle("testprofile0")
+
+    # Act
+    remote.transaction_begin(token)
+    assert remote.remove_profile(old_profile_uid, token, False)
+    new_profile = remote.new_profile(token)
+    remote.modify_profile(new_profile, ["name"], "testprofile0", token)
+    remote.modify_profile(new_profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(new_profile, True, True, "bypass", token)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_item_handle("profile", "testprofile0") == new_profile
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+)
 def test_get_profile_handle_forwards_token_for_transaction_staged_item(
     remote: CobblerXMLRPCInterface,
     token: str,
@@ -680,3 +751,100 @@ def test_create_system_positive(remote: CobblerXMLRPCInterface, token: str):
 
     # Assert
     assert remote.get_item_handle("system", "testsystem0") != "~"
+
+
+def test_modify_template_kernel_options_inside_transaction_does_not_crash(
+    create_autoinstall_template: Callable[[str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: ``Template`` (a plain ``BaseItem``, not an ``InheritableItem``) has
+    no ``kernel_options``/``kernel_options_post`` attributes, but a generic
+    XML-RPC client (e.g. cobblerclient's shared ``Item`` struct) may still
+    issue a ``modify_template`` call for them on every update. Outside a
+    transaction this is a harmless no-op; inside one, the transaction-aware
+    change-tracking code used to unconditionally read the attribute's
+    current value first, raising ``AttributeError``. It must now no-op the
+    same way as outside a transaction, and the transaction must commit
+    cleanly afterward (exercising ``add_remove_items``' depth-based sort,
+    which Template/BaseItem types also have no ``.depth`` for).
+    """
+    # Arrange
+    template = create_autoinstall_template("test_transaction.ks", "")
+
+    # Act
+    remote.transaction_begin(token)
+    assert remote.modify_template(template, ["kernel_options"], {}, token)
+    assert remote.modify_template(template, ["kernel_options_post"], {}, token)
+    assert remote.modify_template(
+        template, ["comment"], "updated in transaction", token
+    )
+    assert remote.save_template(template, True, True, "bypass", token)
+
+    # Assert
+    assert remote.transaction_commit(token)
+    assert (
+        cast(Dict[Any, Any], remote.get_template(template))["comment"]
+        == "updated in transaction"
+    )
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+    "create_testsystem",
+)
+def test_remove_distro_recursive_inside_transaction_does_not_crash(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: ``remove_distro(..., recursive=True)`` inside a transaction walks every
+    dependent item via ``_transaction_descendants``, which reads each dependency pair's
+    "dependant_type_attribute" generically. For most pairs (e.g. ``Profile.distro``) this
+    getter resolves and returns the referenced ``BaseItem``, but for others (e.g.
+    ``System.profile``) it returns the raw uid string instead, and for ``ItemGroup.members``
+    it returns a list of uid strings. The code used to assume a resolved object and access
+    ``.uid`` unconditionally, raising ``AttributeError: 'str' object has no attribute 'uid'``
+    as soon as the walk reached a distro's profile's system (distro -> profile -> system).
+
+    Also covers a second, related bug reached one level deeper: once the walk reaches the
+    system's own ``NetworkInterface`` (distro -> profile -> system -> interface), recursing into
+    ``_transaction_descendants`` for it used to unconditionally call the same-type parent/child
+    tree walk, which assumes a ``.get_parent`` property that only ``InheritableItem`` subtypes
+    have -- ``NetworkInterface`` (like ``Template``) is a plain ``BaseItem`` and always a leaf in
+    this dependency model, raising ``AttributeError: 'NetworkInterface' object has no attribute
+    'get_parent'``.
+
+    And a third bug in the removal commit itself: ``add_remove_items`` used to remove every item
+    in the batch first, then run each one's PXE/DHCP sync cleanup in a second pass afterward. By
+    the time the system's cleanup trigger (which resolves its profile/distro via
+    ``get_conceptual_parent()``) ran, the profile and distro had already been deleted from their
+    collections, so the lookup returned ``None`` and crashed on the next ``.get_conceptual_parent()``
+    call -- ``AttributeError: 'NoneType' object has no attribute 'get_conceptual_parent'``.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.get_profile_handle("testprofile0")
+    system_uid = remote.get_system_handle("testsystem0")
+    interface_handle = remote.new_network_interface(system_uid, token)
+    remote.modify_network_interface(interface_handle, ["name"], "eth0", token)
+    assert remote.save_network_interface(interface_handle, True, True, "new", token)
+
+    # Act
+    remote.transaction_begin(token)
+    assert remote.remove_distro(distro_uid, token, True)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_distro_handle("testdistro0") == "~"
+    assert remote.get_profile_handle("testprofile0") == "~"
+    assert remote.get_system_handle("testsystem0") == "~"
+    assert (
+        remote.find_network_interface(
+            {"system_uid": system_uid, "name": "eth0"}, expand=False
+        )
+        == []
+    )

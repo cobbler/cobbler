@@ -2312,7 +2312,16 @@ class CobblerXMLRPCInterface:
         Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
         according to the current transaction
         """
-        childs = self._transaction_tree_walk(token, item)
+        # The same-type parent/child tree walk (e.g. a profile's own sub-profiles) only applies to
+        # InheritableItem subtypes -- plain BaseItem types reachable via TYPE_DEPENDENCIES (e.g.
+        # NetworkInterface, Template) have no ".get_parent" property at all and are always leaves in
+        # this model (their own TYPE_DEPENDENCIES entry is empty), so skip the walk for them instead
+        # of crashing on the missing attribute.
+        childs = (
+            self._transaction_tree_walk(token, item)
+            if isinstance(item, InheritableItem)  # type: ignore
+            else []
+        )
         results = set(childs)
         childs.append(item)
         for child in childs:
@@ -2326,11 +2335,23 @@ class CobblerXMLRPCInterface:
                 )
                 for dep_item in dep_type_items:
                     dep_item = self._transaction_get_modified(token, dep_item)
-                    if (
-                        not dep_item
-                        or not getattr(dep_item, item_type[1])
-                        or getattr(dep_item, item_type[1]).uid != child.uid
-                    ):
+                    if not dep_item:
+                        continue
+                    # The dependant-reference property's shape varies by item type: some
+                    # (e.g. Profile.distro) resolve and return the referenced BaseItem, while
+                    # others (e.g. System.profile) return the raw uid string, and ItemGroup.members
+                    # returns a list of member uid strings. Normalize all three to a uid comparison
+                    # instead of assuming a resolved object with a ".uid" attribute.
+                    dependant_value = getattr(dep_item, item_type[1])
+                    if isinstance(dependant_value, list):
+                        is_dependant = child.uid in dependant_value
+                    elif isinstance(dependant_value, str):
+                        is_dependant = dependant_value == child.uid
+                    elif dependant_value is not None:
+                        is_dependant = dependant_value.uid == child.uid
+                    else:
+                        is_dependant = False
+                    if not is_dependant:
                         continue
                     results.add(dep_item)
                     results.update(self._transaction_descendants(token, dep_item))
@@ -2361,9 +2382,23 @@ class CobblerXMLRPCInterface:
             return False
         self.check_access(token, f"remove_{what}", obj)
         if token in self.transactions:
-            self.transactions[token][object_id] = TransactionTuple(
-                what, obj, True, obj.mtime, obj.uid, []
+            # If this object_id has no counterpart in the real, persisted collection, it was
+            # created (new_item + save_item) entirely within this still-open transaction - save_item
+            # never actually inserts a transaction-tracked object into the real collection, only
+            # commit does. Recording a removal TransactionTuple for it would make add_remove_items
+            # try to remove something that was never really added, at commit time. Instead, simply
+            # drop the pending "add" entry, exactly like rename_item already does for the equivalent
+            # case (renaming an item created earlier in the same transaction).
+            persisted_obj = self.api.find_items(
+                what, criteria={"uid": object_id}, return_list=False
             )
+            if persisted_obj is None:
+                if object_id in self.transactions[token]:
+                    del self.transactions[token][object_id]
+            else:
+                self.transactions[token][object_id] = TransactionTuple(
+                    what, obj, True, obj.mtime, obj.uid, []
+                )
             if recursive:
                 for k in self._transaction_descendants(token, obj):
                     self.transactions[token][k.uid] = TransactionTuple(
@@ -3026,7 +3061,7 @@ class CobblerXMLRPCInterface:
         cur_obj = obj
         for idx in range(0, len(attribute_path) - 1):
             cur_obj = getattr(cur_obj, attribute_path[idx])
-        return getattr(cur_obj, f"_{attribute_path[-1]}")
+        return getattr(cur_obj, f"_{attribute_path[-1]}", None)
 
     def modify_item(
         self,
@@ -3110,7 +3145,7 @@ class CobblerXMLRPCInterface:
             self.transactions[token][object_id].item_modifications.append(
                 TransactionItemModifications(
                     attribute,
-                    getattr(cur_obj, f"_{attribute[-1]}"),
+                    getattr(cur_obj, f"_{attribute[-1]}", None),
                     arg.uid if isinstance(arg, base_item.BaseItem) else arg,
                 )
             )

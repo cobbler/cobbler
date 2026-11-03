@@ -326,6 +326,7 @@ class CobblerAPI:
             pathlib.Path("/etc/cobbler"),
             pathlib.Path(self.settings().webdir),
             pathlib.Path(self.settings().tftpboot_location),
+            pathlib.Path(filesystem_helpers.DISTRO_OVERLAY_DIR),
         ]
         for directory in required_directories:
             if not directory.is_dir():
@@ -1554,8 +1555,16 @@ class CobblerAPI:
         to_remove = [i for i in items if i[2]]
         to_add = [i for i in items if not i[2]]
 
-        to_remove.sort(key=lambda x: -x[1].depth)
-        to_add.sort(key=lambda x: x[1].depth)
+        # Plain BaseItem subtypes (e.g. Template, NetworkInterface) have no concept of
+        # depth/parent-child ordering and are always leaves in TYPE_DEPENDENCIES (nothing is ever
+        # a dependent *of* them), so defaulting them to depth 0 - the same priority as a Distro -
+        # is wrong: a System (depth 2) depends on its NetworkInterface, so the interface must be
+        # removed before the system, not alongside/after the shallowest InheritableItem types.
+        # Since they can only ever be a dependency's target, never a dependency itself, it is
+        # always correct to remove them before anything else, and add them after everything else.
+        _LEAF_SORT_DEPTH = 2**31
+        to_remove.sort(key=lambda x: -getattr(x[1], "depth", _LEAF_SORT_DEPTH))
+        to_add.sort(key=lambda x: getattr(x[1], "depth", _LEAF_SORT_DEPTH))
 
         for what, ref, _, _, _, _ in to_add:
             self.log(f"add_item({what})", [ref.uid])
@@ -1575,6 +1584,13 @@ class CobblerAPI:
                     ref, ".".join(item.attribute), item.old_value, item.new_value
                 )
 
+        # remove_quick_pxe_sync (e.g. the ISC DHCP manager's remove_single_system) resolves each
+        # item's conceptual parent chain (system -> profile -> distro) live via the collections.
+        # That only works while the rest of the chain is still present, so each item's cleanup must
+        # run immediately after *that* item's own removal, not in a separate pass after every item
+        # in the whole batch has already been removed -- otherwise, by the time a system's cleanup
+        # runs, its profile (removed earlier in to_remove's depth-descending order) is already gone,
+        # and get_conceptual_parent() returns None instead of the profile.
         for what, ref, _, _, _, _ in to_remove:
             self.get_items(what).remove(
                 ref,
@@ -1584,13 +1600,12 @@ class CobblerAPI:
                 with_triggers=True,
                 rebuild_menu=False,
             )
+            self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
 
         # Now update all on-disk configuration because the caches are valid again
         self.log("Executing Cobbler sync for transaction commit")
         for what, ref, _, _, _, _ in to_add:
             self.get_items(what).add_quick_pxe_sync(ref, rebuild_menu=False)
-        for what, ref, _, _, _, _ in to_remove:
-            self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
         self.tftpgen.make_pxe_menu()
 
     def add_item(

@@ -828,7 +828,8 @@ class Collection(Generic[ITEM]):
                 if len(indx_dict[key]) == 0:
                     del indx_dict[key]
         else:
-            indx_dict.pop(key, None)
+            if indx_dict.get(key) == value:
+                indx_dict.pop(key, None)
 
     def remove_from_indexes(self, ref: ITEM) -> None:
         """
