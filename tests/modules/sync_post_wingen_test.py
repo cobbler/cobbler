@@ -167,7 +167,7 @@ def test_run_creates_tftpboot_images_dir_when_missing(
     mocker: "MockerFixture", tmp_path: "pathlib.Path"
 ):
     """
-    Regression guard for two bugs, both only reachable with a real wimboot-delivered Windows distro:
+    Regression guard for three bugs, all only reachable with a real wimboot-delivered Windows distro:
 
     1. Under managers.dynamic_tftp, write_boot_files() (which normally creates
        "tftpboot_location/images/<name>" earlier in the same sync run) is a no-op, since TFTP
@@ -183,6 +183,13 @@ def test_run_creates_tftpboot_images_dir_when_missing(
        is written to the same already-writable distro_dir/web_dir location as every other
        sync-generated Windows file, with no distro-tree write at all -- this test asserts it lands
        there, not under $OEM$.
+    3. The shared wimboot binary was never copied into the distro's own
+       "tftpboot_location/images/<name>/wimboot" (and from there into web_dir), because the copy was
+       gated on "wimboot" not in distro.kernel -- which is never true for a wimboot-delivered distro,
+       since distro.kernel *is* the wimboot binary's own path. Under managers.dynamic_tftp, nothing
+       else ever creates this file (write_boot_files() is a no-op, as above), so iPXE's
+       "http://.../cobbler/images/<name>/wimboot" fetch failed outright on a real PXE boot -- this
+       test asserts the copy actually happens instead of asserting on the (always-false) condition.
     """
     # Arrange
     tftpboot_location = tmp_path / "tftpboot"
@@ -270,6 +277,7 @@ def test_run_creates_tftpboot_images_dir_when_missing(
             "autoinstall_meta": {
                 "answerfile": "autounattended.xml",
                 "post_install_script": "post_install.cmd",
+                "kernel": "http://@@http_server@@/cobbler/images/win11-x86_64/wimboot",
             }
         },
     )
@@ -291,3 +299,12 @@ def test_run_creates_tftpboot_images_dir_when_missing(
     assert post_install_path.is_file()
     assert post_install_path.read_text(encoding="UTF-8") == "rendered post-install"
     assert not (distro_source / "sources" / "$OEM$").exists()
+
+    distro_images_dir = tftpboot_location / "images" / "win11-x86_64"
+    web_images_dir = webdir / "images" / "win11-x86_64"
+    api.tftpgen.copy_single_distro_file.assert_any_call(
+        str(tftpboot_location / "wimboot"), str(distro_images_dir), False
+    )
+    api.tftpgen.copy_single_distro_file.assert_any_call(
+        str(distro_images_dir / "wimboot"), str(web_images_dir), True
+    )

@@ -449,7 +449,7 @@ def run(api: "CobblerAPI", args: Any):
         kernel_name = os.path.basename(kernel_name)
         is_wimboot = "wimboot" in kernel_name
 
-        if is_wimboot and "kernel" in meta and "wimboot" not in distro.kernel:
+        if is_wimboot and "kernel" in meta:
             tgen.copy_single_distro_file(
                 os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False
             )
