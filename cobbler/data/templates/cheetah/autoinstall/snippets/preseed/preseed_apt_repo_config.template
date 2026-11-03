@@ -3,7 +3,13 @@
 #set $repo_data = $getVar("repo_data",[])
 #for $repo in $repo_data
  #for $dist in $repo.apt.dists
- #set $comps = " ".join($repo.apt.components)
+ ## repo.apt.components also drives debmirror's own --section flag (cobbler/actions/reposync.py),
+ ## which needs a "<component>/debian-installer" entry to fetch that component's udebs at all. That
+ ## entry must never reach the *target* system's own apt sources.list, though: it would make every
+ ## udeb a regular, selectable package there, not just anna's own separate installer-udeb mechanism
+ ## -- confirmed live as the cause of e.g. "libc6-udeb"/"libc6" file-conflict dpkg errors during
+ ## pkgsel, once udebs become indistinguishable from regular packages to apt's dependency resolver.
+ #set $comps = " ".join([c for c in $repo.apt.components if not c.endswith("/debian-installer")])
 d-i apt-setup/local${cur}/repository string \
  #if $repo.mirror_locally
       http://$http_server/cblr/repo_mirror/${repo.name} $dist $comps
