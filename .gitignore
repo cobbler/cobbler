@@ -1,3 +1,4 @@
+.worktrees/
 *.pyc
 *.swp
 *.tmp
