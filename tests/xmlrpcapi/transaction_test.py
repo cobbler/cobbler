@@ -848,3 +848,75 @@ def test_remove_distro_recursive_inside_transaction_does_not_crash(
         )
         == []
     )
+
+
+def test_modify_profile_group_kernel_options_inside_transaction_does_not_crash(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: ``ProfileGroup`` (an ``InheritableItem`` but not a ``BootableItem``) has
+    no ``kernel_options``/``kernel_options_post`` attributes -- those are
+    ``BootableItem``-only -- but a generic XML-RPC client (e.g. cobblerclient's
+    shared ``Item`` struct) may still issue a ``modify_profile_group`` call for
+    them on every update. Outside a transaction this is a harmless no-op; inside
+    one, the transaction-aware change-tracking code must no-op the same way
+    instead of crashing, and the transaction must commit cleanly afterward.
+    """
+    # Act
+    remote.transaction_begin(token)
+    profile_group = remote.new_profile_group(token)
+    assert remote.modify_profile_group(profile_group, ["name"], "testprofilegroup0", token)
+    assert remote.modify_profile_group(profile_group, ["kernel_options"], {}, token)
+    assert remote.modify_profile_group(
+        profile_group, ["kernel_options_post"], {}, token
+    )
+    assert remote.modify_profile_group(
+        profile_group, ["comment"], "updated in transaction", token
+    )
+    assert remote.save_profile_group(profile_group, True, True, "new", token)
+
+    # Assert
+    assert remote.transaction_commit(token)
+    assert (
+        cast(Dict[Any, Any], remote.get_profile_group(profile_group))["comment"]
+        == "updated in transaction"
+    )
+
+
+def test_copy_and_rename_system_group_inside_transaction_does_not_crash(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: copying and then renaming a ``SystemGroup`` (an ``InheritableItem``
+    but not a ``BootableItem``) inside a single open transaction must not crash
+    and must be fully visible once committed.
+    """
+    # Arrange
+    handle = remote.new_system_group(token)
+    remote.modify_system_group(handle, ["name"], "testsystemgroup0", token)
+    assert remote.save_system_group(handle, True, True, "new", token)
+
+    # Act
+    remote.transaction_begin(token)
+    system_group = remote.get_system_group_handle("testsystemgroup0", token)
+    assert remote.copy_system_group(system_group, "testsystemgroupcopy1", token)
+
+    # without token, the copy is not visible
+    assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
+
+    copy_handle = remote.get_system_group_handle("testsystemgroupcopy1", token)
+    assert remote.rename_system_group(copy_handle, "testsystemgrouprenamed1", token)
+
+    # without token, neither the copy's old nor new name is visible
+    assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
+    assert remote.get_item_handle("system_group", "testsystemgrouprenamed1") == "~"
+
+    assert remote.transaction_commit(token)
+
+    # Assert: after commit, the original and the renamed copy are visible,
+    # and the copy's old name is gone.
+    assert remote.get_item_handle("system_group", "testsystemgroup0") != "~"
+    assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
+    assert remote.get_item_handle("system_group", "testsystemgrouprenamed1") != "~"
