@@ -450,6 +450,11 @@ class Collection(Generic[ITEM]):
         oldname: str = ref.name
         # Change the name of the object
         ref.name = newname
+        # A rename is a real, user-visible modification: bump mtime the same way add() does for a
+        # saved change. Without this, a pure rename (no other field touched) never satisfies
+        # replicate's "newer on remote" mtime check, silently preventing the rename from ever
+        # propagating via `cobbler replicate`.
+        ref.mtime = float(time.time())
         # Save just this item
         if isinstance(ref, template.Template) and ref.built_in:
             self.logger.debug(
