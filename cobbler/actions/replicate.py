@@ -140,7 +140,7 @@ class Replicate:
             if luid not in remote_objects:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
-                    self.api.remove_item(obj_type, ldata["name"], recursive=True)
+                    self.api.remove_item(obj_type, luid, recursive=True)
                 except Exception:
                     utils.log_exc()
 
@@ -195,7 +195,7 @@ class Replicate:
                 if ldata["mtime"] < rdata["mtime"]:
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
-                        self.api.remove_item(obj_type, ldata["name"], recursive=True)
+                        self.api.remove_item(obj_type, ruid, recursive=True)
                     try:
                         creator = getattr(self.api, f"new_{obj_type}")
                         reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))

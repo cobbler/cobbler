@@ -56,7 +56,7 @@ def remove_repo(cobbler_api: CobblerAPI):
     yield
     test_repo = cobbler_api.find_repo(name="testrepo0")
     if test_repo is not None and not isinstance(test_repo, list):
-        cobbler_api.remove_repo(test_repo.name)
+        cobbler_api.remove_repo(test_repo.uid)
 
 
 @pytest.fixture(scope="function", autouse=True)

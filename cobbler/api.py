@@ -940,7 +940,7 @@ class CobblerAPI:
         """
         to_delete: Optional["BaseItem"] = None
         if isinstance(ref, str):
-            to_delete = self.get_item(what, ref)
+            to_delete = self.get_items(what).find(uid=ref)  # type: ignore
             if to_delete is None:
                 return  # nothing to remove
         else:

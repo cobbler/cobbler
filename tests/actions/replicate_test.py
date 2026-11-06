@@ -56,7 +56,7 @@ def test_remove_objects_not_on_master(
     replicate_obj.remove_objects_not_on_master("distro")
 
     # Assert
-    api_mock.remove_item.assert_called_with("distro", "test", recursive=True)  # type: ignore
+    api_mock.remove_item.assert_called_with("distro", "fake_uid", recursive=True)  # type: ignore
 
 
 def test_add_objects_not_on_local(
@@ -148,6 +148,33 @@ def test_replace_objects_newer_on_remote(
     # Assert
     api_mock.new_distro.assert_called_once()  # type: ignore
     api_mock.add_item.assert_called_once()  # type: ignore
+
+
+def test_replace_objects_newer_on_remote_renamed_removes_old_by_uid(
+    mocker: MockerFixture, replicate_obj: replicate.Replicate
+):
+    """
+    When the same uid has a different name remotely (a rename), the stale local object must be
+    removed by its uid, not by its (now-superseded) name.
+    """
+    # Arrange
+    replicate_obj.local_data["distro"] = []
+    replicate_obj.remote_data["distro"] = []
+    replicate_obj.must_include["distro"] = ["new-name"]  # type: ignore
+    mocker.patch(
+        "cobbler.utils.lod_to_dod",
+        side_effect=[
+            {"fake_uid": {"uid": "fake_uid", "name": "old-name", "mtime": 4}},
+            {"fake_uid": {"uid": "fake_uid", "name": "new-name", "mtime": 5}},
+        ],
+    )
+    api_mock = mocker.patch.object(replicate_obj, "api")
+
+    # Act
+    replicate_obj.replace_objects_newer_on_remote("distro")
+
+    # Assert
+    api_mock.remove_item.assert_called_with("distro", "fake_uid", recursive=True)  # type: ignore
 
 
 def test_replace_objects_newer_on_remote_continues_after_construction_exception(
