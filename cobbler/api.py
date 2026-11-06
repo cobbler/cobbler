@@ -3235,6 +3235,12 @@ class CobblerAPI:
         system_patterns: str = "",
         repo_patterns: str = "",
         image_patterns: str = "",
+        menu_patterns: str = "",
+        template_patterns: str = "",
+        network_interface_patterns: str = "",
+        distro_group_patterns: str = "",
+        profile_group_patterns: str = "",
+        system_group_patterns: str = "",
         prune: bool = False,
         omit_data: bool = False,
         sync_all: bool = False,
@@ -3250,6 +3256,12 @@ class CobblerAPI:
         :param system_patterns: The pattern of systems which should be synced.
         :param repo_patterns: The pattern of repositories which should be synced.
         :param image_patterns: The pattern of images which should be synced.
+        :param menu_patterns: The pattern of menus which should be synced.
+        :param template_patterns: The pattern of (non built-in) templates which should be synced.
+        :param network_interface_patterns: The pattern of network interfaces which should be synced.
+        :param distro_group_patterns: The pattern of distro groups which should be synced.
+        :param profile_group_patterns: The pattern of profile groups which should be synced.
+        :param system_group_patterns: The pattern of system groups which should be synced.
         :param prune: Whether the object not on the master should be removed or not.
         :param omit_data: If the data downloaded by the current Cobbler server should be rsynced to the destination
                           server.
@@ -3266,6 +3278,12 @@ class CobblerAPI:
             system_patterns=system_patterns,
             repo_patterns=repo_patterns,
             image_patterns=image_patterns,
+            menu_patterns=menu_patterns,
+            template_patterns=template_patterns,
+            network_interface_patterns=network_interface_patterns,
+            distro_group_patterns=distro_group_patterns,
+            profile_group_patterns=profile_group_patterns,
+            system_group_patterns=system_group_patterns,
             prune=prune,
             omit_data=omit_data,
             sync_all=sync_all,

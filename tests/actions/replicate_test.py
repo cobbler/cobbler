@@ -67,7 +67,7 @@ def test_add_objects_not_on_local(
     """
     # Arrange
     replicate_obj.local_data["distro"] = []
-    replicate_obj.remote_data["distro"] = []
+    replicate_obj.remote_data["distro"] = [{"name": "test", "depth": 0}]
     replicate_obj.must_include["distro"] = ["test"]  # type: ignore
     mocker.patch("cobbler.utils.lod_to_dod", return_value={})
     mocker.patch(
@@ -94,7 +94,7 @@ def test_add_objects_not_on_local_continues_after_construction_exception(
     """
     # Arrange
     replicate_obj.local_data["distro"] = []
-    replicate_obj.remote_data["distro"] = []
+    replicate_obj.remote_data["distro"] = [{"name": "broken", "depth": 0}]
     replicate_obj.must_include["distro"] = ["broken", "ok"]  # type: ignore
     mocker.patch("cobbler.utils.lod_to_dod", return_value={})
     mocker.patch(
@@ -286,6 +286,12 @@ def test_generate_include_map(
         "system": [{"a": 1}],
         "repo": [{"a": 1}],
         "image": [{"a": 1}],
+        "menu": [{"a": 1}],
+        "template": [{"a": 1}],
+        "network_interface": [{"a": 1}],
+        "distro_group": [{"a": 1}],
+        "profile_group": [{"a": 1}],
+        "system_group": [{"a": 1}],
     }
     expected_must_include = {
         "distro": {"a": 1},
@@ -293,6 +299,12 @@ def test_generate_include_map(
         "system": {"a": 1},
         "repo": {"a": 1},
         "image": {"a": 1},
+        "menu": {"a": 1},
+        "template": {"a": 1},
+        "network_interface": {"a": 1},
+        "distro_group": {"a": 1},
+        "profile_group": {"a": 1},
+        "system_group": {"a": 1},
     }
 
     # Act
@@ -337,6 +349,12 @@ def test_generate_include_map_subprofile_parent_not_pre_included(
         "system": [],
         "repo": [],
         "image": [],
+        "menu": [],
+        "template": [],
+        "network_interface": [],
+        "distro_group": [],
+        "profile_group": [],
+        "system_group": [],
     }
 
     # Act

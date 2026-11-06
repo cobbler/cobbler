@@ -452,8 +452,10 @@ class CobblerXMLRPCInterface:
         Replicate Cobbler in the background to another Cobbler instance.
 
         :param options: A dict which may contain the "master", "port", "distro_patterns", "profile_patterns",
-            "system_patterns", "repo_patterns", "image_patterns", "prune", "omit_data", "sync_all" and "use_ssl"
-            keys, all of which are forwarded as-is to :meth:`cobbler.api.CobblerAPI.replicate`.
+            "system_patterns", "repo_patterns", "image_patterns", "menu_patterns", "template_patterns",
+            "network_interface_patterns", "distro_group_patterns", "profile_group_patterns",
+            "system_group_patterns", "prune", "omit_data", "sync_all" and "use_ssl" keys, all of which are
+            forwarded as-is to :meth:`cobbler.api.CobblerAPI.replicate`.
         :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
@@ -463,17 +465,25 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_replicate need to be dict!")
             self.remote.api.replicate(
-                self.options.get("master", None),
-                self.options.get("port", ""),
-                self.options.get("distro_patterns", ""),
-                self.options.get("profile_patterns", ""),
-                self.options.get("system_patterns", ""),
-                self.options.get("repo_patterns", ""),
-                self.options.get("image_patterns", ""),
-                self.options.get("prune", False),
-                self.options.get("omit_data", False),
-                self.options.get("sync_all", False),
-                self.options.get("use_ssl", False),
+                cobbler_master=self.options.get("master", None),
+                port=self.options.get("port", ""),
+                distro_patterns=self.options.get("distro_patterns", ""),
+                profile_patterns=self.options.get("profile_patterns", ""),
+                system_patterns=self.options.get("system_patterns", ""),
+                repo_patterns=self.options.get("repo_patterns", ""),
+                image_patterns=self.options.get("image_patterns", ""),
+                menu_patterns=self.options.get("menu_patterns", ""),
+                template_patterns=self.options.get("template_patterns", ""),
+                network_interface_patterns=self.options.get(
+                    "network_interface_patterns", ""
+                ),
+                distro_group_patterns=self.options.get("distro_group_patterns", ""),
+                profile_group_patterns=self.options.get("profile_group_patterns", ""),
+                system_group_patterns=self.options.get("system_group_patterns", ""),
+                prune=self.options.get("prune", False),
+                omit_data=self.options.get("omit_data", False),
+                sync_all=self.options.get("sync_all", False),
+                use_ssl=self.options.get("use_ssl", False),
             )
 
         return self.__start_task(runner, token, "replicate", "Replicate", options)
