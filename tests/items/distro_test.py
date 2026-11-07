@@ -481,10 +481,14 @@ def test_redhat_management_password(
         assert distro.redhat_management_password == expected_result
 
 
-@pytest.mark.parametrize("value", [[""], ["Test"]])
+@pytest.mark.parametrize("value", [[], [("", "")], [("Test", "Test2")]])
 def test_source_repos(cobbler_api: CobblerAPI, value: Any):
     """
     Test that verifies if the source repositories can be set as expected.
+
+    ``source_repos`` stores one ``(config_url, baseurl)`` pair per split-tree repo (e.g. RHEL5-style imports),
+    not a flat list of strings -- see ``test_source_repos_rejects_flat_strings`` for the historical bug this
+    guards against.
     """
     # Arrange
     distro = Distro(cobbler_api)
@@ -494,6 +498,31 @@ def test_source_repos(cobbler_api: CobblerAPI, value: Any):
 
     # Assert
     assert distro.source_repos == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        ["Test"],
+        [("only-one-element",)],
+        [("too", "many", "elements")],
+        [(1, "not-a-string")],
+    ],
+)
+def test_source_repos_rejects_flat_strings(cobbler_api: CobblerAPI, value: Any):
+    """
+    Regression test: a commit that only tightened ``source_repos``'s type *annotation* (``List[Any]`` ->
+    ``List[str]``) without adding runtime validation let the producer in ``import_signatures.py`` silently
+    flatten the historical ``(config_url, baseurl)`` pairs into interleaved flat strings, which every consumer
+    (``generate_repo_stanza``, ``yumgen.py``) still indexed as pairs -- corrupting every rendered repo baseurl.
+    The setter must reject anything that is not a list of 2-element string pairs.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        distro.source_repos = value  # type: ignore[method-assign]
 
 
 def test_source_tree_path(cobbler_api: CobblerAPI, tmp_path: pathlib.Path):

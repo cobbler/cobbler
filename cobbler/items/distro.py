@@ -130,7 +130,7 @@ V2.8.5:
 import copy
 import glob
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
@@ -179,7 +179,7 @@ class Distro(BootableItem):
         self._redhat_management_org = enums.VALUE_INHERITED
         self._redhat_management_user = enums.VALUE_INHERITED
         self._redhat_management_password = enums.VALUE_INHERITED
-        self._source_repos: List[str] = []
+        self._source_repos: List[Tuple[str, str]] = []
         self._source_tree_path: str = ""
         self._remote_boot_iso: str = ""
         self._remote_boot_kernel = ""
@@ -482,10 +482,11 @@ class Distro(BootableItem):
         self._remote_boot_initrd = remote_boot_initrd
 
     @LazyProperty
-    def source_repos(self) -> List[str]:
+    def source_repos(self) -> List[Tuple[str, str]]:
         """
-        A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
-        install core packages. Use by ``cobbler import`` only.
+        A list of ``(config_url, baseurl)`` pairs added per split-tree repo found during ``cobbler import``
+        (e.g. RHEL5-style trees that bundle extra yum repos alongside the main install tree): ``config_url``
+        points at a generated ``.repo`` config file, ``baseurl`` is the real mirror directory.
 
         :getter: The source repos used.
         :setter: The new list of source repos to use.
@@ -493,18 +494,28 @@ class Distro(BootableItem):
         return self._source_repos
 
     @source_repos.setter
-    def source_repos(self, repos: List[str]):
+    def source_repos(self, repos: List[Tuple[str, str]]):
         r"""
         Setter for the ``source_repos`` property.
 
-        :param repos: The list of URLs.
-        :raises TypeError: In case the value was not of type ``str``.
+        :param repos: The list of ``(config_url, baseurl)`` pairs.
+        :raises TypeError: In case the value was not a list of 2-element string pairs.
         """
         if not isinstance(repos, list):  # type: ignore
             raise TypeError(
                 "Field source_repos in object distro needs to be of type list."
             )
-        self._source_repos = repos
+        for repo in repos:
+            if (
+                not isinstance(repo, (tuple, list))  # type: ignore
+                or len(repo) != 2
+                or not all(isinstance(entry, str) for entry in repo)  # type: ignore
+            ):
+                raise TypeError(
+                    "Each entry of source_repos in object distro needs to be a"
+                    " (config_url, baseurl) pair of strings."
+                )
+        self._source_repos = [(repo[0], repo[1]) for repo in repos]
 
     @LazyProperty
     def source_tree_path(self) -> str:

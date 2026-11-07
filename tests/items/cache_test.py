@@ -564,7 +564,7 @@ def test_dict_cache_edit_invalidate(
     cobbler_api.add_menu(test_menu2)
     objs.append(test_menu2)
     test_distro = create_distro()
-    test_distro.source_repos = [test_repo1.uid]  # type: ignore[method-assign]
+    test_distro.source_repos = [(test_repo1.uid, test_repo1.uid)]  # type: ignore[method-assign]
     objs.append(test_distro)
     test_profile1: Profile = create_profile(
         distro_uid=test_distro.uid, name="test_profile1"
@@ -866,7 +866,7 @@ def test_dict_cache_rename_invalidate(
     cobbler_api.add_menu(test_menu2)
     objs.append(test_menu2)
     test_distro = create_distro()
-    test_distro.source_repos = [test_repo1.uid]  # type: ignore[method-assign]
+    test_distro.source_repos = [(test_repo1.uid, test_repo1.uid)]  # type: ignore[method-assign]
     objs.append(test_distro)
     test_profile1 = create_profile(distro_uid=test_distro.uid, name="test_profile1")
     test_profile1.enable_menu = False
