@@ -77,10 +77,16 @@ def generate_repo_stanza(
         source_repos = distro.source_repos
         count = 0
         for repo in source_repos:
+            # import_signatures.py's comps_repo_adder() stores one (config_url, baseurl) pair per
+            # split-tree repo (e.g. RHEL5-style imports): config_url points at a generated ".repo" config
+            # file (meant to be deployed as a drop-in file -- no current code path does that deployment,
+            # see the "is actually no longer used" comment next to where it's produced), baseurl is the
+            # real mirror directory. Only the baseurl is a valid "repo --baseurl=" target.
+            baseurl = repo[1]
             count += 1
-            if not repo[1] in included:
-                buf += f"repo --name=source-{count} --baseurl={repo[1]}\n"
-                included[repo[1]] = 1
+            if baseurl not in included:
+                buf += f"repo --name=source-{count} --baseurl={baseurl}\n"
+                included[baseurl] = 1
 
     return buf
 
