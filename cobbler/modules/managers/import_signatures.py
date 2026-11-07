@@ -958,7 +958,7 @@ class _ImportSignatureManager(ManagerModule):
 
             repo_url = f"{protocol}://@@http_server@@/cobbler/distro_mirror/config/{distribution.name}-{counter}.repo"
             repo_url2 = baseurl
-            distribution.source_repos.extend([repo_url, repo_url2])
+            distribution.source_repos.append((repo_url, repo_url2))
 
             config_dir = os.path.dirname(fname)
             if not os.path.exists(config_dir):

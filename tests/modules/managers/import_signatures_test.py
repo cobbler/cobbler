@@ -574,6 +574,36 @@ def test_apt_repo_adder_debian_sets_breed_correct_components_and_dists(
     assert repo.mirror_locally is False
 
 
+def test_yum_process_comps_file_appends_config_and_baseurl_as_pair(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path
+):
+    """
+    Regression test: ``yum_process_comps_file()`` used to ``.extend([repo_url, repo_url2])``, which flattens
+    the historical ``(config_url, baseurl)`` pair into two interleaved flat strings. Every consumer
+    (``generate_repo_stanza``, ``yumgen.py``) still indexes ``source_repos`` entries as a pair, so the
+    producer must append one ``(config_url, baseurl)`` tuple per split-tree repo found, matching
+    ``Distro.source_repos``'s restored ``List[Tuple[str, str]]`` type.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.direct_source = False
+    comps_path = tmp_path / "tree"
+    (comps_path / "base").mkdir(parents=True)
+    (comps_path / "base" / "comps.xml").write_text("<comps/>", encoding="UTF-8")
+    distro = cobbler_api.new_distro()
+    distro.name = "test_yum_process_comps_file_appends_config_and_baseurl_as_pair"
+
+    # Act
+    manager.yum_process_comps_file(str(comps_path), distro)
+
+    # Assert
+    assert len(distro.source_repos) == 1
+    config_url, baseurl = distro.source_repos[0]
+    assert config_url.endswith(f"{distro.name}-0.repo")
+    assert baseurl != config_url
+    assert not baseurl.endswith(".repo")
+
+
 def test_apt_repo_adder_ubuntu_sets_breed_correct_components_and_dists(
     cobbler_api: CobblerAPI,
 ):
