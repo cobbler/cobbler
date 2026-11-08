@@ -377,6 +377,10 @@ class Distro(BootableItem):
         :param breed: The new breed to set.
         """
         self._breed = validate.validate_breed(breed)
+        # supported_boot_loaders is lazily cached against the breed/os_version in effect at the
+        # time boot_loaders was first read/validated - drop it so it gets recomputed against this
+        # new breed instead of silently keeping validating against the old one.
+        self._supported_boot_loaders = []
 
     @LazyProperty
     def os_version(self) -> str:
@@ -396,6 +400,9 @@ class Distro(BootableItem):
         :param os_version: The new OS Version.
         """
         self._os_version = validate.validate_os_version(os_version, self.breed)
+        # See the matching comment in the breed setter: this cache must not outlive the
+        # breed/os_version pair it was computed for.
+        self._supported_boot_loaders = []
 
     @LazyProperty
     def initrd(self) -> str:

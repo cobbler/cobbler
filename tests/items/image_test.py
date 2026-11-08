@@ -400,6 +400,61 @@ def test_boot_loaders(cobbler_api: CobblerAPI):
     assert image.boot_loaders == []
 
 
+def test_supported_boot_loaders_cache_invalidated_on_breed_change(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test (mirrors the identical ``Distro`` bug): ``supported_boot_loaders`` is lazily
+    computed and cached on first access. The ``breed``/``os_version`` setters must drop that
+    cache, otherwise changing either of them on an already-used image leaves ``boot_loaders``
+    validated against the old breed's allowed set forever.
+    """
+    # Arrange
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    test_image = Image(cobbler_api)
+
+    # Prime the cache against the default breed/os_version (generic x86_64 fallback includes grub).
+    assert enums.BootLoader.GRUB in test_image.supported_boot_loaders
+
+    # Act: vmware/esxi67 on x86_64 only supports pxe/ipxe, not grub.
+    test_image.breed = "vmware"  # type: ignore[method-assign]
+    test_image.os_version = "esxi67"  # type: ignore[method-assign]
+
+    # Assert
+    assert enums.BootLoader.GRUB not in test_image.supported_boot_loaders
+    with pytest.raises(ValueError):
+        test_image.boot_loaders = ["grub"]  # type: ignore[method-assign]
+
+
+def test_boot_loaders_validated_against_resolved_breed_during_deserialize(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test (mirrors the identical ``Distro`` bug): ``_FROM_DICT_PRIORITY_KEYS`` did not
+    include ``breed``/``os_version``, so during ``from_dict()`` deserialization ``boot_loaders``
+    could be applied before ``breed``/``os_version`` were, validating against the generic x86_64
+    fallback instead of the real, narrower signature for the resolved breed.
+
+    Uses ``enums.BootLoader`` members rather than raw strings for ``boot_loaders`` so this stays
+    isolated from a separate, pre-existing bug in this setter (it compares the raw input against
+    the enum-valued ``supported_boot_loaders`` instead of the converted ``boot_loaders_split``,
+    so any string list always fails validation regardless of this ordering fix).
+    """
+    # Arrange
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    # vmware/esxi67 on x86_64 only supports pxe/ipxe, not grub. "boot_loaders" is deliberately
+    # the first key here to reproduce the pre-fix ordering (dict/kwarg order is preserved).
+    item_dict = {
+        "boot_loaders": [enums.BootLoader.GRUB],
+        "breed": "vmware",
+        "os_version": "esxi67",
+    }
+
+    # Act / Assert
+    with pytest.raises(ValueError):
+        Image(cobbler_api, **item_dict)
+
+
 def test_to_dict(create_image: Callable[[], Image]):
     """
     Test the to_dict method of Image.

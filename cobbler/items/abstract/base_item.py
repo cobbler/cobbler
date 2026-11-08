@@ -562,11 +562,19 @@ class BaseItem(ABC):
 
     # Keys that other properties' setters resolve inheritance/validation against (e.g. a profile's
     # or system's ``boot_loaders`` setter looks at its parent/distro/profile to compute the set of
-    # allowed values). These must be applied before any other key so that dependent setters never see
-    # a not-yet-set reference, regardless of the order ``dictionary`` happens to iterate in (which
-    # depends on the ``serializer_pretty_json`` setting: alphabetically sorted on disk, or attribute
-    # declaration order otherwise).
-    _FROM_DICT_PRIORITY_KEYS = ("parent", "distro", "profile", "image")
+    # allowed values, while a distro's or image's own ``boot_loaders`` setter looks at its own
+    # ``breed``/``os_version`` instead). These must be applied before any other key so that
+    # dependent setters never see a not-yet-set reference, regardless of the order ``dictionary``
+    # happens to iterate in (which depends on the ``serializer_pretty_json`` setting: alphabetically
+    # sorted on disk, or attribute declaration order otherwise).
+    _FROM_DICT_PRIORITY_KEYS = (
+        "parent",
+        "distro",
+        "profile",
+        "image",
+        "breed",
+        "os_version",
+    )
 
     def from_dict(self, dictionary: Dict[Any, Any]) -> None:
         """
