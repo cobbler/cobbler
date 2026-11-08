@@ -168,8 +168,13 @@ class MkLoaders:
         # are statically self-contained and never depend on libcom32.c32 -- so this symlink must not
         # be gated on the same condition as the libcom32.c32 companion copy below, or linux.c32 is
         # never deployed at all on syslinux 4.x even though it exists and works standalone there.
+        # Starting with syslinux 5 the dependency is real again, so on that version linux.c32 must
+        # still be skipped if libcom32.c32 isn't present, or a non-functional module gets deployed.
         linux_c32_path = self.syslinux_folder.joinpath("linux.c32")
-        if linux_c32_path.exists():
+        libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
+        if linux_c32_path.exists() and (
+            syslinux_version <= 4 or libcom32_c32_path.exists()
+        ):
             symlink(
                 linux_c32_path,
                 self.bootloaders_dir.joinpath("linux.c32"),
@@ -177,7 +182,6 @@ class MkLoaders:
             )
         # Make libcom32.c32
         # 'linux.c32' depends on 'libcom32.c32' starting with syslinux 5.
-        libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
         if syslinux_version > 4 and libcom32_c32_path.exists():
             symlink(
                 libcom32_c32_path,

@@ -166,6 +166,40 @@ def test_make_syslinux_deploys_linux_c32_without_libcom32_on_syslinux_4(
     assert "libcom32.c32" not in symlinked_names
 
 
+def test_make_syslinux_skips_linux_c32_on_syslinux_5_without_libcom32(
+    cobbler_api: CobblerAPI, mocker: "MockerFixture", tmp_path: pathlib.Path
+):
+    """
+    Regression test: starting with syslinux 5, "linux.c32" depends on "libcom32.c32" (per
+    https://wiki.syslinux.org/wiki/index.php?title=Library_modules). The fix for the syslinux 4.x case
+    above must not drop this dependency gate entirely -- on a syslinux 5+ install missing
+    "libcom32.c32" (e.g. a broken/partial install), "linux.c32" must NOT be symlinked, since it would
+    be a non-functional module.
+    """
+    # Arrange
+    mocker.patch(
+        "cobbler.actions.mkloaders.get_syslinux_version", return_value=5
+    )
+    mocker.patch("cobbler.actions.mkloaders.utils.command_existing", return_value=True)
+    mock_symlink = mocker.patch("cobbler.actions.mkloaders.symlink")
+    test_mkloaders = mkloaders.MkLoaders(cobbler_api)
+    syslinux_folder = tmp_path / "syslinux"
+    syslinux_folder.mkdir()
+    (syslinux_folder / "linux.c32").touch()
+    (syslinux_folder / "ldlinux.c32").touch()
+    # No libcom32.c32 present, matching a broken/partial syslinux 5+ install.
+    test_mkloaders.syslinux_folder = syslinux_folder
+    test_mkloaders.bootloaders_dir = tmp_path / "bootloaders"
+
+    # Act
+    test_mkloaders.make_syslinux()
+
+    # Assert
+    symlinked_names = {call.args[1].name for call in mock_symlink.call_args_list}
+    assert "linux.c32" not in symlinked_names
+    assert "libcom32.c32" not in symlinked_names
+
+
 def test_get_syslinux_version(mocker: "MockerFixture"):
     # Arrange
     mocker.patch(
