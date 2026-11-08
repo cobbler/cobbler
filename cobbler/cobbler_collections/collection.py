@@ -70,6 +70,7 @@ class Collection(Generic[ITEM]):
         self.lock: Lock = Lock()
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
+        self._load_errors: List[Dict[str, Any]] = []
         # Secondary indexes for the collection.
         self.indexes: Dict[str, Dict[Union[str, int], Union[str, Set[str]]]] = {}
         self.init_indexes()
@@ -136,6 +137,17 @@ class Collection(Generic[ITEM]):
         :param deserialize_running: The new deserialize_running value.
         """
         self._deserialize_running = deserialize_running
+
+    @property
+    def load_errors(self) -> List[Dict[str, Any]]:
+        """
+        Items that failed to load from disk during :meth:`from_list`, surfaced beyond cobbler.log
+        so the failure is actionable (e.g. via ``cobbler check``) instead of only visible to whoever
+        happens to read the log. Each entry has ``collection_type``, ``name``, ``uid`` and ``error``.
+
+        :getter: A copy of the recorded load errors; mutating it does not affect the collection.
+        """
+        return list(self._load_errors)
 
     @abstractmethod
     def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]) -> ITEM:
@@ -393,6 +405,14 @@ class Collection(Generic[ITEM]):
                     item_name,
                     item_uid,
                     exc,
+                )
+                self._load_errors.append(
+                    {
+                        "collection_type": self.collection_type(),
+                        "name": item_name,
+                        "uid": item_uid,
+                        "error": str(exc),
+                    }
                 )
 
     def copy(

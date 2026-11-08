@@ -46,6 +46,7 @@ class CobblerCheck:
         """
         status: List[str] = []
         self.checked_family = utils.get_family()
+        self.check_collection_load_errors(status)
         self.check_name(status)
         self.check_selinux(status)
         if self.settings.manage_dhcp:
@@ -93,6 +94,21 @@ class CobblerCheck:
         self.check_for_cman(status)
 
         return status
+
+    def check_collection_load_errors(self, status: List[str]) -> None:
+        """
+        Surface items that failed to load from disk at startup (logged at ERROR level in
+        cobbler.log, but otherwise invisible) as an actionable "cobbler check" warning, instead of
+        only the log entry.
+
+        :param status: The status list with possible problems.
+        """
+        for load_error in self.api.get_collection_load_errors():
+            status.append(
+                f"{load_error['collection_type']} \"{load_error['name']}\" "
+                f"(uid \"{load_error['uid']}\") failed to load at startup: "
+                f"{load_error['error']} -- see cobbler.log and restart cobblerd after fixing it"
+            )
 
     def check_for_ksvalidator(self, status: List[str]) -> None:
         """

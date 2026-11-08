@@ -551,6 +551,13 @@ class CobblerAPI:
         items = self._collection_mgr.get_items(what)
         return items
 
+    def get_collection_load_errors(self) -> "List[Dict[str, Any]]":
+        """
+        Return every item that failed to load from disk during startup deserialization, across all
+        collections. See :meth:`cobbler.cobbler_collections.manager.CollectionManager.get_load_errors`.
+        """
+        return self._collection_mgr.get_load_errors()
+
     def distros(self) -> "Distros":
         """
         Return the current list of distributions

@@ -33,6 +33,40 @@ def test_run_warns_on_dynamic_tftp_with_manage_tftpd_enabled(
     assert any("dynamic_tftp" in message for message in status)
 
 
+def test_check_collection_load_errors_surfaces_startup_load_failures(
+    mocker: "MockerFixture", cobbler_api: CobblerAPI
+):
+    """
+    Regression test: an item that failed to load from disk at startup used to only be logged at
+    ERROR level in cobbler.log, with no other actionable signal. "cobbler check" must surface it.
+    """
+    # Arrange
+    mocker.patch.object(
+        cobbler_api,
+        "get_collection_load_errors",
+        return_value=[
+            {
+                "collection_type": "distro",
+                "name": "broken-distro",
+                "uid": "deadbeefdeadbeefdeadbeefdeadbeef",
+                "error": "os_version 'bogus' is not a valid os_version for breed 'suse'",
+            }
+        ],
+    )
+    test_check = check.CobblerCheck(cobbler_api)
+    status: List[str] = []
+
+    # Act
+    test_check.check_collection_load_errors(status)
+
+    # Assert
+    assert len(status) == 1
+    assert "distro" in status[0]
+    assert "broken-distro" in status[0]
+    assert "deadbeefdeadbeefdeadbeefdeadbeef" in status[0]
+    assert "os_version 'bogus' is not a valid os_version for breed 'suse'" in status[0]
+
+
 def test_check_service_systemd_probe_does_not_log_stderr_as_error(
     mocker: "MockerFixture", cobbler_api: CobblerAPI
 ):

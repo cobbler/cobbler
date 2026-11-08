@@ -176,6 +176,13 @@ def test_from_list_item_failure_is_logged_with_identifying_details(
     logged_message = caplog.records[0].getMessage()
     assert invalid_item["uid"] in logged_message
     assert invalid_item["name"] in logged_message
+    # Assert - the failure is also surfaced beyond the log, via load_errors(), so it is actionable
+    # (e.g. through "cobbler check") rather than only visible to whoever reads cobbler.log
+    assert len(distro_collection.load_errors) == 1
+    recorded_error = distro_collection.load_errors[0]
+    assert recorded_error["uid"] == invalid_item["uid"]
+    assert recorded_error["name"] == invalid_item["name"]
+    assert recorded_error["collection_type"] == "distro"
 
 
 def test_copy(

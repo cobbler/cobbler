@@ -7,7 +7,7 @@ Repository of the Cobbler object model
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import weakref
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING, Any, Dict, List, cast
 
 from cobbler import serializer, validate
 from cobbler.cexceptions import CX
@@ -235,6 +235,29 @@ class CollectionManager:
                     f"serializer: error loading collection {args[0].collection_type()}: {error}."
                     f"Check your settings!"
                 ) from error
+
+    def get_load_errors(self) -> List[Dict[str, Any]]:
+        """
+        Return every item that failed to load from disk during :meth:`deserialize`, across all
+        collections, so the failure is actionable (e.g. via ``cobbler check``) rather than only
+        visible to whoever happens to read cobbler.log.
+        """
+        load_errors: List[Dict[str, Any]] = []
+        for collection in (
+            self._distros,
+            self._repos,
+            self._profiles,
+            self._images,
+            self._systems,
+            self._menus,
+            self._network_interfaces,
+            self._templates,
+            self._distro_groups,
+            self._profile_groups,
+            self._system_groups,
+        ):
+            load_errors.extend(collection.load_errors)
+        return load_errors
 
     def deserialize_one_item(self, obj: "BaseItem") -> Dict[str, Any]:
         """
