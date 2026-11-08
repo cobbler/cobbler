@@ -738,6 +738,79 @@ def test_extract_winpe_classic_import_writes_under_distro_path_boot(
     assert os.path.isdir(os.path.dirname(winpe_path))
 
 
+def test_import_winpe_file_list_includes_bootmgr_for_wimboot_kernel(
+    cobbler_api: CobblerAPI, mocker: MockerFixture
+):
+    """
+    Regression guard: wimboot-based delivery (BIOS iPXE, UEFI iPXE, syslinux, GRUB -- every
+    documented path except the legacy pxeboot.n12 one) needs the real PE32
+    "/windows/boot/pxe/bootmgr.exe" extracted as a standalone initrd component. With a wimboot
+    kernel_file, pxeboot.n12 must NOT be requested (it isn't used and may not even exist in the
+    image), but bootmgr.exe must still be in the extracted file_list.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.path = "/mnt/win11"
+    manager.signature = _make_signature(kernel_file="wimboot")
+    mocker.patch.object(manager, "extract_winpe", return_value="/fake/winpe.wim")
+    mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_get",
+        return_value="\n".join(
+            [
+                "/Windows/Boot/EFI/bootmgr.efi",
+                "/Windows/Boot/PXE/bootmgr.exe",
+                "/Windows/Boot/PXE/pxeboot.n12",
+                "/Windows/System32/config/SOFTWARE",
+            ]
+        ),
+    )
+    extract_files_spy = mocker.patch.object(manager, "extract_files_from_wim")
+    mocker.patch.object(manager, "update_winpe")
+
+    # Act
+    manager.import_winpe()
+
+    # Assert
+    file_list = extract_files_spy.call_args.args[1]
+    assert "/Windows/Boot/PXE/bootmgr.exe" in file_list
+    assert "/Windows/Boot/PXE/pxeboot.n12" not in file_list
+
+
+def test_import_winpe_file_list_includes_pxeboot_for_legacy_kernel(
+    cobbler_api: CobblerAPI, mocker: MockerFixture
+):
+    """
+    Regression guard: non-wimboot (legacy pxeboot.n12-as-kernel) Windows versions still need
+    pxeboot.n12 extracted, in addition to bootmgr.exe, which is now extracted unconditionally.
+    """
+    # Arrange
+    manager = import_signatures.get_import_manager(cobbler_api)
+    manager.path = "/mnt/win11"
+    manager.signature = _make_signature(kernel_file=r"pxeboot\.n12")
+    mocker.patch.object(manager, "extract_winpe", return_value="/fake/winpe.wim")
+    mocker.patch(
+        "cobbler.modules.managers.import_signatures.utils.subprocess_get",
+        return_value="\n".join(
+            [
+                "/Windows/Boot/EFI/bootmgr.efi",
+                "/Windows/Boot/PXE/bootmgr.exe",
+                "/Windows/Boot/PXE/pxeboot.n12",
+                "/Windows/System32/config/SOFTWARE",
+            ]
+        ),
+    )
+    extract_files_spy = mocker.patch.object(manager, "extract_files_from_wim")
+    mocker.patch.object(manager, "update_winpe")
+
+    # Act
+    manager.import_winpe()
+
+    # Assert
+    file_list = extract_files_spy.call_args.args[1]
+    assert "/Windows/Boot/PXE/bootmgr.exe" in file_list
+    assert "/Windows/Boot/PXE/pxeboot.n12" in file_list
+
+
 # --------------------------------------------------------------------------------------------
 # Distro overlay: non-wimboot Windows kernel detection (distro_adder)
 # --------------------------------------------------------------------------------------------

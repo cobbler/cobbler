@@ -75,3 +75,63 @@ def test_built_in_answerfile_download_respects_https_scheme(
     # Assert
     assert "DownloadFile('https://" in result
     assert "DownloadFile('http://" not in result
+
+
+def test_built_in_answerfile_has_modify_partitions_for_every_created_partition(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test-gap closure: CreatePartitions only creates raw, unformatted partitions -- without a
+    matching ModifyPartitions entry for each one, Setup has nothing to install onto and aborts
+    with a non-specific "DiskConfiguration setting... could not be applied" error. Every
+    CreatePartition must have a corresponding ModifyPartition.
+    """
+    # Act
+    result = _render_answerfile(cobbler_api, create_distro, create_profile)
+
+    # Assert
+    assert "<ModifyPartitions>" in result
+    assert result.count("<CreatePartition wcm:action=\"add\">") == result.count(
+        "<ModifyPartition wcm:action=\"add\">"
+    )
+
+
+def test_built_in_answerfile_respects_image_name_product_key_locale_overrides(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test-gap closure: "image_name"/"product_key"/"locale" in autoinstall_meta must override the
+    per-os_version defaults -- install.wim is frequently a multi-edition image whose index name
+    doesn't match the generic default, and the generic/KMS product key is per-edition, not
+    per-Windows-version, so setup.exe silently discards the whole unattend.xml if either mismatches
+    the real image.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_profile.autoinstall_meta = {
+        "image_name": "Windows 11 Pro N",
+        "product_key": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEE",
+        "locale": "de-DE",
+    }
+    meta = utils.blender(cobbler_api, False, test_profile)
+    autoinstall_meta = meta.get("autoinstall_meta", {})
+    meta.update(autoinstall_meta)
+    target_template = cobbler_api.find_template(
+        False, False, name="built-in-answerfile"
+    )
+    if target_template is None or isinstance(target_template, list):
+        pytest.fail("Could not find built-in template!")
+
+    # Act
+    result = cobbler_api.templar.render(target_template.content, meta, None)
+
+    # Assert
+    assert "<Value>Windows 11 Pro N</Value>" in result
+    assert "<Value>Windows 11 Pro</Value>" not in result
+    assert "<Key>AAAAA-BBBBB-CCCCC-DDDDD-EEEEE</Key>" in result
+    assert "<UILanguage>de-DE</UILanguage>" in result
