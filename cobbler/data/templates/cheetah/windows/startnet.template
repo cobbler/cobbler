@@ -26,12 +26,16 @@ net use z: $distros_dir
 #end if
 set exit_code=%ERRORLEVEL%
 IF %exit_code% EQU 0 GOTO INSTALL
+## Only error 53 ("network path not found") is the transient SMB-not-ready-yet case documented
+## above -- anything else (e.g. 67 "bad network name" for a wrong share, 5/1326 for bad
+## credentials) is permanent and must fail fast instead of burning all retries on it.
+IF NOT %exit_code% EQU 53 GOTO NET_USE_FAILED
 set /a net_use_retry=%net_use_retry%+1
 IF %net_use_retry% GEQ 5 GOTO NET_USE_FAILED
 ping -n 3 127.0.0.1 >nul
 GOTO NET_USE_RETRY
 :NET_USE_FAILED
-echo "Can't mount network drive"
+echo "Can't mount network drive (net use exit code %exit_code%)"
 pause
 goto EXIT
 
