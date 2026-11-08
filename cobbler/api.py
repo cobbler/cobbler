@@ -1538,11 +1538,21 @@ class CobblerAPI:
     # ==========================================================================
     def add_remove_items(self, items: List["TransactionTuple"]) -> None:
         """
-        Add or remove multiple items.
+        Add or remove multiple items, as a single all-or-nothing transaction: if any item in the
+        batch fails, every item already applied earlier in the very same call is rolled back
+        before the error propagates, so a partial commit never leaves the collections (and their
+        on-disk serialization) in a half-applied state.
+
         1. Checks for external modifications using mtime
         2. Processes deletions first (deepest dependencies first)
         3. Processes additions and modifications
-        4. Rebuilds the PXE configuration
+        4. Rebuilds the PXE configuration (only once every change above has succeeded)
+
+        Note: rolling back an add/remove undoes its effect on the collection (in-memory listing,
+        indexes, and on-disk JSON) and re-runs it with ``with_triggers=False``. It cannot undo the
+        external side effects of trigger scripts that already ran for an item applied earlier in
+        the batch (e.g. a script that already sent a notification) - exactly like a database
+        transaction rollback cannot undo an external call a trigger already made.
 
         :param items: The list of items.
         """
@@ -1573,41 +1583,90 @@ class CobblerAPI:
         to_remove.sort(key=lambda x: -getattr(x[1], "depth", _LEAF_SORT_DEPTH))
         to_add.sort(key=lambda x: getattr(x[1], "depth", _LEAF_SORT_DEPTH))
 
-        for what, ref, _, _, _, _ in to_add:
-            self.log(f"add_item({what})", [ref.uid])
-            self.get_items(what).add(
-                ref,  # type: ignore
-                check_for_duplicate_names=False,
-                save=True,
-                with_sync=False,
-                with_triggers=True,
-                rebuild_menu=False,
-            )
+        # Undo stack for everything actually applied below, so a failure partway through can
+        # revert it. Each entry is ("add", what, ref) or ("remove", what, snapshot-dict). Reversing
+        # this stack naturally undoes adds deepest-first and restores removes shallowest-first,
+        # which - because to_add/to_remove are already depth-ordered - respects dependency order
+        # without any extra bookkeeping (see the sort comment above).
+        applied: List[Tuple[str, str, Any]] = []
 
-        for what, ref, _, _, _, item_changelog in to_add:
-            ref.in_transaction = False
-            for item in item_changelog:
-                self.get_items(what).update_index_value(
-                    ref, ".".join(item.attribute), item.old_value, item.new_value
+        def _rollback() -> None:
+            rollback_errors: List[str] = []
+            for kind, what, payload in reversed(applied):
+                try:
+                    if kind == "add":
+                        self.get_items(what).remove(
+                            payload,
+                            recursive=False,
+                            with_delete=True,
+                            with_sync=False,
+                            with_triggers=False,
+                            rebuild_menu=False,
+                        )
+                    else:
+                        restored = self.get_items(what).factory_produce(
+                            self, payload
+                        )
+                        self.get_items(what).add(
+                            restored,
+                            check_for_duplicate_names=False,
+                            save=True,
+                            with_sync=False,
+                            with_triggers=False,
+                            rebuild_menu=False,
+                        )
+                except Exception as rollback_exc:  # pylint: disable=broad-except
+                    rollback_errors.append(f"{kind} {what}: {rollback_exc}")
+            if rollback_errors:
+                self.logger.critical(
+                    "add_remove_items: rollback of a failed transaction could not fully undo "
+                    "every change, manual intervention needed: %s",
+                    "; ".join(rollback_errors),
                 )
 
-        # remove_quick_pxe_sync (e.g. the ISC DHCP manager's remove_single_system) resolves each
-        # item's conceptual parent chain (system -> profile -> distro) live via the collections.
-        # That only works while the rest of the chain is still present, so each item's cleanup must
-        # run immediately after *that* item's own removal, not in a separate pass after every item
-        # in the whole batch has already been removed -- otherwise, by the time a system's cleanup
-        # runs, its profile (removed earlier in to_remove's depth-descending order) is already gone,
-        # and get_conceptual_parent() returns None instead of the profile.
-        for what, ref, _, _, _, _ in to_remove:
-            self.get_items(what).remove(
-                ref,
-                recursive=False,
-                with_delete=True,
-                with_sync=False,
-                with_triggers=True,
-                rebuild_menu=False,
-            )
-            self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
+        try:
+            for what, ref, _, _, _, _ in to_add:
+                self.log(f"add_item({what})", [ref.uid])
+                self.get_items(what).add(
+                    ref,  # type: ignore
+                    check_for_duplicate_names=False,
+                    save=True,
+                    with_sync=False,
+                    with_triggers=True,
+                    rebuild_menu=False,
+                )
+                applied.append(("add", what, ref))
+
+            for what, ref, _, _, _, item_changelog in to_add:
+                ref.in_transaction = False
+                for item in item_changelog:
+                    self.get_items(what).update_index_value(
+                        ref, ".".join(item.attribute), item.old_value, item.new_value
+                    )
+
+            # remove_quick_pxe_sync (e.g. the ISC DHCP manager's remove_single_system) resolves
+            # each item's conceptual parent chain (system -> profile -> distro) live via the
+            # collections. That only works while the rest of the chain is still present, so each
+            # item's cleanup must run immediately after *that* item's own removal, not in a
+            # separate pass after every item in the whole batch has already been removed --
+            # otherwise, by the time a system's cleanup runs, its profile (removed earlier in
+            # to_remove's depth-descending order) is already gone, and get_conceptual_parent()
+            # returns None instead of the profile.
+            for what, ref, _, _, _, _ in to_remove:
+                snapshot = ref.to_dict()
+                self.get_items(what).remove(
+                    ref,
+                    recursive=False,
+                    with_delete=True,
+                    with_sync=False,
+                    with_triggers=True,
+                    rebuild_menu=False,
+                )
+                self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
+                applied.append(("remove", what, snapshot))
+        except Exception:
+            _rollback()
+            raise
 
         # Now update all on-disk configuration because the caches are valid again
         self.log("Executing Cobbler sync for transaction commit")

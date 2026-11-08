@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List, cast
 
 import pytest
 
+from cobbler.cexceptions import CX
 from cobbler.remote import CobblerXMLRPCInterface
 
 logger = logging.getLogger()
@@ -920,3 +921,44 @@ def test_copy_and_rename_system_group_inside_transaction_does_not_crash(
     assert remote.get_item_handle("system_group", "testsystemgroup0") != "~"
     assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
     assert remote.get_item_handle("system_group", "testsystemgrouprenamed1") != "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+    "create_testsystem",
+)
+def test_add_remove_items_rolls_back_entire_batch_on_mid_commit_failure(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: ``add_remove_items()`` used to apply queued items one at a time with no
+    rollback -- a failure partway through the batch left every item already applied earlier in
+    the very same commit permanently removed/added, with the rest of the queued batch silently
+    discarded. A transaction must be all-or-nothing, exactly like a database transaction: if any
+    item in the batch fails, everything already applied earlier in that same commit must be
+    reverted too, not left behind as a partial, unrecoverable commit.
+
+    ``to_remove`` is processed deepest-first (System, then Distro), so removing "testsystem0" (a
+    leaf, always succeeds) and "testdistro0" (still depended on by "testprofile0", which is NOT
+    part of this batch) in the same transaction removes the system first, then fails on the
+    distro with an "orphan" error. "testsystem0" must be restored afterward, not left deleted.
+    """
+    # Arrange
+    system_uid = remote.get_system_handle("testsystem0")
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.transaction_begin(token)
+    assert remote.remove_system(system_uid, token)
+    assert remote.remove_distro(distro_uid, token, False)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        remote.transaction_commit(token)
+
+    # The system, removed earlier in the same failed batch, must have been rolled back (restored)
+    # too -- not left behind as a partial, unrecoverable commit.
+    assert remote.get_item_handle("system", "testsystem0") != "~"
+    assert remote.get_item_handle("distro", "testdistro0") != "~"
+    assert remote.get_item_handle("profile", "testprofile0") != "~"
