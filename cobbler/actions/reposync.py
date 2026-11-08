@@ -282,7 +282,11 @@ class RepoSync:
                             "--queryformat=%{VERSION}",
                             "createrepo",
                         ]
-                        createrepo_ver = utils.subprocess_get(cmd, shell=False)
+                        # Expected to fail on hosts that only ship createrepo_c; that's the normal
+                        # trigger for the fallback query below, not an operational error.
+                        createrepo_ver = utils.subprocess_get(
+                            cmd, shell=False, log_stderr_as_error=False
+                        )
                         if not createrepo_ver[0:1].isdigit():
                             cmd = [
                                 "/usr/bin/rpmquery",

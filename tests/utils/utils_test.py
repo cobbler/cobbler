@@ -614,6 +614,38 @@ def test_subprocess_sp_logs_stderr_at_debug_level_on_success(
     assert matching_records[0].levelname == "DEBUG"
 
 
+def test_subprocess_sp_logs_stderr_at_debug_level_on_failure_when_opted_out(
+    caplog: "pytest.LogCaptureFixture",
+):
+    """
+    Regression test: some callers probe a command that is expected to fail as part of normal control
+    flow (e.g. "cobbler check"'s "systemctl is-active" probe, or reposync's createrepo->createrepo_c
+    fallback probe). Escalating every failing command's stderr to ERROR unconditionally spams
+    cobbler.log with benign, expected non-zero exits. Passing log_stderr_as_error=False must keep
+    such failures at DEBUG level.
+    """
+    # Arrange
+    caplog.set_level("DEBUG")
+
+    # Act
+    _, result_rc = utils.subprocess_sp(
+        "echo 'expected probe failure' 1>&2; exit 1",
+        shell=True,
+        log_stderr_as_error=False,
+    )
+
+    # Assert
+    assert result_rc == 1
+    matching_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("received on stderr:")
+    ]
+    assert len(matching_records) == 1
+    assert "expected probe failure" in matching_records[0].message
+    assert matching_records[0].levelname == "DEBUG"
+
+
 @pytest.mark.parametrize(
     "input_command,expected_exception,expected_result",
     [

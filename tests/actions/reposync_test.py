@@ -202,6 +202,47 @@ def test_run_single_repo_nofail_reports_overall_failure(
         reposync_object.run(repo)
 
 
+def test_createrepo_walker_prestodelta_createrepo_probe_does_not_log_stderr_as_error(
+    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo, tmp_path: Path
+):
+    """
+    Regression test: the rpmquery probe for "createrepo" is expected to fail on hosts that only ship
+    "createrepo_c" (triggering the fallback query below it) -- that is normal control flow, not an
+    operational error, and must not be logged at ERROR level. The fallback "createrepo_c" query, by
+    contrast, is a genuine problem if it also fails, and must keep the default ERROR-level logging.
+    """
+    # Arrange
+    dirname = str(tmp_path)
+    mocker.patch("os.path.exists", return_value=True)
+    mocker.patch("cobbler.actions.reposync.utils.remove_yum_olddata")
+    mocker.patch("os.path.isfile", return_value=True)
+    mocker.patch.object(
+        reposync_object,
+        "librepo_getinfo",
+        return_value={"prestodelta": {}},
+    )
+    mocker.patch("cobbler.actions.reposync.utils.get_family", return_value="redhat")
+    subprocess_get_mock = mocker.patch(
+        "cobbler.actions.reposync.utils.subprocess_get",
+        side_effect=["package createrepo is not installed", "0.15.11"],
+    )
+    mocker.patch(
+        "cobbler.actions.reposync.utils.compare_versions_gt", return_value=True
+    )
+    mocker.patch("cobbler.actions.reposync.utils.blender", return_value={})
+    mocker.patch("cobbler.actions.reposync.utils.subprocess_call", return_value=0)
+    fnames: List[str] = []
+
+    # Act
+    reposync_object.createrepo_walker(repo, dirname, fnames)
+
+    # Assert
+    probe_call_kwargs = subprocess_get_mock.call_args_list[0].kwargs
+    assert probe_call_kwargs.get("log_stderr_as_error") is False
+    fallback_call_kwargs = subprocess_get_mock.call_args_list[1].kwargs
+    assert fallback_call_kwargs.get("log_stderr_as_error", True) is True
+
+
 def test_gen_urlgrab_ssl_opts(reposync_object: reposync.RepoSync):
     # Arrange
     input_dict: Dict[str, Any] = {}

@@ -1021,7 +1021,10 @@ def command_existing(cmd: str) -> bool:
 
 
 def subprocess_sp(
-    cmd: Union[str, List[str]], shell: bool = True, process_input: Any = None
+    cmd: Union[str, List[str]],
+    shell: bool = True,
+    process_input: Any = None,
+    log_stderr_as_error: bool = True,
 ) -> Tuple[str, int]:
     """
     Call a shell process and redirect the output for internal usage.
@@ -1029,6 +1032,10 @@ def subprocess_sp(
     :param cmd: The command to execute in a subprocess call.
     :param shell: Whether to use a shell or not for the execution of the command.
     :param process_input: If there is any input needed for that command to stdin.
+    :param log_stderr_as_error: Whether a non-zero return code should log stderr at ERROR level. Set
+                                 to ``False`` for commands where a non-zero exit is an expected,
+                                 benign outcome (e.g. a probe/fallback check), so such cases don't
+                                 spam cobbler.log at ERROR level.
     :return: A tuple of the output and the return code.
     """
     logger.info("running: %s", cmd)
@@ -1056,7 +1063,7 @@ def subprocess_sp(
         ) from os_error
 
     logger.info("received on stdout: %s", out)
-    if return_code != 0:
+    if return_code != 0 and log_stderr_as_error:
         # Escalate stderr to a level the default INFO file handler captures so that the actual
         # failure detail (e.g. permission errors from setfacl, rsync, xorrisofs, dnf, etc.) is not
         # silently lost from cobbler.log.
@@ -1067,7 +1074,10 @@ def subprocess_sp(
 
 
 def subprocess_call(
-    cmd: Union[str, List[str]], shell: bool = False, process_input: Any = None
+    cmd: Union[str, List[str]],
+    shell: bool = False,
+    process_input: Any = None,
+    log_stderr_as_error: bool = True,
 ) -> int:
     """
     A simple subprocess call with no output capturing.
@@ -1075,14 +1085,23 @@ def subprocess_call(
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the command.
     :param process_input: If there is any process_input needed for that command to stdin.
+    :param log_stderr_as_error: See :func:`subprocess_sp`.
     :return: The return code of the process
     """
-    _, return_code = subprocess_sp(cmd, shell=shell, process_input=process_input)
+    _, return_code = subprocess_sp(
+        cmd,
+        shell=shell,
+        process_input=process_input,
+        log_stderr_as_error=log_stderr_as_error,
+    )
     return return_code
 
 
 def subprocess_get(
-    cmd: Union[str, List[str]], shell: bool = True, process_input: Any = None
+    cmd: Union[str, List[str]],
+    shell: bool = True,
+    process_input: Any = None,
+    log_stderr_as_error: bool = True,
 ) -> str:
     """
     A simple subprocess call with no return code capturing.
@@ -1090,9 +1109,15 @@ def subprocess_get(
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the command.
     :param process_input: If there is any process_input needed for that command to stdin.
+    :param log_stderr_as_error: See :func:`subprocess_sp`.
     :return: The data which the subprocess returns.
     """
-    data, _ = subprocess_sp(cmd, shell=shell, process_input=process_input)
+    data, _ = subprocess_sp(
+        cmd,
+        shell=shell,
+        process_input=process_input,
+        log_stderr_as_error=log_stderr_as_error,
+    )
     return data
 
 
