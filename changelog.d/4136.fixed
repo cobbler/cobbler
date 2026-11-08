@@ -1,0 +1,1 @@
+fix/beta8: a batch of 4.0.0 beta8 stability fixes covering transaction rollback safety, Windows PXE startnet/answerfile handling, boot_loaders validation, and collection-load error surfacing.
