@@ -1625,8 +1625,17 @@ class CobblerAPI:
                 )
 
         try:
-            for what, ref, _, _, _, _ in to_add:
+            for what, ref, _, _, base_id, _ in to_add:
                 self.log(f"add_item({what})", [ref.uid])
+                # base_id set means this "add" actually replaces an already-persisted object
+                # (Collection.add() just overwrites self.listing[ref.uid] in place) - a plain
+                # modification, not a brand new item. Snapshot the pre-modification object so a
+                # rollback can restore it, instead of deleting a pre-existing object outright.
+                original_snapshot = None
+                if base_id:
+                    orig_ref = self.get_items(what).find(return_list=False, uid=base_id)
+                    if orig_ref is not None and not isinstance(orig_ref, list):
+                        original_snapshot = orig_ref.to_dict()
                 self.get_items(what).add(
                     ref,  # type: ignore
                     check_for_duplicate_names=False,
@@ -1635,7 +1644,10 @@ class CobblerAPI:
                     with_triggers=True,
                     rebuild_menu=False,
                 )
-                applied.append(("add", what, ref))
+                if original_snapshot is not None:
+                    applied.append(("modify", what, original_snapshot))
+                else:
+                    applied.append(("add", what, ref))
 
             for what, ref, _, _, _, item_changelog in to_add:
                 ref.in_transaction = False

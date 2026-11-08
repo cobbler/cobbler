@@ -962,3 +962,45 @@ def test_add_remove_items_rolls_back_entire_batch_on_mid_commit_failure(
     assert remote.get_item_handle("system", "testsystem0") != "~"
     assert remote.get_item_handle("distro", "testdistro0") != "~"
     assert remote.get_item_handle("profile", "testprofile0") != "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_add_remove_items_rollback_restores_modified_item_instead_of_deleting_it(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: modifying an already-persisted item queues it in "to_add" (``Collection.add()``
+    just overwrites ``self.listing[ref.uid]`` in place for an existing uid), not "to_remove" -- a
+    plain modification, not a brand new item. A rollback must restore such an item to its
+    pre-modification state, not delete it outright the way undoing a genuinely new item does.
+
+    Modifying "testprofile0"'s comment (succeeds, applied first since "to_add" is processed before
+    "to_remove") and then removing "testdistro0" (fails -- "testprofile0" still depends on it) in
+    the same transaction must, after rollback, leave "testprofile0" existing with its original
+    comment, not deleted.
+    """
+    # Arrange
+    profile = remote.get_profile_handle("testprofile0")
+    original_comment = cast(Dict[Any, Any], remote.get_profile(profile))["comment"]
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.transaction_begin(token)
+    remote.modify_profile(profile, ["comment"], "modified in failed transaction", token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+    assert remote.remove_distro(distro_uid, token, False)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        remote.transaction_commit(token)
+
+    # The profile must still exist (not deleted like rolling back a brand new item would do) and
+    # its original comment must be restored, not left with the failed transaction's modification.
+    assert remote.get_item_handle("profile", "testprofile0") != "~"
+    assert (
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"]
+        == original_comment
+    )
