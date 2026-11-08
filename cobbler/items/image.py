@@ -609,9 +609,9 @@ class Image(BootableItem):
             self._boot_loaders = [enums.BootLoader.INHERITED]
             return
 
-        if not set(boot_loaders).issubset(self.supported_boot_loaders):
+        if not set(boot_loaders_split).issubset(self.supported_boot_loaders):
             raise ValueError(
-                f"Invalid boot loader names: {boot_loaders}. Supported boot loaders are:"
+                f"Invalid boot loader names: {boot_loaders_split}. Supported boot loaders are:"
                 f" {' '.join([value.value for value in self.supported_boot_loaders])}"
             )
         self._boot_loaders = boot_loaders_split
