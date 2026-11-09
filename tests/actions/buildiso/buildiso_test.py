@@ -13,6 +13,7 @@ from cobbler.actions.buildiso import LoaderCfgsParts
 from cobbler.actions.buildiso.netboot import NetbootBuildiso
 from cobbler.actions.buildiso.standalone import StandaloneBuildiso
 from cobbler.api import CobblerAPI
+from cobbler.cexceptions import CX
 from cobbler.items.distro import Distro
 from cobbler.items.image import Image
 from cobbler.items.profile import Profile
@@ -396,3 +397,69 @@ def test_standalone_run_autodetect_distro(
 
     # Assert
     assert iso_location.exists()  # type: ignore
+
+
+def test_netboot_run_xorrisofs_failure_raises(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    tmpdir: Any,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    Regression test for a failed "xorrisofs" invocation being silently swallowed: the ISO build must raise instead
+    of merely logging an error and returning, otherwise the owning background task is (incorrectly) marked as
+    "### TASK COMPLETE ###" instead of "### TASK FAILED ###".
+    """
+    # Arrange
+    test_distro = create_distro()
+    create_profile(test_distro.uid)
+    build_iso = NetbootBuildiso(cobbler_api)
+    iso_location = tmpdir.join("autoinst.iso")
+    real_subprocess_call = buildiso.utils.subprocess_call
+
+    def fake_subprocess_call(cmd: List[str], *args: Any, **kwargs: Any) -> int:
+        if cmd and cmd[0] == "xorriso":
+            return 1
+        return real_subprocess_call(cmd, *args, **kwargs)
+
+    monkeypatch.setattr(buildiso.utils, "subprocess_call", fake_subprocess_call)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        build_iso.run(iso=str(iso_location), distro=test_distro)
+    assert not iso_location.exists()
+
+
+def test_standalone_run_xorrisofs_failure_raises(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    tmpdir_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    Regression test for a failed "xorrisofs" invocation being silently swallowed: the ISO build must raise instead
+    of merely logging an error and returning, otherwise the owning background task is (incorrectly) marked as
+    "### TASK COMPLETE ###" instead of "### TASK FAILED ###".
+    """
+    # Arrange
+    iso_directory = tmpdir_factory.mktemp("isodir")
+    iso_source = tmpdir_factory.mktemp("isosource")
+    iso_location: Any = iso_directory.join("autoinst.iso")  # type: ignore
+    test_distro = create_distro()
+    build_iso = StandaloneBuildiso(cobbler_api)
+    real_subprocess_call = buildiso.utils.subprocess_call
+
+    def fake_subprocess_call(cmd: List[str], *args: Any, **kwargs: Any) -> int:
+        if cmd and cmd[0] == "xorriso":
+            return 1
+        return real_subprocess_call(cmd, *args, **kwargs)
+
+    monkeypatch.setattr(buildiso.utils, "subprocess_call", fake_subprocess_call)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        build_iso.run(
+            iso=str(iso_location), distro=test_distro, source=str(iso_source)  # type: ignore
+        )
+    assert not iso_location.exists()  # type: ignore

@@ -236,6 +236,8 @@ class NetworkInterface(BaseItem):
         :raises CX: In case name is missing. Additionally either image or profile is required.
         """
         super().check_if_valid()
+        if not self.inmemory:
+            return
         if self._system_uid == "":
             raise CX(
                 f"Error with network interface {self.uid} - system_uid is required"

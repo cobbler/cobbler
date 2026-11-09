@@ -42,6 +42,9 @@ from urllib import parse
 
 import yaml
 
+from cobbler.cexceptions import CX
+from cobbler.utils import filesystem_helpers
+
 # The client-facing mount point Apache's reverse proxy uses to route requests into this WSGI
 # app (see the "ProxyPass /cblr/svc/ http://localhost:8000/" rule in
 # cobbler/data/config/apache/cobbler.conf). Unlike the "/cobbler_api" ProxyPass block a couple of
@@ -508,8 +511,27 @@ def _dispatch(
     if not source_tree_path:
         return _error_response(start_response, "404 Not Found", "Not Found", is_head)
 
+    # Prefer a derived/patched file from this distro's overlay directory (e.g. createrepo's
+    # regenerated repodata/ for a direct_source RPM repo whose original tree is read-only) over the
+    # original source tree, mirroring import_signatures.py/sync_post_wingen.py's own read-resolution
+    # rule for Windows's derived boot files. The existing traversal guard below (resolve_within_root)
+    # still runs in full, just against whichever root this picks -- both candidate roots are already
+    # Cobbler-trusted absolute directories, so this introduces no new attack surface.
+    #
+    # resolve_distro_overlay_root() has its own (stricter, exception-raising) traversal guard,
+    # meant for internal callers resolving a path they constructed themselves. Here relative_path is
+    # untrusted, client-supplied input, so a malicious "../" in it must fall through to the real
+    # guard (resolve_within_root(), via _serve_path_under_root() below) and come back as a clean 403
+    # -- not propagate out of this dispatch function as an unhandled exception.
+    try:
+        root = filesystem_helpers.resolve_distro_overlay_root(
+            source_tree_path, relative_path
+        )
+    except CX:
+        root = source_tree_path
+
     return _serve_path_under_root(
-        source_tree_path,
+        root,
         relative_path,
         base_path,
         query,

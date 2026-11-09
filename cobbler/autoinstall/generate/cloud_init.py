@@ -4,7 +4,8 @@ This module is responsible to generate cloud-init files and metadata.
 More information can be found `here <https://cloud-init.io/>`_
 """
 
-from typing import TYPE_CHECKING, Any, Dict, Optional
+import copy
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 from cobbler import utils
 from cobbler.autoinstall.generate.base import AutoinstallBaseGenerator
@@ -94,6 +95,42 @@ class CloudInitGenerator(AutoinstallBaseGenerator):
 
         :returns: The string with the user-data content.
         """
+        # Disable network/PXE boot for this system once Subiquity's installer reaches the post-storage-setup
+        # stage, mirroring the "pxe_just_once" behavior of the Preseed built-in (cobbler/data/templates/cheetah/
+        # autoinstall/snippets/generic/autoinstall_done.template, included there via
+        # built-in-preseed_late_default). Subiquity has no equivalent of Debian Installer's preseed/late_command
+        # hook, so this is injected directly into Subiquity's own "late-commands" (curtin, runs with network up,
+        # before the final reboot) instead.
+        #
+        # utils.blender()/__consolidate() only shallow-copies dicts merged in from an item's own
+        # autoinstall_meta, so meta["cloud_init_ubuntu_autoinstall"] (and its nested "late-commands" list) can
+        # still be the very same object a Profile/System keeps in its live autoinstall_meta attribute.
+        # Deep-copying before mutating is required here -- otherwise this "generate a preview" call would
+        # permanently corrupt that item's persisted autoinstall_meta, and a shared parent Profile's
+        # cloud_init_ubuntu_autoinstall could end up carrying one System's nopxe URL baked in for every other
+        # System that inherits from it.
+        raw_ubuntu_autoinstall = meta.get("cloud_init_ubuntu_autoinstall")
+        if obj.TYPE_NAME == "system" and meta.get("pxe_just_once") and isinstance(raw_ubuntu_autoinstall, dict):  # type: ignore
+            ubuntu_autoinstall: Dict[str, Any] = copy.deepcopy(
+                cast(Dict[str, Any], raw_ubuntu_autoinstall)
+            )
+            nopxe_url = f'{meta.get("autoinstall_scheme", "http")}://{meta["http_server"]}/cblr/svc/op/nopxe/system/{meta["system_name"]}'
+            nopxe_command = f'curl "{nopxe_url}" -o /dev/null'
+            # Always replace any pre-existing nopxe late-command rather than skipping when one is already
+            # present, so a stale/incorrectly-targeted one (e.g. inherited from a differently-named sibling
+            # System) can never survive into the rendered autoinstall config.
+            late_commands: List[Any] = [
+                command
+                for command in cast(
+                    List[Any], ubuntu_autoinstall.get("late-commands", [])
+                )
+                if not (
+                    isinstance(command, str) and "/cblr/svc/op/nopxe/system/" in command
+                )
+            ]
+            late_commands.append(nopxe_command)
+            ubuntu_autoinstall["late-commands"] = late_commands
+            meta["cloud_init_ubuntu_autoinstall"] = ubuntu_autoinstall
         # cloud-config --> The only one supported via kernel parameter cloud-config-url
         # user-data scripts
         # cloud boothook

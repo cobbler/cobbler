@@ -94,8 +94,8 @@ get_ifname() {
                 #else if $gateway != "" and $management
 	                #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
     	        #end if
-    	        #if $len($name_servers) > 0
-                    #set $netinfo = "%s --nameserver=%s" % ($netinfo, ','.join($name_servers))
+    	        #if $len($dns.name_servers) > 0
+                    #set $netinfo = "%s --nameserver=%s" % ($netinfo, ','.join($dns.name_servers))
                 #end if
                 #if $ip6 != "" and $ip6_gw != ""
                     #if $ip6_prefix == ""

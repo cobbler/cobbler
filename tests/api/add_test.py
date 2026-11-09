@@ -249,7 +249,7 @@ def test_case_sensitive_add(
 
     # Act
     cobbler_api.add_distro(item2)
-    cobbler_api.remove_distro(item1.name)
+    cobbler_api.remove_distro(item1.uid)
     result_item = cobbler_api.get_item("distro", item2.name)
 
     # Assert

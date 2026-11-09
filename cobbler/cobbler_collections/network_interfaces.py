@@ -35,7 +35,7 @@ class NetworkInterfaces(collection.Collection[network_interface.NetworkInterface
         :param seed_data: The data the object is initalized with.
         :returns: The created network interface.
         """
-        system_uid = seed_data.pop("system_uid")
+        system_uid = seed_data.pop("system_uid", "")
         return network_interface.NetworkInterface(
             api=self.api,
             system_uid=system_uid,

@@ -408,8 +408,19 @@ class InheritableItem(BaseItem, ABC):
                 and self.api.get_items(self.COLLECTION_TYPE).listing.get(self.uid)
                 is not None
             ):
-                # Invalidating "resolved" caches
-                for dep_item in self.tree_walk(name):
+                # Invalidating "resolved" caches of every item that could have inherited this value.
+                # tree_walk() alone only walks same-collection children (e.g. subprofiles, reached via
+                # the "parent" field within the same COLLECTION_TYPE) -- it never crosses into the
+                # separate, cross-collection logical-inheritance chain (e.g. Profiles that inherit from
+                # this Distro via their "distro" field, or Systems that inherit from those Profiles via
+                # their "profile" field). That gap meant editing an inheritable property on a Distro (or
+                # Repo/Menu/Image) never invalidated the already-resolved dict cache of dependent
+                # Profiles/Systems, which kept serving stale resolved values (e.g. stale
+                # ``kernel_options``) indefinitely, even though the edited item's own cache was
+                # correctly cleared. ``descendants`` already knows how to cross collection-type
+                # boundaries (via ``TYPE_DEPENDENCIES``), in addition to covering the same same-
+                # collection ``tree_walk()`` relationships, so use it here instead.
+                for dep_item in self.descendants:
                     dep_item.cache.set_dict_cache(None, True)
 
         # Invalidating the cache of the object itself.

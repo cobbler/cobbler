@@ -2,8 +2,11 @@
 cat<<EOF>/etc/apt/sources.list
 #set $repo_data = $getVar("repo_data",[])
 #for $repo in $repo_data
- #for $dist in $repo.apt_dists
- #set $comps = " ".join($repo.apt_components)
+ #for $dist in $repo.apt.dists
+ ## See preseed_apt_repo_config.template's matching comment: a "<component>/debian-installer" entry
+ ## only exists to drive debmirror's own --section flag and must never reach the installed system's
+ ## own /etc/apt/sources.list (this file), or every udeb becomes a regular, selectable apt package.
+ #set $comps = " ".join([c for c in $repo.apt.components if not c.endswith("/debian-installer")])
  #if $repo.comment != ""
 # ${repo.comment}
  #end if

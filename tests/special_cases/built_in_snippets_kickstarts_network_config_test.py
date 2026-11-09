@@ -9,6 +9,59 @@ import pytest
 from cobbler.api import CobblerAPI
 
 
+def test_pre_install_network_config_uses_nested_dns_name_servers(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: real blended data nests nameservers under ``dns.name_servers`` (see ``afa821b22``, which
+    moved every other network-config snippet off the flat, pre-``DNSOption``-refactor ``$name_servers`` key).
+    ``pre_install_network_config`` was missed by that migration and still referenced the flat key directly,
+    which raises a Cheetah ``NameMapper.NotFound`` (surfaced as a ``CX``) against real production data -- the
+    other tests in this file all construct an unrealistic flat ``"name_servers"`` context key that happens to
+    match the bug rather than real blended data, which is why they didn't catch this.
+    """
+    # Arrange
+    target_template = cobbler_api.find_template(
+        False, False, name="built-in-pre_install_network_config"
+    )
+    if target_template is None or isinstance(target_template, list):
+        pytest.fail("Target template not found!")
+    meta: Dict[str, Any] = {
+        "system_name": "test-static",
+        "interfaces": {
+            "eth0": {
+                "mac_address": "00:11:22:33:44:55",
+                "management": True,
+                "static": True,
+                "ipv4": {
+                    "address": "192.168.1.100",
+                    "netmask": "255.255.255.0",
+                    "static_routes": [],
+                },
+                "ipv6": {
+                    "address": "",
+                    "prefix": "",
+                    "default_gateway": "",
+                },
+                "if_gateway": "",
+                "interface_type": "na",
+                "interface_master": "",
+                "bonding_opts": "",
+                "bridge_opts": "",
+            }
+        },
+        "gateway": "192.168.1.1",
+        "hostname": "test-host",
+        "dns": {"name_servers": ["8.8.8.8", "8.8.4.4"]},
+    }
+
+    # Act
+    result = cobbler_api.templar.render(target_template.content, meta, None)
+
+    # Assert
+    assert "--nameserver=8.8.8.8,8.8.4.4" in result
+
+
 def test_pre_install_network_config_simple_static_ip(cobbler_api: CobblerAPI):
     """
     Test Case 1: Simple Static IP Configuration
@@ -65,7 +118,7 @@ def test_pre_install_network_config_simple_static_ip(cobbler_api: CobblerAPI):
         },
         "gateway": "192.168.1.1",
         "hostname": "test-host",
-        "name_servers": ["8.8.8.8", "8.8.4.4"],
+        "dns": {"name_servers": ["8.8.8.8", "8.8.4.4"]},
     }
 
     # Act
@@ -147,7 +200,7 @@ def test_pre_install_network_config_bridge(cobbler_api: CobblerAPI):
         },
         "gateway": "192.168.1.1",
         "hostname": "test-host",
-        "name_servers": ["8.8.8.8"],
+        "dns": {"name_servers": ["8.8.8.8"]},
         "os_version": "",
     }
 
@@ -259,7 +312,7 @@ def test_pre_install_network_config_bond(cobbler_api: CobblerAPI):
         },
         "gateway": "192.168.1.1",
         "hostname": "test-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "",
     }
 
@@ -331,7 +384,7 @@ def test_pre_install_network_config_vlan(cobbler_api: CobblerAPI):
         },
         "gateway": "192.168.1.1",
         "hostname": "test-vlan-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "",
     }
 
@@ -468,7 +521,7 @@ def test_pre_install_network_config_bonded_bridge_slave(cobbler_api: CobblerAPI)
         },
         "gateway": "192.168.1.1",
         "hostname": "test-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "",
     }
 
@@ -546,7 +599,7 @@ def test_pre_install_network_config_static_routes(cobbler_api: CobblerAPI):
         },
         "gateway": "192.168.1.1",
         "hostname": "test-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "",
     }
 
@@ -636,7 +689,7 @@ def test_pre_install_network_config_rhel8_bond_slave_workaround(
         },
         "gateway": "192.168.1.1",
         "hostname": "test-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "rhel8",  # Trigger RHEL8 specific code path
     }
 
@@ -697,7 +750,7 @@ def test_pre_install_network_config_dhcp_interface(cobbler_api: CobblerAPI):
         },
         "gateway": "",
         "hostname": "test-dhcp-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "",
     }
 
@@ -756,7 +809,7 @@ def test_pre_install_network_config_ipv6(cobbler_api: CobblerAPI):
         },
         "gateway": "192.168.1.1",
         "hostname": "test-ipv6-host",
-        "name_servers": [],
+        "dns": {"name_servers": []},
         "os_version": "",
     }
 

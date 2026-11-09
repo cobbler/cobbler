@@ -33,9 +33,12 @@ To create boot files per profile/system, the trigger uses the following metadata
       installed. To run a script, its filename is substituted into the answerfile template. Any valid Windows
       commands can be used in the script, but its usual purpose is to download and run the script for the profile
       from ``http://@@http_server@@/cblr/svc/op/autoinstall/profile/@@profile_name@@``, for this the script is
-      passed profile name as parameter . The post-installation script is created by a trigger from the
-      ``post_inst_cmd.template`` template  in the ``sources/$OEM$/$1`` distro directory only if it exists.
-      The Windows Installer copies the contents of  this directory to the target host during installation.
+      passed profile name as parameter. The post-installation script is created by a trigger from the
+      ``post_inst_cmd.template`` template in the distro's own ``images`` directory (alongside the answerfile) and
+      is downloaded over HTTP and run once by a ``FirstLogonCommands`` entry in the answerfile -- it is not placed
+      via Windows's own ``sources/$OEM$/$1`` copy-to-target mechanism, since that requires write access to the
+      distro's own source tree, which a ``managers.dynamic_httpd`` direct-source import (e.g. a loop-mounted ISO)
+      serves read-only.
     * any other key/value pairs that can be used in ``startnet.template``, ``answerfile.template``,
       ``post_inst_cmd.template`` templates
 """
@@ -80,9 +83,30 @@ if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
     from cobbler.items.distro import Distro
     from cobbler.items.template import Template
+    from cobbler.settings import Settings
 
 
 logger = logging.getLogger()
+
+
+def _resolve_boot_file(
+    settings: "Settings", distro: "Distro", filename: str, derived: bool
+) -> str:
+    """
+    Resolve a file inside a Windows distro's "boot/" directory for reading, at sync time.
+
+    ``derived`` files (bootmgr.exe/.efi, winpe.wim) are ones import_signatures.py's extract_winpe()/
+    extract_files_from_wim() wrote themselves, so for a direct_source distro they may live in the
+    overlay. Non-derived files (bcd, setupldr.exe) are original ISO-provided files Cobbler never
+    (re)writes, so they always come from the original tree, even for direct_source distros.
+    """
+    if distro.source_tree_path:
+        if derived:
+            return filesystem_helpers.resolve_distro_overlay_read_path(
+                distro.source_tree_path, os.path.join("boot", filename)
+            )
+        return os.path.join(distro.source_tree_path, "boot", filename)
+    return os.path.join(settings.webdir, "links", distro.name, "boot", filename)
 
 
 def register() -> Optional[str]:
@@ -404,11 +428,16 @@ def run(api: "CobblerAPI", args: Any):
         )
 
     def gen_win_files(distro: "Distro", meta: Dict[str, Any]):
-        boot_path = os.path.join(settings.webdir, "links", distro.name, "boot")
-        distro_path = distro.find_distro_path()
         distro_dir = wim_file_name = os.path.join(
             settings.tftpboot_location, "images", distro.name
         )
+        # Under the classic TFTP manager, write_boot_files() already creates this directory earlier
+        # in the same sync run, before this post-sync trigger fires. Under managers.dynamic_tftp,
+        # write_boot_files() is a no-op (TFTP content is served on demand instead of being
+        # materialized), so distro_dir is never created at all, and every write into it below
+        # (the answerfile, the patched bootmgr/loader, winpe.wim, etc.) would fail with
+        # FileNotFoundError. Ensure it exists regardless of which TFTP manager is active.
+        filesystem_helpers.mkdir(distro_dir)
         web_dir = os.path.join(settings.webdir, "images", distro.name)
         is_winpe = "winpe" in meta and meta["winpe"] != ""
         is_bcd = "bcd" in meta and meta["bcd"] != ""
@@ -420,7 +449,7 @@ def run(api: "CobblerAPI", args: Any):
         kernel_name = os.path.basename(kernel_name)
         is_wimboot = "wimboot" in kernel_name
 
-        if is_wimboot and "kernel" in meta and "wimboot" not in distro.kernel:
+        if is_wimboot and "kernel" in meta:
             tgen.copy_single_distro_file(
                 os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False
             )
@@ -429,23 +458,20 @@ def run(api: "CobblerAPI", args: Any):
             )
 
         if "post_install_script" in meta:
-            post_install_dir = distro_path
-
-            if distro.os_version not in ("xp", "2003"):
-                post_install_dir = os.path.join(post_install_dir, "sources")
-
-            post_install_dir = os.path.join(post_install_dir, "$OEM$", "$1")
-
-            if not os.path.exists(post_install_dir):
-                filesystem_helpers.mkdir(post_install_dir)
-
+            # Previously written into distro_path/[sources/]$OEM$/$1 so Windows's own
+            # pre-first-logon $OEM$ copy mechanism would place it at C:\. That mechanism requires
+            # the file to live inside the distro's own source tree, which direct_source
+            # (managers.dynamic_httpd) imports serve read-only (e.g. a loop-mounted ISO) -- writing
+            # there always failed. The answerfile's FirstLogonCommands now downloads this file over
+            # HTTP instead of relying on $OEM$ to have copied it (see answerfile.template), so it can
+            # be written to the same already-writable location as every other sync-generated Windows
+            # file (distro_dir/web_dir), with no distro-tree write at all.
             data = templ.render(windows_post_inst_cmd_template.content, meta, None)
-            post_install_script = os.path.join(
-                post_install_dir, meta["post_install_script"]
-            )
+            post_install_script = os.path.join(distro_dir, meta["post_install_script"])
             logger.info("Build post install script: %s", post_install_script)
             with open(post_install_script, "w", encoding="UTF-8") as pi_file:
                 pi_file.write(data)
+            tgen.copy_single_distro_file(post_install_script, web_dir, False)
 
         if "answerfile" in meta:
             data = templ.render(windows_answerfile_template.content, meta, None)
@@ -461,10 +487,12 @@ def run(api: "CobblerAPI", args: Any):
             if ".efi" in meta["bootmgr"]:
                 bootmgr = "bootmgr.efi"
             wl_file_name = os.path.join(distro_dir, meta["bootmgr"])
-            tl_file_name = os.path.join(boot_path, bootmgr)
+            tl_file_name = _resolve_boot_file(settings, distro, bootmgr, derived=True)
 
             if distro.os_version in ("xp", "2003") and not is_winpe:
-                tl_file_name = os.path.join(boot_path, "setupldr.exe")
+                tl_file_name = _resolve_boot_file(
+                    settings, distro, "setupldr.exe", derived=False
+                )
 
                 if len(meta["bootmgr"]) != 5:
                     logger.error("The loader name should be EXACTLY 5 character")
@@ -544,7 +572,7 @@ def run(api: "CobblerAPI", args: Any):
                     tgen.copy_single_distro_file(wk_file_name, web_dir, True)
 
         if is_bcd:
-            obcd_file_name = os.path.join(boot_path, "bcd")
+            obcd_file_name = _resolve_boot_file(settings, distro, "bcd", derived=False)
             bcd_file_name = os.path.join(distro_dir, meta["bcd"])
             wim_file_name = "winpe.wim"
 
@@ -572,7 +600,9 @@ def run(api: "CobblerAPI", args: Any):
 
         if is_winpe:
             ps_file_name = os.path.join(distro_dir, meta["winpe"])
-            wim_pl_name = os.path.join(boot_path, "winpe.wim")
+            wim_pl_name = _resolve_boot_file(
+                settings, distro, "winpe.wim", derived=True
+            )
 
             cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
             utils.subprocess_call(cmd, shell=False)

@@ -10,6 +10,7 @@ Initial support for rsync, perhaps reposync coming later.
 import logging
 import os
 import os.path
+import re
 import shlex
 import shutil
 import stat
@@ -281,7 +282,11 @@ class RepoSync:
                             "--queryformat=%{VERSION}",
                             "createrepo",
                         ]
-                        createrepo_ver = utils.subprocess_get(cmd, shell=False)
+                        # Expected to fail on hosts that only ship createrepo_c; that's the normal
+                        # trigger for the fallback query below, not an operational error.
+                        createrepo_ver = utils.subprocess_get(
+                            cmd, shell=False, log_stderr_as_error=False
+                        )
                         if not createrepo_ver[0:1].isdigit():
                             cmd = [
                                 "/usr/bin/rpmquery",
@@ -721,6 +726,12 @@ class RepoSync:
             mirror = mirror[idx:]
 
             dists = ",".join(repo.apt.dists)
+            # repo.mirror for the "debian" breed already includes a trailing
+            # "/dists/<suite>" (see import_signatures.py's apt_repo_adder()), but
+            # debmirror's --root expects the archive root *without* that suffix since
+            # it appends "dists/<dist>" itself from --dist. Strip it if present so the
+            # resulting URL isn't doubled (e.g. ".../dists/trixie/dists/trixie/Release").
+            mirror = re.sub(r"/dists/[^/]+/?$", "", mirror) or "/"
             components = ",".join(repo.apt.components)
 
             mirror_data = [

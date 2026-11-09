@@ -1300,7 +1300,7 @@ class TFTPGen:
         metadata["kernel_options"] = kernel_options
 
         if "initrd_path" in metadata:
-            append_line = f"append initrd={metadata['initrd_path']}"
+            append_line = f"append initrd={metadata['initrd_path']} "
         else:
             append_line = "append "
         # TODO if cloud-init then add nocloud-net to kernel options
@@ -1663,9 +1663,28 @@ class TFTPGen:
                     # cloud-init's NoCloud datasource builds its meta-data/user-data/vendor-data requests by
                     # concatenating this seed URL directly with the file name (no separator inserted), and requires
                     # it to end in a slash: https://docs.cloud-init.io/en/latest/reference/datasources/nocloud.html
+                    # "nocloud-net" (not plain "nocloud") is required for an HTTP(S) seed URL: "nocloud" is only
+                    # scanned during cloud-init's pre-network "local" datasource stage, before PXE/DHCP networking
+                    # is up, so a plain "nocloud" seed is never actually fetched and the installer silently falls
+                    # back to interactive mode instead of autoinstalling.
                     append_line.append_key_value(
-                        "ds", f"nocloud;s={autoinstall_path}/subfile/"
+                        "ds", f"nocloud-net;s={autoinstall_path}/subfile/"
                     )
+                    if distro.remote_boot_iso:
+                        # casper (the live-filesystem netboot loader used by every Ubuntu
+                        # live-server/Subiquity release since "noble"/24.04) needs its own set of kernel
+                        # parameters to locate and boot the live squashfs over the network -- cloud-init's
+                        # "ds=" above only configures the autoinstall data source, it does nothing for
+                        # casper itself. Without these, casper falls back to an interactive "Unable to
+                        # find a medium containing a live file system... Attempt interactive netboot from
+                        # a URL?" prompt. Only emitted when remote_boot_iso is set, since without a known
+                        # ISO URL a "url=" pointing nowhere would just be a different way of hanging.
+                        append_line.append_key_value("url", distro.remote_boot_iso)
+                        append_line.append_key_value("ip", "dhcp")
+                        append_line.append_key_value("root", "/dev/ram0")
+                        append_line.append_key_value("ramdisk_size", "3400000")
+                        append_line.append_key_value("cloud-config-url", "/dev/null")
+                        append_line.append_key("autoinstall")
                 elif enums.AutoinstallerType.PRESEED.value in autoinstall_tags:
                     append_line.append_key_value("auto-install/enable", "true")
                     append_line.append_key_value("priority", "critical")
@@ -2080,6 +2099,14 @@ class TFTPGen:
             blended["img_path"] = os.path.join("/images", distro.name)  # type: ignore
 
         search_result = self.api.find_template(False, False, name=script_name)
+        if search_result is None:
+            # All built-in templates are registered with a "built-in-" prefix
+            # (see cobbler.templates.__init__), but callers (e.g. the "d-i
+            # preseed/early_command"/"late_command" "?script=" directives) request
+            # them by their bare name. Retry with the prefix before giving up.
+            search_result = self.api.find_template(
+                False, False, name=f"built-in-{script_name}"
+            )
         if search_result is None or isinstance(search_result, list):
             return f'# script template "{script_name}" not found'
 
@@ -2143,7 +2170,7 @@ class TFTPGen:
                 )
                 initrd_path = f"{loaders_path}{os.path.basename(initrd_path)}"
             else:
-                (loaders_path, _) = os.path.split(kernel_path)
+                loaders_path, _ = os.path.split(kernel_path)
                 loaders_path += "/"
 
             bootmgr_path = bcd_path = wim_path = loaders_path

@@ -35,6 +35,18 @@ Installation Quickstart guide
             writeable = no
             printable = no
 
+  Cobbler creates a ``/var/www/cobbler/links/<name>`` symlink to the distro's source tree for every
+  Windows import, which ``startnet.template``/``answerfile.template`` reach as
+  ``\\<server>\DISTRO\links\<name>\...`` -- setup.exe/winnt32.exe and the answerfile's Samba-UNC
+  references read straight through this raw Samba share with zero Cobbler code involved, so this is
+  the one case Cobbler creates a real filesystem entry even for a ``managers.dynamic_httpd``
+  direct-source import (a local, writable ``--path`` with no ``--network-root``, scanned in place
+  instead of copied, e.g. a loop-mounted ISO) -- it lives entirely inside ``webdir``, a directory
+  Cobbler already owns, and is one fixed-size symlink regardless of the import's size, so it doesn't
+  conflict with that import mode's reason for existing (avoiding the file I/O of a full copy).
+  Cobbler still does not manage Samba itself (the share definition above remains a manual
+  prerequisite in either import mode).
+
 * import the Windows distro:
 
 .. code:: shell

@@ -1,6 +1,18 @@
 """
 This module represents the Cobbler Python API. It is used by the XML-RPC API and can be used by external consumers.
 
+.. warning::
+   Instantiating :class:`CobblerAPI` directly (e.g. from a standalone script run while ``cobblerd`` is already
+   running) starts a completely separate process with its own, independently-loaded in-memory collections. It is
+   not the same process as ``cobblerd`` and the two do **not** share state. Changes made this way (``add_*``,
+   ``save``, etc.) are correctly written to the on-disk JSON files, but ``cobblerd`` has no mechanism to notice
+   out-of-band disk changes or to reload its collections on its own -- it only (re-)reads them from disk once, at
+   process startup. Any add/edit made via a standalone ``CobblerAPI()`` while ``cobblerd`` is already running will
+   therefore be invisible to the live XML-RPC API (and everything built on it, e.g. ``cobbler`` CLI reports) until
+   ``cobblerd`` itself is restarted. If an external script's changes need to be visible immediately, make them
+   through ``cobblerd``'s own XML-RPC API instead (it serves requests from its own live memory), or restart
+   ``cobblerd`` afterward.
+
 Changelog:
 
 Schema: From -> To
@@ -231,6 +243,11 @@ class CobblerAPI:
         Constructor. Since :class:`CobblerAPI` is a singleton, the actual initialization logic below only runs once
         per process; subsequent calls just reuse the already-initialized shared state.
 
+        .. warning::
+           This loads collections fresh from disk into a new, process-local singleton. If ``cobblerd`` is already
+           running elsewhere, this is a second, independent in-memory copy -- see the module-level warning on
+           :mod:`cobbler.api` before using this from a standalone script while ``cobblerd`` is up.
+
         :param is_cobblerd: Whether this API is run as a daemon or not.
         :param settingsfile_location: The location of the settings file on the disk.
         :param execute_settings_automigration: Whether to automatically migrate the settings file to the current
@@ -309,6 +326,7 @@ class CobblerAPI:
             pathlib.Path("/etc/cobbler"),
             pathlib.Path(self.settings().webdir),
             pathlib.Path(self.settings().tftpboot_location),
+            pathlib.Path(filesystem_helpers.DISTRO_OVERLAY_DIR),
         ]
         for directory in required_directories:
             if not directory.is_dir():
@@ -532,6 +550,13 @@ class CobblerAPI:
         # self.log("get_items", [what], debug=True)
         items = self._collection_mgr.get_items(what)
         return items
+
+    def get_collection_load_errors(self) -> "List[Dict[str, Any]]":
+        """
+        Return every item that failed to load from disk during startup deserialization, across all
+        collections. See :meth:`cobbler.cobbler_collections.manager.CollectionManager.get_load_errors`.
+        """
+        return self._collection_mgr.get_load_errors()
 
     def distros(self) -> "Distros":
         """
@@ -922,7 +947,7 @@ class CobblerAPI:
         """
         to_delete: Optional["BaseItem"] = None
         if isinstance(ref, str):
-            to_delete = self.get_item(what, ref)
+            to_delete = self.get_items(what).find(uid=ref)  # type: ignore
             if to_delete is None:
                 return  # nothing to remove
         else:
@@ -1374,8 +1399,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty Distro object.
         """
-        self.log("new_distro", kwargs)
-        return distro.Distro(self, is_subobject, **kwargs)
+        new_obj = distro.Distro(self, is_subobject, **kwargs)
+        self.log("new_distro", [new_obj.uid])
+        return new_obj
 
     def new_profile(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1387,8 +1413,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty Profile object.
         """
-        self.log("new_profile", kwargs)
-        return profile_module.Profile(self, is_subobject, **kwargs)
+        new_obj = profile_module.Profile(self, is_subobject, **kwargs)
+        self.log("new_profile", [new_obj.uid])
+        return new_obj
 
     def new_system(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1400,8 +1427,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty System object.
         """
-        self.log("new_system", kwargs)
-        return system_module.System(self, is_subobject, **kwargs)
+        new_obj = system_module.System(self, is_subobject, **kwargs)
+        self.log("new_system", [new_obj.uid])
+        return new_obj
 
     def new_repo(self, is_subobject: bool = False, **kwargs: Any) -> "repo.Repo":
         """
@@ -1411,8 +1439,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty repo object.
         """
-        self.log("new_repo", kwargs)
-        return repo.Repo(self, is_subobject, **kwargs)
+        new_obj = repo.Repo(self, is_subobject, **kwargs)
+        self.log("new_repo", [new_obj.uid])
+        return new_obj
 
     def new_image(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1424,8 +1453,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty image object.
         """
-        self.log("new_image", kwargs)
-        return image_module.Image(self, is_subobject, **kwargs)
+        new_obj = image_module.Image(self, is_subobject, **kwargs)
+        self.log("new_image", [new_obj.uid])
+        return new_obj
 
     def new_menu(self, is_subobject: bool = False, **kwargs: Any) -> "menu.Menu":
         """
@@ -1435,8 +1465,9 @@ class CobblerAPI:
         :param is_subobject: If the object created is a subobject or not.
         :return: An empty Menu object.
         """
-        self.log("new_menu", kwargs)
-        return menu.Menu(self, is_subobject, **kwargs)
+        new_obj = menu.Menu(self, is_subobject, **kwargs)
+        self.log("new_menu", [new_obj.uid])
+        return new_obj
 
     def new_network_interface(
         self, **kwargs: Any
@@ -1447,8 +1478,9 @@ class CobblerAPI:
 
         :return: An empty Network Interface object.
         """
-        self.log("new_network_interface", kwargs)
-        return network_interface.NetworkInterface(self, **kwargs)
+        new_obj = network_interface.NetworkInterface(self, **kwargs)
+        self.log("new_network_interface", [new_obj.uid])
+        return new_obj
 
     def new_template(self, **kwargs: Any) -> "template.Template":
         """
@@ -1457,8 +1489,9 @@ class CobblerAPI:
 
         :return: An empty Template object.
         """
-        self.log("new_template", kwargs)
-        return template.Template(self, **kwargs)
+        new_obj = template.Template(self, **kwargs)
+        self.log("new_template", [new_obj.uid])
+        return new_obj
 
     def new_distro_group(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1470,8 +1503,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty DistroGroup object.
         """
-        self.log("new_distro_group", kwargs)
-        return distro_group.DistroGroup(self, is_subobject, **kwargs)
+        new_obj = distro_group.DistroGroup(self, is_subobject, **kwargs)
+        self.log("new_distro_group", [new_obj.uid])
+        return new_obj
 
     def new_profile_group(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1483,8 +1517,9 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty ProfileGroup object.
         """
-        self.log("new_profile_group", kwargs)
-        return profile_group.ProfileGroup(self, is_subobject, **kwargs)
+        new_obj = profile_group.ProfileGroup(self, is_subobject, **kwargs)
+        self.log("new_profile_group", [new_obj.uid])
+        return new_obj
 
     def new_system_group(
         self, is_subobject: bool = False, **kwargs: Any
@@ -1496,17 +1531,28 @@ class CobblerAPI:
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: An empty SystemGroup object.
         """
-        self.log("new_system_group", kwargs)
-        return system_group.SystemGroup(self, is_subobject, **kwargs)
+        new_obj = system_group.SystemGroup(self, is_subobject, **kwargs)
+        self.log("new_system_group", [new_obj.uid])
+        return new_obj
 
     # ==========================================================================
     def add_remove_items(self, items: List["TransactionTuple"]) -> None:
         """
-        Add or remove multiple items.
+        Add or remove multiple items, as a single all-or-nothing transaction: if any item in the
+        batch fails, every item already applied earlier in the very same call is rolled back
+        before the error propagates, so a partial commit never leaves the collections (and their
+        on-disk serialization) in a half-applied state.
+
         1. Checks for external modifications using mtime
         2. Processes deletions first (deepest dependencies first)
         3. Processes additions and modifications
-        4. Rebuilds the PXE configuration
+        4. Rebuilds the PXE configuration (only once every change above has succeeded)
+
+        Note: rolling back an add/remove undoes its effect on the collection (in-memory listing,
+        indexes, and on-disk JSON) and re-runs it with ``with_triggers=False``. It cannot undo the
+        external side effects of trigger scripts that already ran for an item applied earlier in
+        the batch (e.g. a script that already sent a notification) - exactly like a database
+        transaction rollback cannot undo an external call a trigger already made.
 
         :param items: The list of items.
         """
@@ -1526,43 +1572,116 @@ class CobblerAPI:
         to_remove = [i for i in items if i[2]]
         to_add = [i for i in items if not i[2]]
 
-        to_remove.sort(key=lambda x: -x[1].depth)
-        to_add.sort(key=lambda x: x[1].depth)
+        # Plain BaseItem subtypes (e.g. Template, NetworkInterface) have no concept of
+        # depth/parent-child ordering and are always leaves in TYPE_DEPENDENCIES (nothing is ever
+        # a dependent *of* them), so defaulting them to depth 0 - the same priority as a Distro -
+        # is wrong: a System (depth 2) depends on its NetworkInterface, so the interface must be
+        # removed before the system, not alongside/after the shallowest InheritableItem types.
+        # Since they can only ever be a dependency's target, never a dependency itself, it is
+        # always correct to remove them before anything else, and add them after everything else.
+        _LEAF_SORT_DEPTH = 2**31
+        to_remove.sort(key=lambda x: -getattr(x[1], "depth", _LEAF_SORT_DEPTH))
+        to_add.sort(key=lambda x: getattr(x[1], "depth", _LEAF_SORT_DEPTH))
 
-        for what, ref, _, _, _, _ in to_add:
-            self.log(f"add_item({what})", [ref.uid])
-            self.get_items(what).add(
-                ref,  # type: ignore
-                check_for_duplicate_names=False,
-                save=True,
-                with_sync=False,
-                with_triggers=True,
-                rebuild_menu=False,
-            )
+        # Undo stack for everything actually applied below, so a failure partway through can
+        # revert it. Each entry is ("add", what, ref) or ("remove", what, snapshot-dict). Reversing
+        # this stack naturally undoes adds deepest-first and restores removes shallowest-first,
+        # which - because to_add/to_remove are already depth-ordered - respects dependency order
+        # without any extra bookkeeping (see the sort comment above).
+        applied: List[Tuple[str, str, Any]] = []
 
-        for what, ref, _, _, _, item_changelog in to_add:
-            ref.in_transaction = False
-            for item in item_changelog:
-                self.get_items(what).update_index_value(
-                    ref, ".".join(item.attribute), item.old_value, item.new_value
+        def _rollback() -> None:
+            rollback_errors: List[str] = []
+            for kind, what, payload in reversed(applied):
+                try:
+                    if kind == "add":
+                        self.get_items(what).remove(
+                            payload,
+                            recursive=False,
+                            with_delete=True,
+                            with_sync=False,
+                            with_triggers=False,
+                            rebuild_menu=False,
+                        )
+                    else:
+                        restored = self.get_items(what).factory_produce(self, payload)
+                        self.get_items(what).add(
+                            restored,
+                            check_for_duplicate_names=False,
+                            save=True,
+                            with_sync=False,
+                            with_triggers=False,
+                            rebuild_menu=False,
+                        )
+                except Exception as rollback_exc:  # pylint: disable=broad-except
+                    rollback_errors.append(f"{kind} {what}: {rollback_exc}")
+            if rollback_errors:
+                self.logger.critical(
+                    "add_remove_items: rollback of a failed transaction could not fully undo "
+                    "every change, manual intervention needed: %s",
+                    "; ".join(rollback_errors),
                 )
 
-        for what, ref, _, _, _, _ in to_remove:
-            self.get_items(what).remove(
-                ref,
-                recursive=False,
-                with_delete=True,
-                with_sync=False,
-                with_triggers=True,
-                rebuild_menu=False,
-            )
+        try:
+            for what, ref, _, _, base_id, _ in to_add:
+                self.log(f"add_item({what})", [ref.uid])
+                # base_id set means this "add" actually replaces an already-persisted object
+                # (Collection.add() just overwrites self.listing[ref.uid] in place) - a plain
+                # modification, not a brand new item. Snapshot the pre-modification object so a
+                # rollback can restore it, instead of deleting a pre-existing object outright.
+                original_snapshot = None
+                if base_id:
+                    orig_ref = self.get_items(what).find(return_list=False, uid=base_id)
+                    if orig_ref is not None and not isinstance(orig_ref, list):
+                        original_snapshot = orig_ref.to_dict()
+                self.get_items(what).add(
+                    ref,  # type: ignore
+                    check_for_duplicate_names=False,
+                    save=True,
+                    with_sync=False,
+                    with_triggers=True,
+                    rebuild_menu=False,
+                )
+                if original_snapshot is not None:
+                    applied.append(("modify", what, original_snapshot))
+                else:
+                    applied.append(("add", what, ref))
+
+            for what, ref, _, _, _, item_changelog in to_add:
+                ref.in_transaction = False
+                for item in item_changelog:
+                    self.get_items(what).update_index_value(
+                        ref, ".".join(item.attribute), item.old_value, item.new_value
+                    )
+
+            # remove_quick_pxe_sync (e.g. the ISC DHCP manager's remove_single_system) resolves
+            # each item's conceptual parent chain (system -> profile -> distro) live via the
+            # collections. That only works while the rest of the chain is still present, so each
+            # item's cleanup must run immediately after *that* item's own removal, not in a
+            # separate pass after every item in the whole batch has already been removed --
+            # otherwise, by the time a system's cleanup runs, its profile (removed earlier in
+            # to_remove's depth-descending order) is already gone, and get_conceptual_parent()
+            # returns None instead of the profile.
+            for what, ref, _, _, _, _ in to_remove:
+                snapshot = ref.to_dict()
+                self.get_items(what).remove(
+                    ref,
+                    recursive=False,
+                    with_delete=True,
+                    with_sync=False,
+                    with_triggers=True,
+                    rebuild_menu=False,
+                )
+                self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
+                applied.append(("remove", what, snapshot))
+        except Exception:
+            _rollback()
+            raise
 
         # Now update all on-disk configuration because the caches are valid again
         self.log("Executing Cobbler sync for transaction commit")
         for what, ref, _, _, _, _ in to_add:
             self.get_items(what).add_quick_pxe_sync(ref, rebuild_menu=False)
-        for what, ref, _, _, _, _ in to_remove:
-            self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
         self.tftpgen.make_pxe_menu()
 
     def add_item(
@@ -3192,6 +3311,12 @@ class CobblerAPI:
         system_patterns: str = "",
         repo_patterns: str = "",
         image_patterns: str = "",
+        menu_patterns: str = "",
+        template_patterns: str = "",
+        network_interface_patterns: str = "",
+        distro_group_patterns: str = "",
+        profile_group_patterns: str = "",
+        system_group_patterns: str = "",
         prune: bool = False,
         omit_data: bool = False,
         sync_all: bool = False,
@@ -3207,6 +3332,12 @@ class CobblerAPI:
         :param system_patterns: The pattern of systems which should be synced.
         :param repo_patterns: The pattern of repositories which should be synced.
         :param image_patterns: The pattern of images which should be synced.
+        :param menu_patterns: The pattern of menus which should be synced.
+        :param template_patterns: The pattern of (non built-in) templates which should be synced.
+        :param network_interface_patterns: The pattern of network interfaces which should be synced.
+        :param distro_group_patterns: The pattern of distro groups which should be synced.
+        :param profile_group_patterns: The pattern of profile groups which should be synced.
+        :param system_group_patterns: The pattern of system groups which should be synced.
         :param prune: Whether the object not on the master should be removed or not.
         :param omit_data: If the data downloaded by the current Cobbler server should be rsynced to the destination
                           server.
@@ -3223,6 +3354,12 @@ class CobblerAPI:
             system_patterns=system_patterns,
             repo_patterns=repo_patterns,
             image_patterns=image_patterns,
+            menu_patterns=menu_patterns,
+            template_patterns=template_patterns,
+            network_interface_patterns=network_interface_patterns,
+            distro_group_patterns=distro_group_patterns,
+            profile_group_patterns=profile_group_patterns,
+            system_group_patterns=system_group_patterns,
             prune=prune,
             omit_data=omit_data,
             sync_all=sync_all,

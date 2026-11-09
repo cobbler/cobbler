@@ -56,7 +56,7 @@ def remove_repo(cobbler_api: CobblerAPI):
     yield
     test_repo = cobbler_api.find_repo(name="testrepo0")
     if test_repo is not None and not isinstance(test_repo, list):
-        cobbler_api.remove_repo(test_repo.name)
+        cobbler_api.remove_repo(test_repo.uid)
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -200,6 +200,50 @@ def test_run_single_repo_nofail_reports_overall_failure(
     # Act & Assert
     with pytest.raises(cexceptions.CX, match="overall reposync failed"):
         reposync_object.run(repo)
+
+
+def test_createrepo_walker_prestodelta_createrepo_probe_does_not_log_stderr_as_error(
+    mocker: "MockerFixture",
+    reposync_object: reposync.RepoSync,
+    repo: Repo,
+    tmp_path: Path,
+):
+    """
+    Regression test: the rpmquery probe for "createrepo" is expected to fail on hosts that only ship
+    "createrepo_c" (triggering the fallback query below it) -- that is normal control flow, not an
+    operational error, and must not be logged at ERROR level. The fallback "createrepo_c" query, by
+    contrast, is a genuine problem if it also fails, and must keep the default ERROR-level logging.
+    """
+    # Arrange
+    dirname = str(tmp_path)
+    mocker.patch("os.path.exists", return_value=True)
+    mocker.patch("cobbler.actions.reposync.utils.remove_yum_olddata")
+    mocker.patch("os.path.isfile", return_value=True)
+    mocker.patch.object(
+        reposync_object,
+        "librepo_getinfo",
+        return_value={"prestodelta": {}},
+    )
+    mocker.patch("cobbler.actions.reposync.utils.get_family", return_value="redhat")
+    subprocess_get_mock = mocker.patch(
+        "cobbler.actions.reposync.utils.subprocess_get",
+        side_effect=["package createrepo is not installed", "0.15.11"],
+    )
+    mocker.patch(
+        "cobbler.actions.reposync.utils.compare_versions_gt", return_value=True
+    )
+    mocker.patch("cobbler.actions.reposync.utils.blender", return_value={})
+    mocker.patch("cobbler.actions.reposync.utils.subprocess_call", return_value=0)
+    fnames: List[str] = []
+
+    # Act
+    reposync_object.createrepo_walker(repo, dirname, fnames)
+
+    # Assert
+    probe_call_kwargs = subprocess_get_mock.call_args_list[0].kwargs
+    assert probe_call_kwargs.get("log_stderr_as_error") is False
+    fallback_call_kwargs = subprocess_get_mock.call_args_list[1].kwargs
+    assert fallback_call_kwargs.get("log_stderr_as_error", True) is True
 
 
 def test_gen_urlgrab_ssl_opts(reposync_object: reposync.RepoSync):
@@ -385,6 +429,57 @@ def test_reposync_apt(
             ],
             shell=False,
         )
+
+
+def test_reposync_apt_strips_dists_suffix_from_mirror(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    repo: Repo,
+    reposync_object: reposync.RepoSync,
+):
+    """
+    ``import_signatures.py``'s ``apt_repo_adder()`` sets ``repo.mirror`` for the "debian"
+    breed to a URL that already ends in ``/dists/<suite>`` (e.g.
+    ``http://ftp.us.debian.org/debian/dists/trixie``), unlike the "ubuntu" breed's bare
+    archive root. ``apt_sync()`` must strip that suffix before building debmirror's
+    ``--root``, since debmirror appends ``dists/<dist>`` itself via ``--dist`` - otherwise
+    the resulting URL is doubled (``.../dists/trixie/dists/trixie/Release``) and every
+    download 404s.
+    """
+    # Arrange
+    test_repo = repo
+    test_repo.breed = enums.RepoBreeds.APT
+    test_repo.arch = enums.RepoArchs.X86_64
+    test_repo.apt.components = ["main"]
+    test_repo.apt.dists = ["trixie"]
+    test_repo.mirror = "http://ftp.us.debian.org/debian/dists/trixie"
+    test_repo.mirror_type = enums.MirrorType.BASEURL
+    test_settings = cobbler_api.settings()
+    repo_path = os.path.join(test_settings.webdir, "repo_mirror", test_repo.name)
+    mocked_subprocess = mocker.patch(
+        "cobbler.utils.subprocess_call", autospec=True, return_value=0
+    )
+    mocker.patch("os.path.exists", return_value=True)
+
+    # Act
+    reposync_object.apt_sync(test_repo)
+
+    # Assert
+    mocked_subprocess.assert_called_with(
+        [
+            "/usr/bin/debmirror",
+            "--nocleanup",
+            "--method=http",
+            "--host=ftp.us.debian.org",
+            "--root=/debian",
+            "--dist=trixie",
+            "--section=main",
+            repo_path,
+            "--nosource",
+            "-a=amd64",
+        ],
+        shell=False,
+    )
 
 
 @pytest.mark.parametrize(

@@ -66,7 +66,7 @@ class CobblerTree:
             if isinstance(repo, list) or repo is None:
                 raise ValueError("Could not find the test repo that was just created.")
             test_item = create_distro(f"test_distro_{i}", False)
-            test_item.source_repos = [repo.uid]
+            test_item.source_repos = [(repo.uid, repo.uid)]
             api.distros().add(
                 test_item, save=save, with_triggers=with_triggers, with_sync=with_sync
             )

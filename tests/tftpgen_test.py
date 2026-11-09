@@ -7,6 +7,7 @@ import os
 import pathlib
 import shutil
 import socket
+import subprocess
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 from unittest.mock import PropertyMock
 
@@ -663,7 +664,7 @@ def test_build_kernel_options_system(
             "ubuntu",
             "lunar",
             "built-in-user-data",
-            "ds='nocloud;s=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-user-data/subfile/' hostname=test_build_kernel_options_autoinstall domain=local.lan suite=lunar",
+            "ds='nocloud-net;s=http://192.168.1.1/cblr/svc/op/autoinstall/system/test_build_kernel_options_autoinstall/file/built-in-user-data/subfile/' hostname=test_build_kernel_options_autoinstall domain=local.lan suite=lunar",
         ),
         (
             "freebsd",
@@ -727,6 +728,132 @@ def test_build_kernel_options_autoinstall(
 
     # Assert
     assert result == expected_result
+
+
+def test_build_kernel_options_casper_live_server_with_remote_boot_iso(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for the casper/Subiquity live-netboot kernel parameters (ledger 1.7): a casper-breed
+    (Ubuntu live-server/Subiquity, detected the same way as the "nocloud-net" fix -- breed "ubuntu" plus a
+    cloud-init autoinstall template) distro with ``remote_boot_iso`` set must emit the full set of kernel
+    parameters casper needs to locate and boot its live squashfs over the network, in addition to cloud-init's
+    own "ds=" datasource parameter.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "ubuntu"
+    test_distro.os_version = "noble"
+    test_distro.remote_boot_iso = (
+        "http://192.168.1.1/cblr/links/ubuntu26-casper-amd64/custom-iso/"
+        "ubuntu-26.04.1-live-server-amd64.iso"
+    )
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-user-data"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert (
+        "url=http://192.168.1.1/cblr/links/ubuntu26-casper-amd64/custom-iso/"
+        "ubuntu-26.04.1-live-server-amd64.iso" in result
+    )
+    assert "ip=dhcp" in result
+    assert "root=/dev/ram0" in result
+    assert "ramdisk_size=3400000" in result
+    assert "cloud-config-url=/dev/null" in result
+    assert "autoinstall" in result.split()
+    # The pre-existing cloud-init datasource parameter must still be present.
+    assert "ds='nocloud-net;s=" in result
+
+
+def test_write_pxe_file_space_between_initrd_and_kernel_options(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test: write_pxe_file() built the "append" line as
+    f"append initrd={path}" directly concatenated with the rendered kernel options string, with no
+    separating space. Since the kernel options string itself has no leading space (its builder
+    strips it), this produced a single run-on PXELINUX token, e.g.
+    "initrd=/images/x/initrdds='nocloud-net;...'" -- which fails to load as a filename and hangs
+    the PXE boot at "Loading initial ramdisk ...".
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "ubuntu"
+    test_distro.os_version = "noble"
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-user-data"  # type: ignore
+    test_system.netboot_enabled = True
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.write_pxe_file(
+        None,
+        test_system,
+        test_profile,
+        test_distro,
+        enums.Archs.X86_64,
+        bootloader_format=enums.BootLoader.PXE,
+    )
+
+    # Assert
+    append_line = next(line for line in result.splitlines() if "append initrd=" in line)
+    initrd_token = append_line.split()[1]
+    assert initrd_token.startswith("initrd=")
+    assert "ds=" not in initrd_token
+
+
+def test_build_kernel_options_casper_live_server_without_remote_boot_iso(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Any,
+):
+    """
+    Regression test for ledger 1.7: a casper-breed distro imported from a plain directory tree (not a traceable
+    ISO) has no ``remote_boot_iso`` set. In that case cobbler must not emit a broken/empty "url=" (or any of the
+    other casper-specific parameters, since without "url=" they wouldn't help casper find its live squashfs
+    anyway) -- it should fall back to the pre-existing cloud-init-only behavior.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_distro.breed = "ubuntu"
+    test_distro.os_version = "noble"
+    assert test_distro.remote_boot_iso == ""
+    test_profile = create_profile(test_distro.uid)
+    test_system: System = create_system(profile_uid=test_profile.uid)
+    test_system.autoinstall = "built-in-user-data"  # type: ignore
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.build_kernel_options(
+        test_system, None, test_distro, None, enums.Archs.X86_64
+    )
+
+    # Assert
+    assert "url=" not in result
+    assert "ip=dhcp" not in result
+    assert "root=/dev/ram0" not in result
+    assert "ramdisk_size=" not in result
+    assert "cloud-config-url=" not in result
+    # "autoinstall" itself legitimately appears as a URL path segment (.../op/autoinstall/system/...) in the
+    # unrelated cloud-init "ds=" parameter, so check for the bare casper flag as its own whitespace-delimited
+    # token rather than as a plain substring.
+    assert "autoinstall" not in result.split()
+    assert "ds='nocloud-net;s=" in result
 
 
 def test_build_kernel_options_convert_server_to_ip_disabled(
@@ -976,7 +1103,133 @@ def test_generate_script(
     # Assert
     assert isinstance(result, mocker.MagicMock)
     test_gen.api.templar.render.assert_called_with(  # type: ignore
-        expected_template, {"img_path": f"/images/{test_distro.name}"}, None
+        expected_template,
+        {
+            "img_path": f"/images/{test_distro.name}",
+        },
+        None,
+    )
+
+
+def test_generate_script_resolves_builtin_template_by_bare_name(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that a built-in script template can be resolved by its bare, unprefixed
+    name (e.g. "preseed_early_default"), which is the name every real caller
+    (the "d-i preseed/early_command"/"late_command" "?script=" directives) actually
+    uses. Without the "built-in-" prefix fallback, this lookup previously failed
+    and silently fell back to the "not found" stub.
+    """
+    # Arrange
+    expected_template = "# Start preseed_early_default\n"
+    expected_template += "# This script is not run in the chroot /target by default\n"
+    expected_template += "$SNIPPET('built-in-autoinstall_start')\n"
+    expected_template += "$SNIPPET('built-in-save_boot_device')\n"
+    expected_template += "# End preseed_early_default\n"
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    mocker.patch("cobbler.utils.blender", return_value={})
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
+
+    # Act
+    result = test_gen.generate_script(
+        profile=test_profile, script_name="preseed_early_default"
+    )
+
+    # Assert
+    assert isinstance(result, mocker.MagicMock)
+    test_gen.api.templar.render.assert_called_with(  # type: ignore
+        expected_template,
+        {
+            "img_path": f"/images/{test_distro.name}",
+        },
+        None,
+    )
+
+
+def test_generate_script_unknown_name_returns_not_found_stub(
+    mocker: "MockerFixture",
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+):
+    """
+    Test that a script name matching neither a bare nor a "built-in-" prefixed
+    template still correctly falls back to the "not found" stub, i.e. the
+    "built-in-" fallback lookup must not make every lookup succeed.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+    mocker.patch("cobbler.utils.blender", return_value={})
+    test_gen.api.templar = mocker.MagicMock(spec=Templar, autospec=True)
+
+    # Act
+    result = test_gen.generate_script(
+        profile=test_profile, script_name="totally_bogus_script_name"
+    )
+
+    # Assert
+    assert result == '# script template "totally_bogus_script_name" not found'
+
+
+def test_generate_script_post_install_network_config_deb_renders_fully(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[..., System],
+):
+    """
+    Regression test: "built-in-preseed_late_default" includes
+    "built-in-post_install_network_config_deb" via "$SNIPPET(...)". That snippet's
+    content used to reference the flat "$name_servers"/"$name_servers_search"
+    Cheetah variables (pre-dating the ``DNSOption`` refactor), but
+    "generate_script()"'s blended context only ever exposes them nested under
+    "dns" (``blended["dns"]["name_servers"]``) -- the template has since been
+    updated to reference the nested path directly, matching every other
+    consumer of ``utils.blender()``'s output. Previously, the resulting Cheetah
+    "NameMapper.NotFound" error was raised while evaluating a "#set"
+    control-flow directive, not while resolving a placeholder inside output
+    text, so it was *not* caught by the "#errorCatcher ListErrors" directive
+    "read_snippet()" prefixes onto every included snippet -- Cheetah's
+    "#include" silently fell back to leaving the literal, un-rendered
+    "$SNIPPET(...)" call in the output, which is not valid shell and aborts
+    "d-i late_command"'s "sh" interpreter.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(profile_uid=test_profile.uid)
+    test_gen = tftpgen.TFTPGen(cobbler_api)
+
+    # Act
+    result = test_gen.generate_script(
+        system=test_system, script_name="preseed_late_default"
+    )
+
+    # Assert
+    assert "$SNIPPET" not in result, (
+        "built-in-post_install_network_config_deb was left unexpanded:\n" + result
+    )
+    assert "NameMapper" not in result
+    assert "post_install_network_config generated code" in result
+
+    shell_check = subprocess.run(
+        ["sh", "-n"],
+        input=result,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert shell_check.returncode == 0, (
+        f"Rendered script is not valid POSIX shell (sh -n exit "
+        f"{shell_check.returncode}): {shell_check.stderr}\n---\n{result}"
     )
 
 

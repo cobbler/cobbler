@@ -452,8 +452,10 @@ class CobblerXMLRPCInterface:
         Replicate Cobbler in the background to another Cobbler instance.
 
         :param options: A dict which may contain the "master", "port", "distro_patterns", "profile_patterns",
-            "system_patterns", "repo_patterns", "image_patterns", "prune", "omit_data", "sync_all" and "use_ssl"
-            keys, all of which are forwarded as-is to :meth:`cobbler.api.CobblerAPI.replicate`.
+            "system_patterns", "repo_patterns", "image_patterns", "menu_patterns", "template_patterns",
+            "network_interface_patterns", "distro_group_patterns", "profile_group_patterns",
+            "system_group_patterns", "prune", "omit_data", "sync_all" and "use_ssl" keys, all of which are
+            forwarded as-is to :meth:`cobbler.api.CobblerAPI.replicate`.
         :param token: The API-token obtained via the login() method.
         :return: The id of the task which was started.
         """
@@ -463,17 +465,25 @@ class CobblerXMLRPCInterface:
             if isinstance(self.options, list):
                 raise ValueError("options for background_replicate need to be dict!")
             self.remote.api.replicate(
-                self.options.get("master", None),
-                self.options.get("port", ""),
-                self.options.get("distro_patterns", ""),
-                self.options.get("profile_patterns", ""),
-                self.options.get("system_patterns", ""),
-                self.options.get("repo_patterns", ""),
-                self.options.get("image_patterns", ""),
-                self.options.get("prune", False),
-                self.options.get("omit_data", False),
-                self.options.get("sync_all", False),
-                self.options.get("use_ssl", False),
+                cobbler_master=self.options.get("master", None),
+                port=self.options.get("port", ""),
+                distro_patterns=self.options.get("distro_patterns", ""),
+                profile_patterns=self.options.get("profile_patterns", ""),
+                system_patterns=self.options.get("system_patterns", ""),
+                repo_patterns=self.options.get("repo_patterns", ""),
+                image_patterns=self.options.get("image_patterns", ""),
+                menu_patterns=self.options.get("menu_patterns", ""),
+                template_patterns=self.options.get("template_patterns", ""),
+                network_interface_patterns=self.options.get(
+                    "network_interface_patterns", ""
+                ),
+                distro_group_patterns=self.options.get("distro_group_patterns", ""),
+                profile_group_patterns=self.options.get("profile_group_patterns", ""),
+                system_group_patterns=self.options.get("system_group_patterns", ""),
+                prune=self.options.get("prune", False),
+                omit_data=self.options.get("omit_data", False),
+                sync_all=self.options.get("sync_all", False),
+                use_ssl=self.options.get("use_ssl", False),
             )
 
         return self.__start_task(runner, token, "replicate", "Replicate", options)
@@ -2131,115 +2141,137 @@ class CobblerXMLRPCInterface:
                 return unsaved_item_tuple.item.uid
         return self.xmlrpc_hacks(None)  # type: ignore
 
-    def get_distro_handle(self, name: str):
+    def get_distro_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a distribution which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("distro", name)
+        return self.get_item_handle("distro", name, token)
 
-    def get_profile_handle(self, name: str):
+    def get_profile_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a profile which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("profile", name)
+        return self.get_item_handle("profile", name, token)
 
-    def get_system_handle(self, name: str):
+    def get_system_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a system which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("system", name)
+        return self.get_item_handle("system", name, token)
 
-    def get_repo_handle(self, name: str):
+    def get_repo_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a repository which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("repo", name)
+        return self.get_item_handle("repo", name, token)
 
-    def get_image_handle(self, name: str):
+    def get_image_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for an image which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("image", name)
+        return self.get_item_handle("image", name, token)
 
-    def get_menu_handle(self, name: str):
+    def get_menu_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a menu which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("menu", name)
+        return self.get_item_handle("menu", name, token)
 
-    def get_network_interface_handle(self, name: str):
+    def get_network_interface_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a network interface which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("network_interface", name)
+        return self.get_item_handle("network_interface", name, token)
 
-    def get_template_handle(self, name: str):
+    def get_template_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a template which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("template", name)
+        return self.get_item_handle("template", name, token)
 
-    def get_distro_group_handle(self, name: str):
+    def get_distro_group_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a distro group which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("distro_group", name)
+        return self.get_item_handle("distro_group", name, token)
 
-    def get_profile_group_handle(self, name: str):
+    def get_profile_group_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a profile group which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("profile_group", name)
+        return self.get_item_handle("profile_group", name, token)
 
-    def get_system_group_handle(self, name: str):
+    def get_system_group_handle(self, name: str, token: Optional[str] = None):
         """
         Get a handle for a system group which allows you to use the functions ``modify_*``,
         ``save_*``, ``rename_*`` or ``remove_*`` to manipulate it.
 
         :param name: The name of the item.
+        :param token: If supplied and part of an open transaction, resolves against the
+            transaction-local view of the item instead of the persisted collection.
         :return: The handle of the desired object.
         """
-        return self.get_item_handle("system_group", name)
+        return self.get_item_handle("system_group", name, token)
 
     def _transaction_get_modified(self, token: str, obj: "InheritableItem"):
         """
@@ -2290,7 +2322,16 @@ class CobblerXMLRPCInterface:
         Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
         according to the current transaction
         """
-        childs = self._transaction_tree_walk(token, item)
+        # The same-type parent/child tree walk (e.g. a profile's own sub-profiles) only applies to
+        # InheritableItem subtypes -- plain BaseItem types reachable via TYPE_DEPENDENCIES (e.g.
+        # NetworkInterface, Template) have no ".get_parent" property at all and are always leaves in
+        # this model (their own TYPE_DEPENDENCIES entry is empty), so skip the walk for them instead
+        # of crashing on the missing attribute.
+        childs = (
+            self._transaction_tree_walk(token, item)
+            if isinstance(item, InheritableItem)  # type: ignore
+            else []
+        )
         results = set(childs)
         childs.append(item)
         for child in childs:
@@ -2304,11 +2345,23 @@ class CobblerXMLRPCInterface:
                 )
                 for dep_item in dep_type_items:
                     dep_item = self._transaction_get_modified(token, dep_item)
-                    if (
-                        not dep_item
-                        or not getattr(dep_item, item_type[1])
-                        or getattr(dep_item, item_type[1]).uid != child.uid
-                    ):
+                    if not dep_item:
+                        continue
+                    # The dependant-reference property's shape varies by item type: some
+                    # (e.g. Profile.distro) resolve and return the referenced BaseItem, while
+                    # others (e.g. System.profile) return the raw uid string, and ItemGroup.members
+                    # returns a list of member uid strings. Normalize all three to a uid comparison
+                    # instead of assuming a resolved object with a ".uid" attribute.
+                    dependant_value = getattr(dep_item, item_type[1])
+                    if isinstance(dependant_value, list):
+                        is_dependant = child.uid in dependant_value
+                    elif isinstance(dependant_value, str):
+                        is_dependant = dependant_value == child.uid
+                    elif dependant_value is not None:
+                        is_dependant = dependant_value.uid == child.uid
+                    else:
+                        is_dependant = False
+                    if not is_dependant:
                         continue
                     results.add(dep_item)
                     results.update(self._transaction_descendants(token, dep_item))
@@ -2339,9 +2392,23 @@ class CobblerXMLRPCInterface:
             return False
         self.check_access(token, f"remove_{what}", obj)
         if token in self.transactions:
-            self.transactions[token][object_id] = TransactionTuple(
-                what, obj, True, obj.mtime, obj.uid, []
+            # If this object_id has no counterpart in the real, persisted collection, it was
+            # created (new_item + save_item) entirely within this still-open transaction - save_item
+            # never actually inserts a transaction-tracked object into the real collection, only
+            # commit does. Recording a removal TransactionTuple for it would make add_remove_items
+            # try to remove something that was never really added, at commit time. Instead, simply
+            # drop the pending "add" entry, exactly like rename_item already does for the equivalent
+            # case (renaming an item created earlier in the same transaction).
+            persisted_obj = self.api.find_items(
+                what, criteria={"uid": object_id}, return_list=False
             )
+            if persisted_obj is None:
+                if object_id in self.transactions[token]:
+                    del self.transactions[token][object_id]
+            else:
+                self.transactions[token][object_id] = TransactionTuple(
+                    what, obj, True, obj.mtime, obj.uid, []
+                )
             if recursive:
                 for k in self._transaction_descendants(token, obj):
                     self.transactions[token][k.uid] = TransactionTuple(
@@ -3004,7 +3071,7 @@ class CobblerXMLRPCInterface:
         cur_obj = obj
         for idx in range(0, len(attribute_path) - 1):
             cur_obj = getattr(cur_obj, attribute_path[idx])
-        return getattr(cur_obj, f"_{attribute_path[-1]}")
+        return getattr(cur_obj, f"_{attribute_path[-1]}", None)
 
     def modify_item(
         self,
@@ -3088,7 +3155,7 @@ class CobblerXMLRPCInterface:
             self.transactions[token][object_id].item_modifications.append(
                 TransactionItemModifications(
                     attribute,
-                    getattr(cur_obj, f"_{attribute[-1]}"),
+                    getattr(cur_obj, f"_{attribute[-1]}", None),
                     arg.uid if isinstance(arg, base_item.BaseItem) else arg,
                 )
             )
