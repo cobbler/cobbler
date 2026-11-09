@@ -105,7 +105,7 @@ jobs:
         uses: psf/black@87928e6d6761a4a6d22250e1fee5601b3998086e # 26.5.1
         with:
           options: "--check --diff --safe --verbose"
-          version: "22.3.0"
+          version: "25.1.0"
   python_isort:
     name: isort formatter
     runs-on: ubuntu-latest

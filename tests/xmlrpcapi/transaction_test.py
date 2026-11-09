@@ -867,7 +867,9 @@ def test_modify_profile_group_kernel_options_inside_transaction_does_not_crash(
     # Act
     remote.transaction_begin(token)
     profile_group = remote.new_profile_group(token)
-    assert remote.modify_profile_group(profile_group, ["name"], "testprofilegroup0", token)
+    assert remote.modify_profile_group(
+        profile_group, ["name"], "testprofilegroup0", token
+    )
     assert remote.modify_profile_group(profile_group, ["kernel_options"], {}, token)
     assert remote.modify_profile_group(
         profile_group, ["kernel_options_post"], {}, token
@@ -1001,6 +1003,5 @@ def test_add_remove_items_rollback_restores_modified_item_instead_of_deleting_it
     # its original comment must be restored, not left with the failed transaction's modification.
     assert remote.get_item_handle("profile", "testprofile0") != "~"
     assert (
-        cast(Dict[Any, Any], remote.get_profile(profile))["comment"]
-        == original_comment
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == original_comment
     )

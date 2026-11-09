@@ -484,9 +484,7 @@ def test_get_distro_overlay_write_dir_creates_and_returns_directory_itself(
     source_root = "/mnt/rocky10"
 
     # Act
-    result = filesystem_helpers.get_distro_overlay_write_dir(
-        source_root, "repodata"
-    )
+    result = filesystem_helpers.get_distro_overlay_write_dir(source_root, "repodata")
 
     # Assert
     assert result.startswith(str(overlay_root))

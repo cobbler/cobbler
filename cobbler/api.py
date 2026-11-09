@@ -1604,9 +1604,7 @@ class CobblerAPI:
                             rebuild_menu=False,
                         )
                     else:
-                        restored = self.get_items(what).factory_produce(
-                            self, payload
-                        )
+                        restored = self.get_items(what).factory_produce(self, payload)
                         self.get_items(what).add(
                             restored,
                             check_for_duplicate_names=False,

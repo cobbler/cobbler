@@ -426,7 +426,9 @@ def _distro_overlay_candidate(source_root: str, relative_path: str) -> Tuple[str
     overlay_dir = get_distro_overlay_dir(source_root)
     candidate = os.path.normpath(os.path.join(overlay_dir, relative_path.lstrip("/")))
     if os.path.commonpath([overlay_dir, candidate]) != overlay_dir:
-        raise CX(f"Refusing to resolve outside of the distro overlay directory: {relative_path!r}")
+        raise CX(
+            f"Refusing to resolve outside of the distro overlay directory: {relative_path!r}"
+        )
     return overlay_dir, candidate
 
 

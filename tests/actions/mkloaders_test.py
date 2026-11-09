@@ -144,9 +144,7 @@ def test_make_syslinux_deploys_linux_c32_without_libcom32_on_syslinux_4(
     chainloads via it.
     """
     # Arrange
-    mocker.patch(
-        "cobbler.actions.mkloaders.get_syslinux_version", return_value=4
-    )
+    mocker.patch("cobbler.actions.mkloaders.get_syslinux_version", return_value=4)
     mocker.patch("cobbler.actions.mkloaders.utils.command_existing", return_value=True)
     mock_symlink = mocker.patch("cobbler.actions.mkloaders.symlink")
     test_mkloaders = mkloaders.MkLoaders(cobbler_api)
@@ -177,9 +175,7 @@ def test_make_syslinux_skips_linux_c32_on_syslinux_5_without_libcom32(
     be a non-functional module.
     """
     # Arrange
-    mocker.patch(
-        "cobbler.actions.mkloaders.get_syslinux_version", return_value=5
-    )
+    mocker.patch("cobbler.actions.mkloaders.get_syslinux_version", return_value=5)
     mocker.patch("cobbler.actions.mkloaders.utils.command_existing", return_value=True)
     mock_symlink = mocker.patch("cobbler.actions.mkloaders.symlink")
     test_mkloaders = mkloaders.MkLoaders(cobbler_api)

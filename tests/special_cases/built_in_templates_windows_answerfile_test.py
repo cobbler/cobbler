@@ -93,8 +93,8 @@ def test_built_in_answerfile_has_modify_partitions_for_every_created_partition(
 
     # Assert
     assert "<ModifyPartitions>" in result
-    assert result.count("<CreatePartition wcm:action=\"add\">") == result.count(
-        "<ModifyPartition wcm:action=\"add\">"
+    assert result.count('<CreatePartition wcm:action="add">') == result.count(
+        '<ModifyPartition wcm:action="add">'
     )
 
 

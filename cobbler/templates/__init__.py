@@ -292,9 +292,9 @@ class Templar:
                     and element[1] is not BaseTemplateProvider
                 ):
                     # Instantiate an object of the template provider and save it to our dict
-                    self.__loaded_template_providers[
-                        element[1].template_language
-                    ] = element[1](self.api)
+                    self.__loaded_template_providers[element[1].template_language] = (
+                        element[1](self.api)
+                    )
         self.logger.info(
             "Loaded %s template providers: %s",
             len(self.__loaded_template_providers.keys()),

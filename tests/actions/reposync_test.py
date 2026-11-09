@@ -203,7 +203,10 @@ def test_run_single_repo_nofail_reports_overall_failure(
 
 
 def test_createrepo_walker_prestodelta_createrepo_probe_does_not_log_stderr_as_error(
-    mocker: "MockerFixture", reposync_object: reposync.RepoSync, repo: Repo, tmp_path: Path
+    mocker: "MockerFixture",
+    reposync_object: reposync.RepoSync,
+    repo: Repo,
+    tmp_path: Path,
 ):
     """
     Regression test: the rpmquery probe for "createrepo" is expected to fail on hosts that only ship

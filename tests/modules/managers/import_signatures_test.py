@@ -687,7 +687,9 @@ def test_extract_winpe_direct_source_writes_to_overlay_not_read_only_source(
     (distro_path / "sources").mkdir(parents=True)
     (distro_path / "sources" / "boot.wim").write_bytes(b"fake")
     overlay_root = tmp_path / "overlay"
-    mocker.patch("cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root))
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
     real_mkdir = filesystem_helpers.mkdir
 
     def _guarded_mkdir(path: str, mode: int = 0o755) -> None:
@@ -699,7 +701,8 @@ def test_extract_winpe_direct_source_writes_to_overlay_not_read_only_source(
 
     mocker.patch("cobbler.utils.filesystem_helpers.mkdir", side_effect=_guarded_mkdir)
     mocker.patch(
-        "cobbler.modules.managers.import_signatures.utils.subprocess_call", return_value=0
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call",
+        return_value=0,
     )
     manager = import_signatures.get_import_manager(cobbler_api)
     manager.direct_source = True
@@ -725,7 +728,8 @@ def test_extract_winpe_classic_import_writes_under_distro_path_boot(
     (distro_path / "sources").mkdir(parents=True)
     (distro_path / "sources" / "boot.wim").write_bytes(b"fake")
     mocker.patch(
-        "cobbler.modules.managers.import_signatures.utils.subprocess_call", return_value=0
+        "cobbler.modules.managers.import_signatures.utils.subprocess_call",
+        return_value=0,
     )
     manager = import_signatures.get_import_manager(cobbler_api)
     manager.direct_source = False

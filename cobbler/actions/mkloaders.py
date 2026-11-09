@@ -33,9 +33,9 @@ class MkLoaders:
         self.bootloaders_dir = pathlib.Path(api.settings().bootloaders_dir)
         # GRUB 2
         self.grub2_mod_dir = pathlib.Path(api.settings().grub2_mod_dir)
-        self.boot_loaders_formats: typing.Dict[
-            typing.Any, typing.Any
-        ] = api.settings().bootloaders_formats
+        self.boot_loaders_formats: typing.Dict[typing.Any, typing.Any] = (
+            api.settings().bootloaders_formats
+        )
         self.modules: typing.List[str] = api.settings().bootloaders_modules
         # UEFI GRUB
         self.secure_boot_grub_path_glob = pathlib.Path(

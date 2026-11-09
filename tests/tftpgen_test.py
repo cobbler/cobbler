@@ -810,9 +810,7 @@ def test_write_pxe_file_space_between_initrd_and_kernel_options(
     )
 
     # Assert
-    append_line = next(
-        line for line in result.splitlines() if "append initrd=" in line
-    )
+    append_line = next(line for line in result.splitlines() if "append initrd=" in line)
     initrd_token = append_line.split()[1]
     assert initrd_token.startswith("initrd=")
     assert "ds=" not in initrd_token

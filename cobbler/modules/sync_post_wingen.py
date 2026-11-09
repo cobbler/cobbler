@@ -600,7 +600,9 @@ def run(api: "CobblerAPI", args: Any):
 
         if is_winpe:
             ps_file_name = os.path.join(distro_dir, meta["winpe"])
-            wim_pl_name = _resolve_boot_file(settings, distro, "winpe.wim", derived=True)
+            wim_pl_name = _resolve_boot_file(
+                settings, distro, "winpe.wim", derived=True
+            )
 
             cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
             utils.subprocess_call(cmd, shell=False)

@@ -37,5 +37,8 @@ def test_generate_repo_stanza_renders_source_repos_baseurl_from_pair(
     result = generate_repo_stanza(cobbler_api, test_profile, True)
 
     # Assert
-    assert "repo --name=source-1 --baseurl=http://server/cobbler/distro_mirror/testtree" in result
+    assert (
+        "repo --name=source-1 --baseurl=http://server/cobbler/distro_mirror/testtree"
+        in result
+    )
     assert "test-0.repo" not in result

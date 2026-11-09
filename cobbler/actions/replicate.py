@@ -114,7 +114,9 @@ class Replicate:
         self.remote_settings: Dict[str, Any] = {}
         self.remote_names: Dict[Any, Any] = {}
         self.remote_dict: Dict[str, Dict[str, Any]] = {}
-        self.must_include: Dict[str, Dict[str, Any]] = {obj_type: {} for obj_type in OBJ_TYPES}
+        self.must_include: Dict[str, Dict[str, Any]] = {
+            obj_type: {} for obj_type in OBJ_TYPES
+        }
         self.port = ""
         self.distro_patterns: List[str] = []
         self.profile_patterns: List[str] = []
