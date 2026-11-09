@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 "pyflakes",
                 "pycodestyle",
                 "pylint",
-                "black==22.3.0",  # See .pre-commit-config.yaml
+                "black==25.1.0",  # See .pre-commit-config.yaml
                 "types-requests",
                 "types-PyYAML",
                 "types-psutil",

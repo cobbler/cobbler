@@ -92,6 +92,10 @@ Should you want to force the usage of a specific Cobbler automatic installation 
 import, feed the option ``--autoinstall`` to import, to bypass the built-in automatic installation file
 auto-detection.
 
+.. note:: For Debian/Ubuntu (``apt``-breed) imports in particular, importing a full DVD or netinst ISO pulls in an
+   *unsigned* package pool that later needs an unsafe trust workaround to install from. See
+   `Air-gapped Debian/APT installs`_ below for why, and for the recommended alternative.
+
 Repository mirroring workflow
 #############################
 
@@ -142,3 +146,107 @@ names for things based on the paths it finds for you.
     cobbler system add --name=default --profile=name_of_a_profile1
     cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=name_of_a_profile2
     cobbler sync
+
+Air-gapped Debian/APT installs
+###############################
+
+A genuinely air-gapped (no route to the internet or to any other signed Debian/Ubuntu mirror, for the whole
+duration of the install) unattended install of an ``apt``-breed distro is a **netboot kernel+initrd** paired with a
+**real, properly-signed package mirror** served locally -- not a package pool extracted from install media. This
+section explains why that distinction matters and how to set it up.
+
+``netboot.tar.gz`` versus the DVD/netinst ISO
+==============================================
+
+Debian and Ubuntu ship two very different kinds of install media, and ``cobbler import`` will happily import either
+one -- but only one of them is suitable for a trust-correct air-gapped install:
+
+* ``netboot.tar.gz`` (and the equivalent small netboot directory inside a netinst ISO) contains **only** the
+  installer bootstrap: a kernel, an initrd, and the PXE/GRUB chainload files. It carries no ``pool/``, no ``dists/``,
+  and no package content of any kind -- there is nothing in it to sign or trust in the first place. Every actual
+  package the installer needs (including Debian Installer's own udebs) is fetched live, at install time, from
+  wherever the installer's mirror settings point it.
+* A full DVD ISO (or a netinst ISO's own embedded packages) genuinely bundles a real package pool (``pool/``) and
+  APT metadata (``dists/``) alongside that same installer bootstrap. Debian has **never** shipped
+  ``Release.gpg``/``InRelease`` on any of its install media, DVD included -- physical possession of the disc is the
+  trust model there (``APT::Authentication::TrustCDROM``), not a cryptographic signature over ``dists/``. Once that
+  package pool is copied out onto a PXE server's disk by ``cobbler import`` and served back out over plain HTTP, it
+  is unavoidably unsigned: nothing was lost or broken in the copy, an unsigned pool is simply what a DVD ISO's
+  package content always was.
+
+``cobbler import`` does not distinguish between the two cases: it recursively copies whatever it finds under the
+mounted/extracted source into ``distro_mirror/<name>/``. Point it at a DVD ISO and the full, unsigned ``pool/`` and
+``dists/`` come along for the ride; point it at just a netboot tree and only the kernel and initrd are imported,
+since there is nothing else there to copy.
+
+Why ``allow_unauthenticated`` is not a safe fix
+================================================
+
+Installing from a DVD-derived, unsigned local package pool over plain HTTP makes the installer's own ``apt``
+reject the repository's ``Release``/``InRelease`` file outright. The usual workaround -- setting
+``d-i debian-installer/allow_unauthenticated boolean true`` (and/or ``apt-setup/allow_unauthenticated``) in the
+preseed/kernel command line -- does make the installer proceed, but **it does not just relax repository-level
+trust**: it disables *package-level* signature checking for the entire install, i.e. ``apt``/``dpkg`` will install
+any package regardless of whether its individual signature can be verified at all. This is a materially larger
+trust hole than it sounds like from the option's own name, and it has to stay set for every single install done
+against that tree, not just once. Treat it as a workaround to be removed, not as a supported configuration.
+
+The recommended path: pair the netboot installer with a mirrored ``cobbler repo``
+==================================================================================
+
+The preferred setup keeps ``cobbler import`` limited to the small netboot kernel+initrd (no unsigned package pool
+ever gets imported at all), and serves the real packages from a separate, genuinely signed mirror that Cobbler
+itself manages and syncs while still connected to the internet. Once synced, the mirror is served entirely from
+local disk -- no further network access is needed at install time, and the installer's ``apt`` validates it through
+the completely standard trust path (the real Debian/Ubuntu archive signing key, already present in every system's
+``debian-archive-keyring``), with **no** ``allow_unauthenticated``/insecure-repository flag of any kind.
+
+``cobbler import`` already creates the repo item for you: every Debian or Ubuntu import automatically creates a
+matching ``cobbler repo`` item (``apt_repo_adder()`` in ``cobbler/modules/managers/import_signatures.py``) pointing
+at the real upstream archive, with the correct breed-specific ``apt.components`` (``main contrib non-free
+non-free-firmware`` for Debian, ``main restricted universe multiverse`` for Ubuntu) and ``apt.dists``
+(``<suite> <suite>-updates <suite>-security``) already filled in. This repo item is deliberately left with
+``mirror_locally`` set to ``False`` -- an automatic import is not the place to silently commit an administrator to
+a potentially tens-of-GB ``debmirror`` pull -- so it starts out as accurate, ready-to-use reference metadata only.
+To actually sync it locally, opt in explicitly:
+
+.. code-block:: shell
+
+    cobbler-cli repo edit --name=<distro-name> --mirror-locally
+    cobbler reposync --only=<distro-name>
+
+(the ``--mirror-locally`` flag on ``cobbler-cli repo edit`` is equivalent to setting the ``Repo`` item's
+``mirror_locally`` property to ``True`` through the Python API). Point the system's/profile's software-source
+configuration at the resulting local mirror, served at ``/cobbler/repo_mirror/<distro-name>/`` on Cobbler's own HTTP
+server, instead of a real internet mirror, and the install will complete with no outbound network access at all.
+
+Sizing a minimal mirror with ``debmirror --include``/``--exclude``
+====================================================================
+
+Mirroring an entire ``main``+``non-free-firmware`` suite can easily run to tens of gigabytes. If only a known,
+bounded set of packages is actually needed (for example, exactly the packages a known-good install already pulled
+in), ``cobbler reposync``'s apt-breed sync (``apt_sync()`` in ``cobbler/actions/reposync.py``) forwards any extra
+flags set on the repo item's ``yumopts`` straight through to the underlying ``debmirror`` invocation, so
+``--include``/``--exclude`` filtering can be used to keep the mirror small:
+
+.. code-block:: shell
+
+    cobbler-cli repo edit --name=<distro-name> --yumopts="--exclude=.,--include=/(?:package-one_|package-two_).*"
+
+There are two real gotchas with ``debmirror``'s (and the underlying ``rsync``-style) ``--include``/``--exclude``
+semantics that are easy to get wrong:
+
+* **``--include`` is not a standalone whitelist.** It only *rescues* files that would otherwise be matched by an
+  ``--exclude`` pattern. Passing ``--include`` alone, with no ``--exclude``, leaves the implicit "not excluded"
+  default in effect for everything else, and ``debmirror`` will still mirror the entire suite. Always pair
+  ``--include`` with a catch-all ``--exclude=.`` (matching any non-empty filename) so the ``--include`` patterns
+  are the only things that actually get pulled.
+* **The pattern is matched against the full pool-relative ``Filename:`` path, not the basename.** Every real
+  ``Packages`` file entry looks like ``pool/<component>/<letter>/<source-package>/<binary-package>_<version>_<arch>.deb``,
+  not just the trailing file name. A pattern anchored to match a package name at the very start of the string
+  (``^package-one_...``) will therefore match nothing at all, since every real entry starts with ``pool/...``.
+  Anchor on the path separator instead (``/package-one_...``), matching immediately after the final ``/``.
+
+Test any include/exclude pattern against the real ``Packages``/``Packages.gz`` file for the suite being mirrored
+before running a real sync, to confirm it matches the expected number of packages and isn't accidentally falling
+back to mirroring everything.

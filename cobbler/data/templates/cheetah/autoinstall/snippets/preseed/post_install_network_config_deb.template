@@ -257,12 +257,12 @@ echo "$hostname" > /etc/hostname
     #end if
     ## =============================================================================
     ## Configure name server search path in /etc/resolv.conf
-    #set $num_ns = $len($name_servers)
-    #set $num_ns_search = $len($name_servers_search)
+    #set $num_ns = $len($dns.name_servers)
+    #set $num_ns_search = $len($dns.name_servers_search)
     #if $num_ns_search > 0
 sed -i -e "/^search /d" /etc/resolv.conf 
 echo -n "search " >>/etc/resolv.conf 
-        #for $nameserversearch in $name_servers_search
+        #for $nameserversearch in $dns.name_servers_search
 echo -n "$nameserversearch " >>/etc/resolv.conf 
         #end for
 echo "" >>/etc/resolv.conf 
@@ -271,7 +271,7 @@ echo "" >>/etc/resolv.conf
     ## Configure name servers in /etc/resolv.conf
     #if $num_ns > 0
 sed -i -e "/^nameserver /d" /etc/resolv.conf 
-        #for $nameserver in $name_servers
+        #for $nameserver in $dns.name_servers
 echo "nameserver $nameserver" >>/etc/resolv.conf 
         #end for
     #end if

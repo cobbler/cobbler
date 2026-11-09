@@ -58,6 +58,26 @@ def test_factory_produce(
     assert isinstance(result_menu, network_interface.NetworkInterface)
 
 
+def test_factory_produce_lazy_stub_without_system_uid(
+    cobbler_api: CobblerAPI,
+    network_interface_collection: network_interfaces.NetworkInterfaces,
+):
+    """
+    Under lazy_start, the file serializer hands factory_produce a minimal stub
+    (e.g. {"uid": ..., "inmemory": False}) that has no "system_uid" key at all.
+    This must not raise a bare KeyError.
+    """
+    # Arrange
+    seed_data = {"uid": "some-uid", "inmemory": False}
+
+    # Act
+    result = network_interface_collection.factory_produce(cobbler_api, seed_data)
+
+    # Assert
+    assert isinstance(result, network_interface.NetworkInterface)
+    assert result.system_uid == ""
+
+
 def test_get(
     cobbler_api: CobblerAPI,
     create_distro: Callable[[], distro.Distro],

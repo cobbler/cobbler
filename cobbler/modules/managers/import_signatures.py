@@ -60,6 +60,12 @@ except ImportError:
 
 MANAGER = None
 
+# File extensions (matched case-insensitively, since Windows filenames can be any case) that Samba requires the
+# Unix execute bit on in order to grant Windows clients FILE_EXECUTE access over an SMB share, independent of
+# SELinux. ISO9660/UDF-extracted Windows media typically carries no execute bit on any file, so these need it set
+# explicitly after import; see harden_windows_executable_permissions().
+WINDOWS_EXECUTABLE_EXTENSIONS = (".exe", ".dll", ".com")
+
 
 def register() -> str:
     """
@@ -261,6 +267,8 @@ class _ImportSignatureManager(ManagerModule):
         self.logger.info("Adding distros from path %s:", self.path)
         if self.breed == "windows":  # type: ignore
             self.import_winpe()
+            if not self.direct_source:
+                self.harden_windows_executable_permissions(self.path)
 
         distros_added: List["Distro"] = []
         import_walker(self.path, self.distro_adder, distros_added)
@@ -402,6 +410,22 @@ class _ImportSignatureManager(ManagerModule):
                     pae_kernel = os.path.join(dirname, filename)
             elif self.breed == "windows" and "wimboot" in self.signature.kernel_file:  # type: ignore
                 kernel = os.path.join(self.settings.tftpboot_location, "wimboot")
+            elif (
+                self.breed == "windows"  # type: ignore
+                and self.direct_source
+                and "wimboot" not in self.signature.kernel_file
+            ):
+                # Every supported Windows version except 11 uses a real kernel_file pattern
+                # ("pxeboot.n12") that extract_files_from_wim() (called from import_winpe(),
+                # before this walk starts) derives from boot.wim, rather than a synthetic
+                # always-true one like "wimboot" above. Under direct_source, that derived file was
+                # written into this distro's overlay directory (see extract_winpe()), not
+                # "<self.path>/boot" (which may be a genuinely read-only mount), so it will never
+                # appear in this directory walk's own filenames list -- resolve it explicitly, the
+                # same way add_entry() already resolves the other derived Windows boot files.
+                kernel = filesystem_helpers.resolve_distro_overlay_read_path(
+                    self.path, os.path.join("boot", "pxeboot.n12")
+                )
 
             # if we've collected a matching kernel and initrd pair, turn them in and add them to the list
             if initrd is not None and kernel is not None:
@@ -531,9 +555,19 @@ class _ImportSignatureManager(ManagerModule):
                 bootmgr = "bootmgr.exe"
                 if "wimboot" in kernel:
                     bootmgr = "bootmgr.efi"
-                bootmgr_path = os.path.join(dest_path, bootmgr)
-                bcd_path = os.path.join(dest_path, "bcd")
-                winpe_path = os.path.join(dest_path, "winpe.wim")
+                if self.direct_source:
+                    bootmgr_path = filesystem_helpers.resolve_distro_overlay_read_path(
+                        self.path, os.path.join("boot", bootmgr)
+                    )
+                    winpe_path = filesystem_helpers.resolve_distro_overlay_read_path(
+                        self.path, os.path.join("boot", "winpe.wim")
+                    )
+                else:
+                    bootmgr_path = os.path.join(dest_path, bootmgr)
+                    winpe_path = os.path.join(dest_path, "winpe.wim")
+                bcd_path = os.path.join(
+                    dest_path, "bcd"
+                )  # always original; never written to the overlay
                 if (
                     os.path.exists(bootmgr_path)
                     and os.path.exists(bcd_path)
@@ -646,6 +680,16 @@ class _ImportSignatureManager(ManagerModule):
                 name += "-PAE"
             if kernel.find("xen") != -1 and name.find("xen") == -1:
                 name += "-xen"
+            # Debian/Ubuntu installer media ships a "gtk" (graphical installer) kernel/initrd pair
+            # alongside the base netboot one, e.g. "install.amd/gtk/vmlinuz" next to
+            # "install.amd/vmlinuz". Under the directory-depth-based naming used for a classic
+            # (copied) import, each variant's own subdirectory already differentiates the proposed
+            # name; under "direct_source" (managers.dynamic_httpd) mode, "name" above is always just
+            # the caller-supplied mirror name regardless of which subdirectory the kernel came from,
+            # so without this check the "gtk" variant proposes the exact same name as the base
+            # variant and is silently dropped as a duplicate.
+            if kernel.find("gtk") != -1 and name.find("gtk") == -1:
+                name += "-gtk"
 
         # Clear out some cruft from the proposed name
         name = name.replace("--", "-")
@@ -705,29 +749,25 @@ class _ImportSignatureManager(ManagerModule):
         if self.network_root is None:
             protocol = self.api.settings().autoinstall_scheme
             if self.direct_source:
-                # Nothing was copied into webdir, so there is no symlink target to create. The tree is served
-                # directly from its original location by a dynamic tree-serving endpoint instead.
+                # Nothing was copied into webdir, so the install tree itself is served directly from
+                # its original location by a dynamic tree-serving endpoint instead of a symlink.
                 tree = (
                     f"{protocol}://@@http_server@@/cblr/svc/tree/{distribution.name}/"
                 )
                 self.set_install_tree(distribution, tree)
+                if distribution.breed == "windows":  # type: ignore[reportUnknownMemberType]
+                    # Unlike every other breed, Windows's own setup.exe/winnt32.exe and the
+                    # answerfile's Samba-UNC references (startnet.template's $distro_share) read
+                    # straight through a raw Samba share with zero Cobbler code involved -- the
+                    # dynamic tree endpoint above can't help there, since Samba resolves paths on
+                    # the real filesystem, not through Cobbler. This symlink lives entirely inside
+                    # webdir (a directory Cobbler already owns and manages), not inside the
+                    # (possibly read-only) source tree itself, so it doesn't conflict with
+                    # managers.dynamic_httpd's reason for existing: it is one fixed-size filesystem
+                    # entry regardless of the import's size, not I/O proportional to the import.
+                    self._create_webdir_links_symlink(base, distribution.name)
             else:
-                dest_link = os.path.join(
-                    self.settings.webdir, "links", distribution.name
-                )
-                # create the links directory only if we are mirroring because with SELinux Apache can't symlink to
-                # NFS (without some doing)
-                if not os.path.exists(dest_link):
-                    try:
-                        self.logger.info(
-                            "trying symlink: %s -> %s", str(base), str(dest_link)
-                        )
-                        os.symlink(base, dest_link)
-                    except Exception:
-                        # FIXME: This shouldn't happen but I've seen it ... debug ...
-                        self.logger.warning(
-                            "symlink creation failed: %s, %s", base, dest_link
-                        )
+                self._create_webdir_links_symlink(base, distribution.name)
                 tree = f"{protocol}://@@http_server@@/cblr/links/{distribution.name}"
                 self.set_install_tree(distribution, tree)
         else:
@@ -737,6 +777,24 @@ class _ImportSignatureManager(ManagerModule):
             tail = filesystem_helpers.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distribution, tree)
+
+    def _create_webdir_links_symlink(self, base: str, distro_name: str) -> None:
+        """
+        Create ``webdir/links/<distro_name>`` -> ``base`` if it does not already exist.
+
+        :param base: The distro's source root to link to.
+        :param distro_name: The name of the distro, used as the symlink's filename.
+        """
+        dest_link = os.path.join(self.settings.webdir, "links", distro_name)
+        # create the links directory only if we are mirroring because with SELinux Apache can't symlink to
+        # NFS (without some doing)
+        if not os.path.exists(dest_link):
+            try:
+                self.logger.info("trying symlink: %s -> %s", str(base), str(dest_link))
+                os.symlink(base, dest_link)
+            except Exception:
+                # FIXME: This shouldn't happen but I've seen it ... debug ...
+                self.logger.warning("symlink creation failed: %s, %s", base, dest_link)
 
     def set_install_tree(self, distribution: "Distro", url: str) -> None:
         """
@@ -868,10 +926,28 @@ class _ImportSignatureManager(ManagerModule):
             # installation file post section, etc.
 
             counter = len(distribution.source_repos)
+            protocol = self.api.settings().autoinstall_scheme
+            # Only ever read further down inside another "if self.direct_source:" branch, so this
+            # default is never actually used -- it exists purely so pyright can see the variable is
+            # unconditionally bound, since it can't correlate separate "self.direct_source" checks.
+            relative_comps_dir = ""
 
-            # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
-            seg = comps_path.rfind("distro_mirror")
-            urlseg = comps_path[(seg + len("distro_mirror") + 1) :]
+            if self.direct_source:
+                # comps_path is never copied under "webdir/distro_mirror/<name>" in direct_source mode, so
+                # a baseurl built from that literal substring (classic branch below) becomes outright wrong
+                # once createrepo's own output is redirected to the overlay (see below): Apache's static
+                # "/cobbler/distro_mirror" alias serves the real, read-only mount, never the overlay. Route
+                # yum/dnf at the same "/cblr/svc/tree/<name>/" dynamic endpoint configure_tree_location()
+                # already uses for the autoinstall $tree, which cobbler.services.files resolves through the
+                # overlay (see below).
+                relative_comps_dir = filesystem_helpers.path_tail(
+                    distribution.source_tree_path, comps_path
+                ).lstrip("/")
+                baseurl = f"{protocol}://@@http_server@@/cblr/svc/tree/{distribution.name}/{relative_comps_dir}"
+            else:
+                seg = comps_path.rfind("distro_mirror")
+                urlseg = comps_path[(seg + len("distro_mirror") + 1) :]
+                baseurl = f"{protocol}://@@http_server@@/cobbler/distro_mirror/{urlseg}"
 
             fname = os.path.join(
                 self.settings.webdir,
@@ -880,11 +956,9 @@ class _ImportSignatureManager(ManagerModule):
                 f"{distribution.name}-{counter}.repo",
             )
 
-            protocol = self.api.settings().autoinstall_scheme
             repo_url = f"{protocol}://@@http_server@@/cobbler/distro_mirror/config/{distribution.name}-{counter}.repo"
-            repo_url2 = f"{protocol}://@@http_server@@/cobbler/distro_mirror/{urlseg}"
-
-            distribution.source_repos.extend([repo_url, repo_url2])
+            repo_url2 = baseurl
+            distribution.source_repos.append((repo_url, repo_url2))
 
             config_dir = os.path.dirname(fname)
             if not os.path.exists(config_dir):
@@ -897,9 +971,7 @@ class _ImportSignatureManager(ManagerModule):
             with open(fname, "w", encoding="UTF-8") as config_file:
                 config_file.write(f"[core-{counter}]\n")
                 config_file.write(f"name=core-{counter}\n")
-                config_file.write(
-                    f"baseurl={protocol}://@@http_server@@/cobbler/distro_mirror/{urlseg}\n"
-                )
+                config_file.write(f"baseurl={baseurl}\n")
                 config_file.write("enabled=1\n")
                 config_file.write("gpgcheck=0\n")
                 config_file.write("priority=$yum_distro_priority\n")
@@ -910,21 +982,51 @@ class _ImportSignatureManager(ManagerModule):
                 self.found_repos[comps_path] = 1
 
             elif comps_path not in self.found_repos:
-                utils.remove_yum_olddata(comps_path)
-                cmd = [
-                    "createrepo",
-                    self.settings.createrepo_flags,
-                    "--groupfile",
-                    os.path.join(comps_path, masterdir, comps_file),
-                    comps_path,
-                ]
+                if self.direct_source:
+                    # comps_path may be inside a genuinely read-only mount; write createrepo's generated
+                    # repodata/ into this distro's overlay directory instead, at the same relative
+                    # location within it, via createrepo's own "--outputdir" (the directory being
+                    # *scanned* for packages and the directory being *written to* can differ).
+                    output_dir = filesystem_helpers.get_distro_overlay_write_dir(
+                        distribution.source_tree_path, relative_comps_dir
+                    )
+                    utils.remove_yum_olddata(output_dir)
+                    cmd = [
+                        "createrepo",
+                        self.settings.createrepo_flags,
+                        "--outputdir",
+                        output_dir,
+                        "--groupfile",
+                        os.path.join(comps_path, masterdir, comps_file),
+                        comps_path,
+                    ]
+                    repodata_dir = os.path.join(output_dir, "repodata")
+                else:
+                    utils.remove_yum_olddata(comps_path)
+                    cmd = [
+                        "createrepo",
+                        self.settings.createrepo_flags,
+                        "--groupfile",
+                        os.path.join(comps_path, masterdir, comps_file),
+                        comps_path,
+                    ]
+                    repodata_dir = os.path.join(comps_path, "repodata")
                 utils.subprocess_call(cmd, shell=False)
                 self.found_repos[comps_path] = 1
                 # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
                 # one...
-                path_1 = os.path.join(comps_path, "repodata", "comps.xml")
-                path_2 = os.path.join(comps_path, "base", "comps.xml")
-                if os.path.exists(path_1) and os.path.exists(path_2):
+                path_1 = os.path.join(repodata_dir, "comps.xml")
+                original_path_2 = os.path.join(comps_path, "base", "comps.xml")
+                if os.path.exists(path_1) and os.path.exists(original_path_2):
+                    if self.direct_source:
+                        # Writing the mirrored comps.xml back into comps_path/base/ would hit the same
+                        # read-only tree problem; keep it in the overlay alongside the rest.
+                        path_2 = filesystem_helpers.get_distro_overlay_write_path(
+                            distribution.source_tree_path,
+                            os.path.join(relative_comps_dir, "base", "comps.xml"),
+                        )
+                    else:
+                        path_2 = original_path_2
                     shutil.copyfile(path_1, path_2)
         except Exception:
             self.logger.error("error launching createrepo (not installed?), ignoring")
@@ -952,17 +1054,25 @@ class _ImportSignatureManager(ManagerModule):
         repo.breed = enums.RepoBreeds.APT
         repo.arch = enums.RepoArchs.to_enum(distribution.arch.value)
         repo.keep_updated = True
-        repo.apt_components = "main universe"  # TODO: make a setting?
-        repo.apt_dists = (
-            f"{distribution.os_version} {distribution.os_version}-updates"
+        repo.apt.dists = (
+            f"{distribution.os_version} {distribution.os_version}-updates "
             f"{distribution.os_version}-security"
         )
         repo.name = distribution.name
         repo.os_version = distribution.os_version
+        # Leave the mirror as reference-only metadata: don't have `cobbler reposync`
+        # silently start pulling a full archive mirror (potentially tens of GB) to
+        # local disk/bandwidth on every import. An admin who wants the repo actually
+        # mirrored locally can opt in afterwards via ``repo.mirror_locally = True``.
+        repo.mirror_locally = False
 
         if distribution.breed == "ubuntu":
+            # TODO: make a setting?
+            repo.apt.components = "main restricted universe multiverse"
             repo.mirror = mirror
         else:
+            # TODO: make a setting?
+            repo.apt.components = "main contrib non-free non-free-firmware"
             # NOTE : The location of the mirror should come from timezone
             repo.mirror = (
                 f"http://ftp.{'us'}.debian.org/debian/dists/{distribution.os_version}"
@@ -1044,17 +1154,18 @@ class _ImportSignatureManager(ManagerModule):
             if wim_file.lower() in file_dict:
                 file_dict[wim_file.lower()] = wim_file
 
+        # Both bootmgr variants are extracted unconditionally: wimboot-based delivery (BIOS iPXE, UEFI iPXE,
+        # syslinux, GRUB -- every documented path except the legacy pxeboot.n12 one) needs the real PE32
+        # "/windows/boot/pxe/bootmgr.exe" as a standalone initrd component, not the ISO-root BIOS boot-sector
+        # stub that add_entry() would otherwise fall back to. pxeboot.n12 remains gated to the non-wimboot case,
+        # since it is only used as the boot kernel itself there (see wingen.rst's "Additional Windows metadata").
         file_list = [
             file_dict["/windows/boot/efi/bootmgr.efi"],
+            file_dict["/windows/boot/pxe/bootmgr.exe"],
             file_dict["/windows/system32/config/software"],
         ]
         if "wimboot" not in self.signature.kernel_file:
-            file_list.extend(
-                [
-                    file_dict["/windows/boot/pxe/pxeboot.n12"],
-                    file_dict["/windows/boot/pxe/bootmgr.exe"],
-                ]
-            )
+            file_list.append(file_dict["/windows/boot/pxe/pxeboot.n12"])
 
         self.extract_files_from_wim(winpe_path, file_list)
         self.update_winpe(winpe_path, file_dict["/windows/system32/config/software"])
@@ -1068,16 +1179,25 @@ class _ImportSignatureManager(ManagerModule):
         :raises CX: Raised if ``boot.wim`` is missing or ``wimexport`` fails to extract the WinPE image.
         """
         bootwim_path = os.path.join(distro_path, "sources", "boot.wim")
-        dest_path = os.path.join(distro_path, "boot")
 
         if not os.path.exists(bootwim_path):
             error_msg = f"{bootwim_path} not found!"
             self.logger.error(error_msg)
             raise CX(error_msg)
 
-        winpe_path = os.path.join(dest_path, "winpe.wim")
-        if not os.path.exists(dest_path):
-            filesystem_helpers.mkdir(dest_path)
+        if self.direct_source:
+            # distro_path may be a genuinely read-only mount (e.g. a loop-mounted ISO9660/UDF
+            # image scanned in place by managers.dynamic_httpd's direct mode); write the derived
+            # winpe.wim into this distro's overlay directory instead of "<distro_path>/boot".
+            winpe_path = filesystem_helpers.get_distro_overlay_write_path(
+                distro_path, os.path.join("boot", "winpe.wim")
+            )
+        else:
+            dest_path = os.path.join(distro_path, "boot")
+            if not os.path.exists(dest_path):
+                filesystem_helpers.mkdir(dest_path)
+            winpe_path = os.path.join(dest_path, "winpe.wim")
+
         if os.path.exists(winpe_path):
             filesystem_helpers.rmfile(winpe_path)
         if (
@@ -1210,6 +1330,69 @@ class _ImportSignatureManager(ManagerModule):
                     os.path.join(dest_path, wim_file),
                     os.path.join(dest_path, wim_file.lower()),
                 )
+
+    def harden_windows_executable_permissions(self, path: str) -> None:
+        """
+        Ensure imported Windows PE/EXE/DLL/COM files carry the Unix execute bit.
+
+        Samba requires the execute bit to grant Windows clients ``FILE_EXECUTE`` access over an SMB share,
+        independent of SELinux. The rsync copy that stages a Windows distro into ``distro_mirror``
+        (``--chmod=ug=rwX``) only *preserves* an existing execute bit rather than adding one, and
+        ISO9660/UDF-extracted Windows media typically has no execute bit set on any file to begin with, so
+        imported ``setup.exe``-style files end up mode 644 and Windows clients get
+        ``STATUS_ACCESS_DENIED`` when trying to launch them over the network share.
+
+        Only called for Cobbler-managed copies of the import source (never when ``direct_source`` is set), and
+        only ever grants execute to a permission class that already has read access to the same file. All
+        decisions and the final permission change are made on an open file descriptor (opened with
+        ``O_NOFOLLOW``), not on the pathname, so a symlink swapped in between a path check and the chmod
+        (a classic TOCTOU race) cannot retarget the change at a file outside the staged tree; hardlinked files
+        are skipped outright, and any pre-existing setuid/setgid bit is stripped rather than carried forward
+        onto a now-executable file. Ownership of the imported file is deliberately not checked: cobblerd
+        normally runs as root, and the staged files routinely end up owned by whatever uid did the actual
+        copy/extraction (not cobblerd's own euid) -- a uid-match requirement would make this a no-op for
+        exactly the deployment it exists to fix. ``chmod`` already enforces real permission semantics (the
+        owner or a sufficiently privileged process), and a genuine permission failure is caught below.
+
+        :param path: The directory (recursively) to scan for Windows executables whose permissions need fixing.
+        """
+        root_realpath = os.path.realpath(path)
+        for root, _subdirs, fnames in os.walk(path):
+            for fname in fnames:
+                if not fname.lower().endswith(WINDOWS_EXECUTABLE_EXTENSIONS):
+                    continue
+                fpath = os.path.join(root, fname)
+                if (
+                    os.path.commonpath([root_realpath, os.path.realpath(fpath)])
+                    != root_realpath
+                ):
+                    continue
+                fdesc = -1
+                try:
+                    fdesc = os.open(fpath, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+                    file_stat = os.fstat(fdesc)
+                    if not stat.S_ISREG(file_stat.st_mode):
+                        continue
+                    if file_stat.st_nlink > 1:
+                        continue
+                    current_mode = stat.S_IMODE(file_stat.st_mode)
+                    new_mode = current_mode
+                    if current_mode & stat.S_IRUSR:
+                        new_mode |= stat.S_IXUSR
+                    if current_mode & stat.S_IRGRP:
+                        new_mode |= stat.S_IXGRP
+                    if current_mode & stat.S_IROTH:
+                        new_mode |= stat.S_IXOTH
+                    new_mode &= ~(stat.S_ISUID | stat.S_ISGID)
+                    if new_mode != current_mode:
+                        os.fchmod(fdesc, new_mode)
+                except OSError as os_error:
+                    self.logger.warning(
+                        "Could not set the execute bit on %s: %s", fpath, os_error
+                    )
+                finally:
+                    if fdesc != -1:
+                        os.close(fdesc)
 
 
 # ==========================================================================

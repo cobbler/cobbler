@@ -201,7 +201,7 @@ Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
 Requires:       python%{python3_pkgversion}-systemd
 Requires:       python%{python3_pkgversion}-gunicorn
-Requires:       libcobblersignatures
+Requires:       libcobblersignatures >= 0.5.0
 Requires:       %{py3_module_file}
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap
@@ -393,6 +393,7 @@ getent group %{apache_group} >/dev/null 2>&1 && chgrp %{apache_group} %{_sysconf
 %{_unitdir}/cobblerd-gunicorn.service
 %{_sharedstatedir}/cobbler
 %ghost %{_sharedstatedir}/cobbler/web.ss
+%config(noreplace) %{_sharedstatedir}/cobbler/distro_signatures.json
 %{_localstatedir}/log/cobbler
 
 %files tests

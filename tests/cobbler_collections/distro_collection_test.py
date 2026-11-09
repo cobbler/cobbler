@@ -3,7 +3,8 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os.path
-from typing import Callable
+from pathlib import Path
+from typing import TYPE_CHECKING, Callable
 
 import pytest
 
@@ -13,6 +14,10 @@ from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import distros
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import distro
+from cobbler.utils import filesystem_helpers
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture(name="distro_collection")
@@ -126,6 +131,58 @@ def test_from_list(
     assert len(distro_collection.listing) == 1
     assert len(distro_collection.indexes["name"]) == 1
     assert len(distro_collection.indexes["arch"]) == 1
+
+
+def test_from_list_item_failure_is_logged_with_identifying_details(
+    distro_collection: distros.Distros,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_initrd: str,
+    fk_kernel: str,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Regression test for the "vanishing items" bug: when a single item in a collection fails to load from disk
+    (e.g. because a validation rule, such as the valid os_versions for a breed, changed since the item was last
+    saved), ``from_list()`` must not silently drop it with only a generic, unidentifiable message that reads as
+    if the whole collection failed to load. The failure must be logged with the offending item's own uid/name so
+    an operator can actually tell which item "vanished" (and that its on-disk JSON file was untouched) instead
+    of discovering it only indirectly (e.g. via a missing entry in ``cobbler distro report``).
+    """
+    # Arrange
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    test_kernel = os.path.join(folder, fk_kernel)
+    valid_item = {"name": "test_from_list_valid", "kernel": test_kernel}
+    invalid_item = {
+        "uid": "deadbeefdeadbeefdeadbeefdeadbeef",
+        "name": "test_from_list_invalid",
+        "kernel": test_kernel,
+        "breed": "suse",
+        "os_version": "this-os-version-does-not-exist",
+    }
+    item_list = [valid_item, invalid_item]
+
+    # Act
+    with caplog.at_level("ERROR"):
+        distro_collection.from_list(item_list)
+
+    # Assert - the valid item still loaded despite the other item in the same collection failing
+    assert len(distro_collection.listing) == 1
+    assert distro_collection.get("test_from_list_valid") is not None
+    # Assert - the invalid item never made it into the live collection
+    assert distro_collection.get("test_from_list_invalid") is None
+    # Assert - the failure was logged with enough detail to identify the specific offending item, not a generic
+    # message that could be mistaken for the entire collection having failed to load
+    assert len(caplog.records) == 1
+    logged_message = caplog.records[0].getMessage()
+    assert invalid_item["uid"] in logged_message
+    assert invalid_item["name"] in logged_message
+    # Assert - the failure is also surfaced beyond the log, via load_errors(), so it is actionable
+    # (e.g. through "cobbler check") rather than only visible to whoever reads cobbler.log
+    assert len(distro_collection.load_errors) == 1
+    recorded_error = distro_collection.load_errors[0]
+    assert recorded_error["uid"] == invalid_item["uid"]
+    assert recorded_error["name"] == invalid_item["name"]
+    assert recorded_error["collection_type"] == "distro"
 
 
 def test_copy(
@@ -260,6 +317,129 @@ def test_remove(
     assert item1.uid not in distro_collection.listing
     assert len(distro_collection.indexes["name"]) == 0
     assert len(distro_collection.indexes["arch"]) == 0
+
+
+def test_remove_cleans_up_direct_source_overlay_dir(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    tmp_path: Path,
+    mocker: "MockerFixture",
+):
+    """
+    Removing a direct_source distro (one with ``source_tree_path`` set) must also remove its
+    overlay directory, once no other distro still references the same ``source_tree_path``.
+    """
+    # Arrange
+    overlay_root = tmp_path / "distro_overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    source_tree_path = tmp_path / "source"
+    source_tree_path.mkdir()
+    item1 = create_distro("test_remove_cleans_up_direct_source_overlay_dir")
+    item1.source_tree_path = str(source_tree_path)
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        str(source_tree_path), "boot/winpe.wim"
+    )
+    Path(overlay_file).write_bytes(b"content")
+    overlay_dir = filesystem_helpers.get_distro_overlay_dir(str(source_tree_path))
+    assert os.path.isdir(overlay_dir)
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    assert not os.path.exists(overlay_dir)
+
+
+def test_remove_cleans_up_webdir_links_symlink(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    cobbler_api: CobblerAPI,
+    tmp_path: Path,
+):
+    """
+    Removing a distro must also remove its ``webdir/links/<name>`` symlink, whether it came from a
+    classic import or (Windows-specific) direct_source import -- otherwise it is left dangling,
+    pointing at content that may no longer exist.
+    """
+    # Arrange
+    webdir = tmp_path / "webdir"
+    links_dir = webdir / "links"
+    links_dir.mkdir(parents=True)
+    cobbler_api.settings().webdir = str(webdir)
+    name = "test_remove_cleans_up_webdir_links_symlink"
+    item1 = create_distro(name)
+    dest_link = links_dir / name
+    dest_link.symlink_to(tmp_path)
+    assert os.path.islink(dest_link)
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    assert not os.path.lexists(dest_link)
+
+
+def test_remove_without_source_tree_path_does_not_touch_overlay(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    mocker: "MockerFixture",
+):
+    """
+    For a classic distro (``source_tree_path`` at its default, empty value), removal must not
+    even look up an overlay directory.
+    """
+    # Arrange
+    item1 = create_distro("test_remove_without_source_tree_path_does_not_touch_overlay")
+    assert item1.source_tree_path == ""
+    overlay_dir_spy = mocker.patch(
+        "cobbler.cobbler_collections.distros.filesystem_helpers.get_distro_overlay_dir"
+    )
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    overlay_dir_spy.assert_not_called()
+
+
+def test_remove_keeps_overlay_dir_while_another_distro_shares_same_source_tree_path(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    tmp_path: Path,
+    mocker: "MockerFixture",
+):
+    """
+    If another distro still references the same ``source_tree_path``, removing one of them must
+    not delete the shared overlay directory.
+    """
+    # Arrange
+    overlay_root = tmp_path / "distro_overlay"
+    mocker.patch(
+        "cobbler.utils.filesystem_helpers.DISTRO_OVERLAY_DIR", str(overlay_root)
+    )
+    source_tree_path = tmp_path / "source"
+    source_tree_path.mkdir()
+    item1 = create_distro(
+        "test_remove_keeps_overlay_dir_while_another_distro_shares_same_source_tree_path_1"
+    )
+    item1.source_tree_path = str(source_tree_path)
+    item2 = create_distro(
+        "test_remove_keeps_overlay_dir_while_another_distro_shares_same_source_tree_path_2"
+    )
+    item2.source_tree_path = str(source_tree_path)
+    overlay_file = filesystem_helpers.get_distro_overlay_write_path(
+        str(source_tree_path), "boot/winpe.wim"
+    )
+    Path(overlay_file).write_bytes(b"content")
+    overlay_dir = filesystem_helpers.get_distro_overlay_dir(str(source_tree_path))
+
+    # Act
+    distro_collection.remove(item1)
+
+    # Assert
+    assert os.path.isdir(overlay_dir)
 
 
 def test_indexes(

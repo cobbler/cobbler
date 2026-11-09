@@ -71,6 +71,21 @@ def test_system(
     assert result is test_system
 
 
+def test_check_if_valid_lazy_stub_without_system_uid(cobbler_api: CobblerAPI):
+    """
+    Under lazy_start, a network interface is produced as a not-yet-populated stub
+    (inmemory=False) before its system_uid is known. check_if_valid() must not
+    reject it for a missing system_uid in that state - it is validated again once
+    the item is fully populated on first real access.
+    """
+    # Arrange
+    interface = NetworkInterface(cobbler_api, "")
+    interface.inmemory = False
+
+    # Act & Assert (must not raise)
+    interface.check_if_valid()
+
+
 def test_system_not_present(cobbler_api: CobblerAPI):
     """
     Test to verify that the system property raises when the referenced system does not exist.

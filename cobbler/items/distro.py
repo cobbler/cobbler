@@ -13,6 +13,7 @@ V4.0.0 (unreleased):
         * ``redhat_management_user``: enums.VALUE_INHERITED
         * ``redhat_management_password``: enums.VALUE_INHERITED
         * ``source_tree_path``: str
+        * ``remote_boot_iso``: str
         * ``distro_groups`` membership accessor.
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
@@ -129,7 +130,7 @@ V2.8.5:
 import copy
 import glob
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from cobbler import enums, grub, utils, validate
 from cobbler.cexceptions import CX
@@ -178,8 +179,9 @@ class Distro(BootableItem):
         self._redhat_management_org = enums.VALUE_INHERITED
         self._redhat_management_user = enums.VALUE_INHERITED
         self._redhat_management_password = enums.VALUE_INHERITED
-        self._source_repos: List[str] = []
+        self._source_repos: List[Tuple[str, str]] = []
         self._source_tree_path: str = ""
+        self._remote_boot_iso: str = ""
         self._remote_boot_kernel = ""
         self._remote_grub_kernel = ""
         self._remote_boot_initrd = ""
@@ -375,6 +377,10 @@ class Distro(BootableItem):
         :param breed: The new breed to set.
         """
         self._breed = validate.validate_breed(breed)
+        # supported_boot_loaders is lazily cached against the breed/os_version in effect at the
+        # time boot_loaders was first read/validated - drop it so it gets recomputed against this
+        # new breed instead of silently keeping validating against the old one.
+        self._supported_boot_loaders = []
 
     @LazyProperty
     def os_version(self) -> str:
@@ -394,6 +400,9 @@ class Distro(BootableItem):
         :param os_version: The new OS Version.
         """
         self._os_version = validate.validate_os_version(os_version, self.breed)
+        # See the matching comment in the breed setter: this cache must not outlive the
+        # breed/os_version pair it was computed for.
+        self._supported_boot_loaders = []
 
     @LazyProperty
     def initrd(self) -> str:
@@ -480,10 +489,11 @@ class Distro(BootableItem):
         self._remote_boot_initrd = remote_boot_initrd
 
     @LazyProperty
-    def source_repos(self) -> List[str]:
+    def source_repos(self) -> List[Tuple[str, str]]:
         """
-        A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
-        install core packages. Use by ``cobbler import`` only.
+        A list of ``(config_url, baseurl)`` pairs added per split-tree repo found during ``cobbler import``
+        (e.g. RHEL5-style trees that bundle extra yum repos alongside the main install tree): ``config_url``
+        points at a generated ``.repo`` config file, ``baseurl`` is the real mirror directory.
 
         :getter: The source repos used.
         :setter: The new list of source repos to use.
@@ -491,18 +501,28 @@ class Distro(BootableItem):
         return self._source_repos
 
     @source_repos.setter
-    def source_repos(self, repos: List[str]):
+    def source_repos(self, repos: List[Tuple[str, str]]):
         r"""
         Setter for the ``source_repos`` property.
 
-        :param repos: The list of URLs.
-        :raises TypeError: In case the value was not of type ``str``.
+        :param repos: The list of ``(config_url, baseurl)`` pairs.
+        :raises TypeError: In case the value was not a list of 2-element string pairs.
         """
         if not isinstance(repos, list):  # type: ignore
             raise TypeError(
                 "Field source_repos in object distro needs to be of type list."
             )
-        self._source_repos = repos
+        for repo in repos:
+            if (
+                not isinstance(repo, (tuple, list))  # type: ignore
+                or len(repo) != 2
+                or not all(isinstance(entry, str) for entry in repo)  # type: ignore
+            ):
+                raise TypeError(
+                    "Each entry of source_repos in object distro needs to be a"
+                    " (config_url, baseurl) pair of strings."
+                )
+        self._source_repos = [(repo[0], repo[1]) for repo in repos]
 
     @LazyProperty
     def source_tree_path(self) -> str:
@@ -526,6 +546,42 @@ class Distro(BootableItem):
         :raises CX: Raised in case the value is not an absolute path to an existing directory.
         """
         self._source_tree_path = validate.validate_source_tree_path(source_tree_path)
+
+    @LazyProperty
+    def remote_boot_iso(self) -> str:
+        """
+        URL to the original installation ISO this distro was imported from (e.g. an Ubuntu live-server/Subiquity
+        ISO), reachable over HTTP or TFTP. Unlike ``remote_boot_kernel``/``remote_boot_initrd`` this is not
+        consumed by GRUB; it is only used to build the ``url=`` kernel parameter that casper (Ubuntu's
+        live-filesystem netboot loader) needs to locate and boot its live squashfs over the network. ``cobbler
+        import`` never sees the original ISO file -- it only ever scans an already-mounted directory tree -- so
+        this field is not populated automatically and must be set explicitly (e.g. via ``cobbler distro edit``)
+        once the ISO has been staged somewhere HTTP/TFTP-reachable.
+
+        :getter: Returns the current remote URL to the install ISO, or an empty string if unset.
+        :setter: Raises a ``TypeError`` or ``ValueError`` in case the provided value was not correct.
+        """
+        return self._remote_boot_iso
+
+    @remote_boot_iso.setter
+    def remote_boot_iso(self, remote_boot_iso: str):
+        """
+        Setter for the ``remote_boot_iso`` property.
+
+        :param remote_boot_iso: The new URL to the remote install ISO.
+        :raises TypeError: Raised in case the URL is not of type str.
+        :raises ValueError: Raised in case the validation is not succeeding.
+        """
+        if not isinstance(remote_boot_iso, str):  # type: ignore
+            raise TypeError("Field remote_boot_iso of distro needs to be of type str!")
+        if not remote_boot_iso:
+            self._remote_boot_iso = remote_boot_iso
+            return
+        if not validate.validate_boot_remote_file(remote_boot_iso):
+            raise ValueError(
+                "remote_boot_iso needs to be a valid URL starting with tftp or http!"
+            )
+        self._remote_boot_iso = remote_boot_iso
 
     @LazyProperty
     def arch(self):

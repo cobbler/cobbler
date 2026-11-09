@@ -99,7 +99,14 @@ class Template(BaseItem):
         seed_dict = copy.deepcopy(self.to_dict())
         seed_dict.pop("uid", None)
         seed_dict.pop("built_in", None)
-        return Template(self.api, **seed_dict)
+        # "content" round-trips through the public setter via from_dict(), which writes
+        # through to the target URI and raises if its path is still empty (e.g. right
+        # after construction, before the rest of seed_dict's fields have been applied).
+        # Copy the cached raw value directly instead, the same way __init__ seeds it.
+        seed_dict.pop("content", None)
+        clone = Template(self.api, **seed_dict)
+        clone.__content = self.__content  # pylint: disable=unused-private-member
+        return clone
 
     def check_if_valid(self):
         """

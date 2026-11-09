@@ -56,7 +56,7 @@ def test_remove_objects_not_on_master(
     replicate_obj.remove_objects_not_on_master("distro")
 
     # Assert
-    api_mock.remove_item.assert_called_with("distro", "test", recursive=True)  # type: ignore
+    api_mock.remove_item.assert_called_with("distro", "fake_uid", recursive=True)  # type: ignore
 
 
 def test_add_objects_not_on_local(
@@ -67,7 +67,7 @@ def test_add_objects_not_on_local(
     """
     # Arrange
     replicate_obj.local_data["distro"] = []
-    replicate_obj.remote_data["distro"] = []
+    replicate_obj.remote_data["distro"] = [{"name": "test", "depth": 0}]
     replicate_obj.must_include["distro"] = ["test"]  # type: ignore
     mocker.patch("cobbler.utils.lod_to_dod", return_value={})
     mocker.patch(
@@ -81,6 +81,46 @@ def test_add_objects_not_on_local(
 
     # Assert
     api_mock.new_distro.assert_called_once()  # type: ignore
+
+
+def test_add_objects_not_on_local_continues_after_construction_exception(
+    mocker: MockerFixture, replicate_obj: replicate.Replicate
+):
+    """
+    Test that asserts that a construction-time exception (raised by the ``new_<type>()`` call,
+    e.g. because of invalid data on the remote object) for one object does not abort processing
+    of the remaining objects in the same call -- it should be logged and skipped just like an
+    ``add_item()`` failure already is.
+    """
+    # Arrange
+    replicate_obj.local_data["distro"] = []
+    replicate_obj.remote_data["distro"] = [{"name": "broken", "depth": 0}]
+    replicate_obj.must_include["distro"] = ["broken", "ok"]  # type: ignore
+    mocker.patch("cobbler.utils.lod_to_dod", return_value={})
+    mocker.patch(
+        "cobbler.utils.lod_sort_by_key",
+        return_value=[
+            {"uid": "uid-broken", "name": "broken"},
+            {"uid": "uid-ok", "name": "ok"},
+        ],
+    )
+    api_mock = mocker.patch.object(replicate_obj, "api")
+
+    def new_distro_side_effect(**kwargs: object):
+        if kwargs.get("name") == "broken":
+            raise ValueError("construction failed")
+        return mocker.MagicMock()
+
+    api_mock.new_distro.side_effect = new_distro_side_effect  # type: ignore
+
+    # Act
+    replicate_obj.add_objects_not_on_local("distro")
+
+    # Assert: the "broken" object's construction exception must not prevent "ok" from being
+    # processed (reached by add_item).
+    assert api_mock.new_distro.call_count == 2  # type: ignore
+    api_mock.add_item.assert_called_once()  # type: ignore
+    assert api_mock.add_item.call_args.args[0] == "distro"  # type: ignore
 
 
 def test_replace_objects_newer_on_remote(
@@ -107,6 +147,75 @@ def test_replace_objects_newer_on_remote(
 
     # Assert
     api_mock.new_distro.assert_called_once()  # type: ignore
+    api_mock.add_item.assert_called_once()  # type: ignore
+
+
+def test_replace_objects_newer_on_remote_renamed_removes_old_by_uid(
+    mocker: MockerFixture, replicate_obj: replicate.Replicate
+):
+    """
+    When the same uid has a different name remotely (a rename), the stale local object must be
+    removed by its uid, not by its (now-superseded) name.
+    """
+    # Arrange
+    replicate_obj.local_data["distro"] = []
+    replicate_obj.remote_data["distro"] = []
+    replicate_obj.must_include["distro"] = ["new-name"]  # type: ignore
+    mocker.patch(
+        "cobbler.utils.lod_to_dod",
+        side_effect=[
+            {"fake_uid": {"uid": "fake_uid", "name": "old-name", "mtime": 4}},
+            {"fake_uid": {"uid": "fake_uid", "name": "new-name", "mtime": 5}},
+        ],
+    )
+    api_mock = mocker.patch.object(replicate_obj, "api")
+
+    # Act
+    replicate_obj.replace_objects_newer_on_remote("distro")
+
+    # Assert
+    api_mock.remove_item.assert_called_with("distro", "fake_uid", recursive=True)  # type: ignore
+
+
+def test_replace_objects_newer_on_remote_continues_after_construction_exception(
+    mocker: MockerFixture, replicate_obj: replicate.Replicate
+):
+    """
+    Test that asserts that a construction-time exception (raised by the ``new_<type>()`` call)
+    for one object does not abort processing of the remaining objects in the same call.
+    """
+    # Arrange
+    replicate_obj.local_data["distro"] = []
+    replicate_obj.remote_data["distro"] = []
+    replicate_obj.must_include["distro"] = ["broken", "ok"]  # type: ignore
+    mocker.patch(
+        "cobbler.utils.lod_to_dod",
+        side_effect=[
+            {
+                "uid-broken": {"uid": "uid-broken", "name": "broken", "mtime": 4},
+                "uid-ok": {"uid": "uid-ok", "name": "ok", "mtime": 4},
+            },
+            {
+                "uid-broken": {"uid": "uid-broken", "name": "broken", "mtime": 5},
+                "uid-ok": {"uid": "uid-ok", "name": "ok", "mtime": 5},
+            },
+        ],
+    )
+    api_mock = mocker.patch.object(replicate_obj, "api")
+
+    def new_distro_side_effect(**kwargs: object):
+        if kwargs.get("name") == "broken":
+            raise ValueError("construction failed")
+        return mocker.MagicMock()
+
+    api_mock.new_distro.side_effect = new_distro_side_effect  # type: ignore
+
+    # Act
+    replicate_obj.replace_objects_newer_on_remote("distro")
+
+    # Assert: the "broken" object's construction exception must not prevent "ok" from being
+    # processed (reached by add_item).
+    assert api_mock.new_distro.call_count == 2  # type: ignore
     api_mock.add_item.assert_called_once()  # type: ignore
 
 
@@ -177,6 +286,12 @@ def test_generate_include_map(
         "system": [{"a": 1}],
         "repo": [{"a": 1}],
         "image": [{"a": 1}],
+        "menu": [{"a": 1}],
+        "template": [{"a": 1}],
+        "network_interface": [{"a": 1}],
+        "distro_group": [{"a": 1}],
+        "profile_group": [{"a": 1}],
+        "system_group": [{"a": 1}],
     }
     expected_must_include = {
         "distro": {"a": 1},
@@ -184,6 +299,12 @@ def test_generate_include_map(
         "system": {"a": 1},
         "repo": {"a": 1},
         "image": {"a": 1},
+        "menu": {"a": 1},
+        "template": {"a": 1},
+        "network_interface": {"a": 1},
+        "distro_group": {"a": 1},
+        "profile_group": {"a": 1},
+        "system_group": {"a": 1},
     }
 
     # Act
@@ -191,6 +312,60 @@ def test_generate_include_map(
 
     # Assert
     assert replicate_obj.must_include == expected_must_include
+
+
+def test_generate_include_map_subprofile_parent_not_pre_included(
+    replicate_obj: replicate.Replicate,
+):
+    """
+    Test that asserts that generate_include_map() can pull in a matched subprofile's parent
+    profile -- which is not itself matched by any pattern -- without raising
+    ``RuntimeError: dictionary changed size during iteration``. This is an ordinary setup (a
+    shared base profile plus per-arch/variant subprofiles), not an edge case.
+    """
+    # Arrange
+    replicate_obj.sync_all = False
+    replicate_obj.distro_patterns = []
+    replicate_obj.profile_patterns = ["leap161-sub*"]
+    replicate_obj.system_patterns = []
+    replicate_obj.repo_patterns = []
+    replicate_obj.image_patterns = []
+    replicate_obj.remote_data = {
+        "distro": [],
+        "profile": [
+            {
+                "name": "leap161-base",
+                "parent": "",
+                "distro": "<<inherit>>",
+                "repos": [],
+            },
+            {
+                "name": "leap161-sub1",
+                "parent": "leap161-base",
+                "distro": "<<inherit>>",
+                "repos": [],
+            },
+        ],
+        "system": [],
+        "repo": [],
+        "image": [],
+        "menu": [],
+        "template": [],
+        "network_interface": [],
+        "distro_group": [],
+        "profile_group": [],
+        "system_group": [],
+    }
+
+    # Act
+    replicate_obj.generate_include_map()
+
+    # Assert: both the explicitly-matched subprofile and its pulled-in, unmatched parent are
+    # included.
+    assert replicate_obj.must_include["profile"] == {
+        "leap161-sub1": 1,
+        "leap161-base": 1,
+    }
 
 
 def test_run(

@@ -1,5 +1,12 @@
 """
 Replicate from a Cobbler master.
+
+.. warning::
+   Replication is only tested and supported between two Cobbler servers running the exact
+   same Cobbler version. Replicating between different versions (e.g. a 4.0.0 master and a
+   4.1.0 slave, or vice versa) is untested at this time and may fail outright or silently
+   transfer incompatible/incomplete data, since the remote server's ``to_dict()`` output is
+   fed more or less directly into local item construction.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -11,7 +18,7 @@ import fnmatch
 import logging
 import os
 import xmlrpc.client
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 from cobbler import utils
 from cobbler.utils import filesystem_helpers
@@ -26,12 +33,68 @@ OBJ_TYPES = [
     "system",
     "repo",
     "image",
+    "menu",
+    "template",
+    "network_interface",
+    "distro_group",
+    "profile_group",
+    "system_group",
 ]
+
+# Dependency-correct order for creating/updating objects locally. A Profile's ``repos`` list is
+# validated against already-existing local Repo objects at construction time (Repo must exist
+# before Distro before Profile before System); a NetworkInterface's ``system_uid`` must reference
+# an already-existing System; each ``*_group``'s ``members`` list is validated against already
+# -existing member items, so groups must be created last, after every type they could group.
+# Menus/Templates have no dependency on anything else here, so they can go first. ``OBJ_TYPES``
+# itself is left in its original order since it also drives querying, where this ordering
+# constraint does not apply.
+OBJ_TYPES_CREATE_ORDER = [
+    "template",
+    "menu",
+    "repo",
+    "distro",
+    "profile",
+    "system",
+    "network_interface",
+    "image",
+    "distro_group",
+    "profile_group",
+    "system_group",
+]
+
+# Safe removal order: the exact reverse of OBJ_TYPES_CREATE_ORDER, so a type is only ever removed
+# after everything that could reference it (a group's members, a network_interface's owning
+# system) has already been removed.
+OBJ_TYPES_REMOVE_ORDER = list(reversed(OBJ_TYPES_CREATE_ORDER))
+
+# Remote objects are transported via ``to_dict()``, which includes computed/read-only
+# properties (e.g. a Distro's ``remote_grub_kernel``/``remote_grub_initrd``, derived from
+# ``remote_boot_kernel``/``remote_boot_initrd``). Those have no setter, so feeding them back
+# into a constructor's ``from_dict()`` raises ``AttributeError``. Mirrors the key list
+# ``BaseItem.serialize()`` already drops for the same reason before persisting to disk.
+NON_CONSTRUCTIBLE_KEYS = [
+    "kickstart",
+    "ks_meta",
+    "remote_grub_kernel",
+    "remote_grub_initrd",
+    "built_in",
+]
+
+
+def _strip_non_constructible_keys(data: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        key: value for key, value in data.items() if key not in NON_CONSTRUCTIBLE_KEYS
+    }
 
 
 class Replicate:
     """
     This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
+
+    .. warning::
+       Only tested and supported between two Cobbler servers running the exact same version.
+       Mixed-version replication is untested at this time.
     """
 
     def __init__(self, api: "CobblerAPI") -> None:
@@ -52,11 +115,7 @@ class Replicate:
         self.remote_names: Dict[Any, Any] = {}
         self.remote_dict: Dict[str, Dict[str, Any]] = {}
         self.must_include: Dict[str, Dict[str, Any]] = {
-            "distro": {},
-            "profile": {},
-            "system": {},
-            "image": {},
-            "repo": {},
+            obj_type: {} for obj_type in OBJ_TYPES
         }
         self.port = ""
         self.distro_patterns: List[str] = []
@@ -64,6 +123,14 @@ class Replicate:
         self.system_patterns: List[str] = []
         self.repo_patterns: List[str] = []
         self.image_patterns: List[str] = []
+        # Populated from run()'s matching *_patterns kwargs below; defaults kept empty here so
+        # generate_include_map()'s generic pattern loop always has something to iterate.
+        self.menu_patterns: List[str] = []
+        self.template_patterns: List[str] = []
+        self.network_interface_patterns: List[str] = []
+        self.distro_group_patterns: List[str] = []
+        self.profile_group_patterns: List[str] = []
+        self.system_group_patterns: List[str] = []
         self.omit_data = False
         self.prune = False
         self.sync_all = False
@@ -110,7 +177,7 @@ class Replicate:
             if luid not in remote_objects:
                 try:
                     self.logger.info("removing %s %s", obj_type, ldata["name"])
-                    self.api.remove_item(obj_type, ldata["name"], recursive=True)
+                    self.api.remove_item(obj_type, luid, recursive=True)
                 except Exception:
                     utils.log_exc()
 
@@ -123,7 +190,13 @@ class Replicate:
         :param obj_type: The type of object which should be synchronized.
         """
         local_objects = utils.lod_to_dod(self.local_data[obj_type], "uid")
-        remote_objects = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
+        # Only InheritableItem-derived types (e.g. Distro/Profile/System/Menu/the *_group types)
+        # carry a "depth" field for their own self-referential parent/child ordering; Template and
+        # NetworkInterface are plain BaseItem and have no such concept, so leave their order as-is.
+        if self.remote_data[obj_type] and "depth" in self.remote_data[obj_type][0]:
+            remote_objects = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
+        else:
+            remote_objects = self.remote_data[obj_type]
 
         for rdata in remote_objects:
 
@@ -132,14 +205,16 @@ class Replicate:
                 continue
 
             if not rdata["uid"] in local_objects:
-                creator = getattr(self.api, f"new_{obj_type}")
-                newobj = creator(utils.revert_strip_none(rdata))
                 try:
+                    creator = getattr(self.api, f"new_{obj_type}")
+                    reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))
+                    newobj = creator(**_strip_non_constructible_keys(reverted))
                     self.logger.info("adding %s %s", obj_type, rdata["name"])
-                    if not self.api.add_item(obj_type, newobj):
-                        self.logger.error(
-                            "failed to add %s %s", obj_type, rdata["name"]
-                        )
+                    # add_item() returns None on success and raises on failure; it never
+                    # returns a truthy/falsy success indicator, so a prior "if not
+                    # add_item(...)" check here always evaluated to True and logged a
+                    # false "failed to add" error on every successful add.
+                    self.api.add_item(obj_type, newobj)
                 except Exception:
                     utils.log_exc()
 
@@ -164,15 +239,16 @@ class Replicate:
                 if ldata["mtime"] < rdata["mtime"]:
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s", obj_type, ldata["name"])
-                        self.api.remove_item(obj_type, ldata["name"], recursive=True)
-                    creator = getattr(self.api, f"new_{obj_type}")
-                    newobj = creator(utils.revert_strip_none(rdata))
+                        self.api.remove_item(obj_type, ruid, recursive=True)
                     try:
+                        creator = getattr(self.api, f"new_{obj_type}")
+                        reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))
+                        newobj = creator(**_strip_non_constructible_keys(reverted))
                         self.logger.info("updating %s %s", obj_type, rdata["name"])
-                        if not self.api.add_item(obj_type, newobj):
-                            self.logger.error(
-                                "failed to update %s %s", obj_type, rdata["name"]
-                            )
+                        # See the matching comment in add_objects_not_on_local(): add_item()
+                        # never returns a truthy success indicator, so this check always
+                        # false-reported success as a failure.
+                        self.api.add_item(obj_type, newobj)
                     except Exception:
                         utils.log_exc()
 
@@ -199,11 +275,22 @@ class Replicate:
             self.remote_data[what] = self.remote.get_items(what)
             self.local_data[what] = self.local.get_items(what)
 
+        # Built-in templates are sourced from Python package resources (``uri.schema ==
+        # IMPORTLIB``), not real on-disk files, and already exist identically on every Cobbler
+        # install of the same version. They must never be replicated: doing so would try to
+        # create a duplicate object for something that already exists on both sides.
+        self.remote_data["template"] = [
+            rdata for rdata in self.remote_data["template"] if not rdata.get("built_in")
+        ]
+        self.local_data["template"] = [
+            ldata for ldata in self.local_data["template"] if not ldata.get("built_in")
+        ]
+
         self.generate_include_map()
 
         if self.prune:
             self.logger.info("Removing Objects Not Stored On Master")
-            obj_types = OBJ_TYPES[:]
+            obj_types = OBJ_TYPES_REMOVE_ORDER[:]
             if len(self.system_patterns) == 0 and "system" in obj_types:
                 obj_types.remove("system")
             for what in obj_types:
@@ -271,11 +358,11 @@ class Replicate:
             self.logger.info("*NOT* Rsyncing Data")
 
         self.logger.info("Adding Objects Not Stored On Local")
-        for what in OBJ_TYPES:
+        for what in OBJ_TYPES_CREATE_ORDER:
             self.add_objects_not_on_local(what)
 
         self.logger.info("Updating Objects Newer On Remote")
-        for what in OBJ_TYPES:
+        for what in OBJ_TYPES_CREATE_ORDER:
             self.replace_objects_newer_on_remote(what)
 
     def link_distros(self) -> None:
@@ -334,7 +421,10 @@ class Replicate:
             self.logger.debug("* Adding Profiles Required By SubProfiles")
             while True:
                 loop_exit = True
-                for pro in self.must_include["profile"]:
+                # Iterate over a snapshot of the keys: this loop body may add new entries to
+                # "profile" (the very dict being iterated) below, which would otherwise raise
+                # "RuntimeError: dictionary changed size during iteration".
+                for pro in list(self.must_include["profile"]):
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:
@@ -391,6 +481,12 @@ class Replicate:
         system_patterns: Optional[str] = None,
         repo_patterns: Optional[str] = None,
         image_patterns: Optional[str] = None,
+        menu_patterns: Optional[str] = None,
+        template_patterns: Optional[str] = None,
+        network_interface_patterns: Optional[str] = None,
+        distro_group_patterns: Optional[str] = None,
+        profile_group_patterns: Optional[str] = None,
+        system_group_patterns: Optional[str] = None,
         prune: bool = False,
         omit_data: bool = False,
         sync_all: bool = False,
@@ -406,6 +502,12 @@ class Replicate:
         :param system_patterns: The pattern of systems to sync.
         :param repo_patterns: The pattern of repositories to sync.
         :param image_patterns: The pattern of images to sync.
+        :param menu_patterns: The pattern of menus to sync.
+        :param template_patterns: The pattern of (non built-in) templates to sync.
+        :param network_interface_patterns: The pattern of network interfaces to sync.
+        :param distro_group_patterns: The pattern of distro groups to sync.
+        :param profile_group_patterns: The pattern of profile groups to sync.
+        :param system_group_patterns: The pattern of system groups to sync.
         :param prune: If the local server should be pruned before coping stuff.
         :param omit_data: If the data behind images etc should be omitted or not.
         :param sync_all: If everything should be synced (then the patterns are useless) or not.
@@ -423,6 +525,18 @@ class Replicate:
             self.repo_patterns = repo_patterns.split()
         if isinstance(image_patterns, str):
             self.image_patterns = image_patterns.split()
+        if isinstance(menu_patterns, str):
+            self.menu_patterns = menu_patterns.split()
+        if isinstance(template_patterns, str):
+            self.template_patterns = template_patterns.split()
+        if isinstance(network_interface_patterns, str):
+            self.network_interface_patterns = network_interface_patterns.split()
+        if isinstance(distro_group_patterns, str):
+            self.distro_group_patterns = distro_group_patterns.split()
+        if isinstance(profile_group_patterns, str):
+            self.profile_group_patterns = profile_group_patterns.split()
+        if isinstance(system_group_patterns, str):
+            self.system_group_patterns = system_group_patterns.split()
         self.omit_data = omit_data
         self.prune = prune
         self.sync_all = sync_all
@@ -449,6 +563,14 @@ class Replicate:
         self.logger.info("system_patterns     = %s", self.system_patterns)
         self.logger.info("repo_patterns       = %s", self.repo_patterns)
         self.logger.info("image_patterns      = %s", self.image_patterns)
+        self.logger.info("menu_patterns       = %s", self.menu_patterns)
+        self.logger.info("template_patterns   = %s", self.template_patterns)
+        self.logger.info(
+            "network_interface_patterns = %s", self.network_interface_patterns
+        )
+        self.logger.info("distro_group_patterns  = %s", self.distro_group_patterns)
+        self.logger.info("profile_group_patterns = %s", self.profile_group_patterns)
+        self.logger.info("system_group_patterns  = %s", self.system_group_patterns)
         self.logger.info("omit_data           = %s", self.omit_data)
         self.logger.info("sync_all            = %s", self.sync_all)
         self.logger.info("use_ssl             = %s", self.use_ssl)

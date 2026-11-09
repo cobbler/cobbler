@@ -39,8 +39,8 @@
         #else
   <admin-interface $if_id proto="dhcp" />
         #end if
-        #if $name_servers and $name_servers[0] != "":
-            #for $ns in $name_servers
+        #if $dns.name_servers and $dns.name_servers[0] != "":
+            #for $ns in $dns.name_servers
   <name-server>$ns</name-server>
             #end for
         #end if

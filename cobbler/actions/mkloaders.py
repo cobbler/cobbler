@@ -33,9 +33,9 @@ class MkLoaders:
         self.bootloaders_dir = pathlib.Path(api.settings().bootloaders_dir)
         # GRUB 2
         self.grub2_mod_dir = pathlib.Path(api.settings().grub2_mod_dir)
-        self.boot_loaders_formats: typing.Dict[
-            typing.Any, typing.Any
-        ] = api.settings().bootloaders_formats
+        self.boot_loaders_formats: typing.Dict[typing.Any, typing.Any] = (
+            api.settings().bootloaders_formats
+        )
         self.modules: typing.List[str] = api.settings().bootloaders_modules
         # UEFI GRUB
         self.secure_boot_grub_path_glob = pathlib.Path(
@@ -164,17 +164,27 @@ class MkLoaders:
             skip_existing=True,
         )
         # Make linux.c32 for syslinux + wimboot
+        # Unlike syslinux 5+'s COM32R modules, syslinux 4.x's COM32 modules (including linux.c32)
+        # are statically self-contained and never depend on libcom32.c32 -- so this symlink must not
+        # be gated on the same condition as the libcom32.c32 companion copy below, or linux.c32 is
+        # never deployed at all on syslinux 4.x even though it exists and works standalone there.
+        # Starting with syslinux 5 the dependency is real again, so on that version linux.c32 must
+        # still be skipped if libcom32.c32 isn't present, or a non-functional module gets deployed.
+        linux_c32_path = self.syslinux_folder.joinpath("linux.c32")
         libcom32_c32_path = self.syslinux_folder.joinpath("libcom32.c32")
-        if syslinux_version > 4 and libcom32_c32_path.exists():
+        if linux_c32_path.exists() and (
+            syslinux_version <= 4 or libcom32_c32_path.exists()
+        ):
             symlink(
-                self.syslinux_folder.joinpath("linux.c32"),
+                linux_c32_path,
                 self.bootloaders_dir.joinpath("linux.c32"),
                 skip_existing=True,
             )
-            # Make libcom32.c32
-            # 'linux.c32' depends on 'libcom32.c32'
+        # Make libcom32.c32
+        # 'linux.c32' depends on 'libcom32.c32' starting with syslinux 5.
+        if syslinux_version > 4 and libcom32_c32_path.exists():
             symlink(
-                self.syslinux_folder.joinpath("libcom32.c32"),
+                libcom32_c32_path,
                 self.bootloaders_dir.joinpath("libcom32.c32"),
                 skip_existing=True,
             )

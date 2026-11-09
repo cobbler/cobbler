@@ -70,6 +70,7 @@ class Collection(Generic[ITEM]):
         self.lock: Lock = Lock()
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
+        self._load_errors: List[Dict[str, Any]] = []
         # Secondary indexes for the collection.
         self.indexes: Dict[str, Dict[Union[str, int], Union[str, Set[str]]]] = {}
         self.init_indexes()
@@ -136,6 +137,17 @@ class Collection(Generic[ITEM]):
         :param deserialize_running: The new deserialize_running value.
         """
         self._deserialize_running = deserialize_running
+
+    @property
+    def load_errors(self) -> List[Dict[str, Any]]:
+        """
+        Items that failed to load from disk during :meth:`from_list`, surfaced beyond cobbler.log
+        so the failure is actionable (e.g. via ``cobbler check``) instead of only visible to whoever
+        happens to read the log. Each entry has ``collection_type``, ``name``, ``uid`` and ``error``.
+
+        :getter: A copy of the recorded load errors; mutating it does not affect the collection.
+        """
+        return list(self._load_errors)
 
     @abstractmethod
     def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]) -> ITEM:
@@ -369,14 +381,38 @@ class Collection(Generic[ITEM]):
         if _list is None:  # type: ignore
             return
         for item_dict in _list:
+            item_uid = "<unknown>"
+            item_name = "<unknown>"
+            if isinstance(item_dict, dict):  # type: ignore
+                item_uid = item_dict.get("uid", item_uid)
+                item_name = item_dict.get("name", item_name)
             try:
                 item = self.factory_produce(self.api, item_dict)
                 self.add(item)
             except Exception as exc:
+                # NOTE: this only drops the one offending item from ``self.listing`` for the lifetime of this
+                # process - it does NOT touch the item's on-disk JSON file in any way. The item will keep
+                # "vanishing" on every subsequent load (e.g. after a cobblerd restart) until the underlying
+                # problem (invalid/stale data, or a validation rule that changed since the item was last saved,
+                # e.g. signatures) is fixed. Logging the concrete uid/name here (instead of a generic message
+                # that sounds like the whole collection failed to load) is essential, since this is otherwise a
+                # silent, hard-to-diagnose divergence between the live collection and the always-intact disk
+                # state.
                 self.logger.error(
-                    "Error while loading a collection: %s. Skipping collection %s!",
-                    exc,
+                    'Failed to load %s "%s" (uid "%s") from disk, it will be unavailable until this is fixed '
+                    "and Cobbler is restarted. Its on-disk data file was NOT modified or removed. Error: %s",
                     self.collection_type(),
+                    item_name,
+                    item_uid,
+                    exc,
+                )
+                self._load_errors.append(
+                    {
+                        "collection_type": self.collection_type(),
+                        "name": item_name,
+                        "uid": item_uid,
+                        "error": str(exc),
+                    }
                 )
 
     def copy(
@@ -434,6 +470,11 @@ class Collection(Generic[ITEM]):
         oldname: str = ref.name
         # Change the name of the object
         ref.name = newname
+        # A rename is a real, user-visible modification: bump mtime the same way add() does for a
+        # saved change. Without this, a pure rename (no other field touched) never satisfies
+        # replicate's "newer on remote" mtime check, silently preventing the rename from ever
+        # propagating via `cobbler replicate`.
+        ref.mtime = float(time.time())
         # Save just this item
         if isinstance(ref, template.Template) and ref.built_in:
             self.logger.debug(
@@ -812,7 +853,8 @@ class Collection(Generic[ITEM]):
                 if len(indx_dict[key]) == 0:
                     del indx_dict[key]
         else:
-            indx_dict.pop(key, None)
+            if indx_dict.get(key) == value:
+                indx_dict.pop(key, None)
 
     def remove_from_indexes(self, ref: ITEM) -> None:
         """

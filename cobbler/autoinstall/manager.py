@@ -83,17 +83,21 @@ class AutoInstallationManager:
         return False
 
     def __log_autoinstall_validation_errors(
-        self, errors_type: enums.AutoinstallValidationError, errors: Sequence[Any]
+        self,
+        obj: Union["Profile", "System"],
+        errors_type: enums.AutoinstallValidationError,
+        errors: Sequence[Any],
     ):
         """
         Log automatic installation file errors
 
+        :param obj: The profile/system the errors were found for.
         :param errors_type: validation errors type
         :param errors: A collection with all the errors which occurred.
         """
 
         if errors_type == enums.AutoinstallValidationError.TEMPLATING:
-            self.logger.warning("Potential templating errors:")
+            self.logger.warning("Potential templating errors for %s:", obj.name)
             for error in errors:
                 (line, col) = error["lineCol"]
                 line -= 1  # we add some lines to the template data, so numbering is off
@@ -104,7 +108,13 @@ class AutoInstallationManager:
                     error["rawCode"],
                 )
         elif errors_type == enums.AutoinstallValidationError.KICKSTART:
-            self.logger.warning("Kickstart validation errors: %s", errors[0])
+            self.logger.warning(
+                "Kickstart validation errors for %s: %s", obj.name, errors[0]
+            )
+        elif errors_type == enums.AutoinstallValidationError.GENERATION:
+            self.logger.warning(
+                "Autoinstall generation error for %s: %s", obj.name, errors[0]
+            )
 
     def validate_autoinstall_file(
         self, obj: Union["Profile", "System"]
@@ -129,7 +139,14 @@ class AutoInstallationManager:
         os_version = blended["os_version"]
         self.logger.info("----------------------------")
         self.logger.debug("osversion: %s", os_version)
-        self.generate_autoinstall(obj, obj.autoinstall)
+        try:
+            self.generate_autoinstall(obj, obj.autoinstall)
+        except Exception as generation_error:
+            return AutoinstallValidationResult(
+                False,
+                enums.AutoinstallValidationError.GENERATION,
+                (str(generation_error),),
+            )
         last_errors = self.get_last_errors()
         if len(last_errors) > 0:
             return AutoinstallValidationResult(
@@ -155,13 +172,13 @@ class AutoInstallationManager:
             if not success:
                 overall_success = False
             if len(errors) > 0:
-                self.__log_autoinstall_validation_errors(errors_type, errors)
+                self.__log_autoinstall_validation_errors(profile, errors_type, errors)
         for system in self.api.systems():
             (success, errors_type, errors) = self.validate_autoinstall_file(system)
             if not success:
                 overall_success = False
             if len(errors) > 0:
-                self.__log_autoinstall_validation_errors(errors_type, errors)
+                self.__log_autoinstall_validation_errors(system, errors_type, errors)
 
         if not overall_success:
             self.logger.warning(

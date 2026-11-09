@@ -20,6 +20,7 @@ from cobbler import enums, utils
 from cobbler.api import CobblerAPI
 from cobbler.items.distro import Distro
 from cobbler.items.profile import Profile
+from cobbler.items.repo import Repo
 from cobbler.items.system import System
 
 from tests.conftest import does_not_raise
@@ -277,7 +278,7 @@ def test_blender(cobbler_api):  # type: ignore
     result = utils.blender(cobbler_api, False, root_item)  # type: ignore
 
     # Assert
-    assert len(result) == 175
+    assert len(result) == 176
     # Must be present because the settings have it
     assert "server" in result
     # Must be present because it is a field of distro
@@ -312,6 +313,33 @@ def test_blender_inherit(
     assert isinstance(result, dict)
     assert set(result.get("dns", {}).get("name_servers", [])) == {"8.8.4.4", "8.8.8.8"}
     assert result.get("kernel_options") == {"test": "bar"}
+
+
+def test_blender_repo_data(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Any,
+):
+    """
+    Regression test: ``profile.repos``/``system.repos`` store repo UIDs (not names), but
+    ``blender()`` used to look the repos up via ``find_repo(name=...)``, so ``repo_data`` came
+    back empty for every profile/system that had a repo attached.
+    """
+    # Arrange
+    test_repo: Repo = cobbler_api.new_repo()
+    test_repo.name = "test_blender_repo_data_repo"
+    cobbler_api.add_repo(test_repo)
+    test_distro = create_distro()
+    test_profile: Profile = create_profile(test_distro.uid)
+    test_profile.repos = [test_repo.uid]
+
+    # Act
+    result = utils.blender(cobbler_api, False, test_profile)
+
+    # Assert
+    assert [repo_dict["uid"] for repo_dict in result.get("repo_data", [])] == [
+        test_repo.uid
+    ]
 
 
 @pytest.mark.parametrize(
@@ -529,6 +557,93 @@ def test_subprocess_sp():
     # The newline makes sense in my (@SchoolGuy) eyes since we want to have multiline output also in a single string.
     assert result_out == "Test\n"
     assert result_rc == 0
+
+
+def test_subprocess_sp_logs_stderr_at_error_level_on_failure(
+    caplog: "pytest.LogCaptureFixture",
+):
+    """
+    A failing subprocess's stderr must be logged at a level the default INFO-level file handler
+    actually captures (i.e. at least INFO), so the real failure detail is not silently dropped
+    from cobbler.log.
+    """
+    # Arrange
+    caplog.set_level("DEBUG")
+
+    # Act
+    _, result_rc = utils.subprocess_sp(
+        "echo 'Permission denied' 1>&2; exit 1", shell=True
+    )
+
+    # Assert
+    assert result_rc == 1
+    matching_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("received on stderr:")
+    ]
+    assert len(matching_records) == 1
+    assert "Permission denied" in matching_records[0].message
+    assert matching_records[0].levelname == "ERROR"
+
+
+def test_subprocess_sp_logs_stderr_at_debug_level_on_success(
+    caplog: "pytest.LogCaptureFixture",
+):
+    """
+    A successful subprocess's stderr (routine diagnostic chatter many well-behaved CLI tools
+    write) must stay at DEBUG level, so it does not flood cobbler.log at the default INFO level.
+    """
+    # Arrange
+    caplog.set_level("DEBUG")
+
+    # Act
+    _, result_rc = utils.subprocess_sp(
+        "echo 'Just some diagnostic chatter' 1>&2; exit 0", shell=True
+    )
+
+    # Assert
+    assert result_rc == 0
+    matching_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("received on stderr:")
+    ]
+    assert len(matching_records) == 1
+    assert "Just some diagnostic chatter" in matching_records[0].message
+    assert matching_records[0].levelname == "DEBUG"
+
+
+def test_subprocess_sp_logs_stderr_at_debug_level_on_failure_when_opted_out(
+    caplog: "pytest.LogCaptureFixture",
+):
+    """
+    Regression test: some callers probe a command that is expected to fail as part of normal control
+    flow (e.g. "cobbler check"'s "systemctl is-active" probe, or reposync's createrepo->createrepo_c
+    fallback probe). Escalating every failing command's stderr to ERROR unconditionally spams
+    cobbler.log with benign, expected non-zero exits. Passing log_stderr_as_error=False must keep
+    such failures at DEBUG level.
+    """
+    # Arrange
+    caplog.set_level("DEBUG")
+
+    # Act
+    _, result_rc = utils.subprocess_sp(
+        "echo 'expected probe failure' 1>&2; exit 1",
+        shell=True,
+        log_stderr_as_error=False,
+    )
+
+    # Assert
+    assert result_rc == 1
+    matching_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("received on stderr:")
+    ]
+    assert len(matching_records) == 1
+    assert "expected probe failure" in matching_records[0].message
+    assert matching_records[0].levelname == "DEBUG"
 
 
 @pytest.mark.parametrize(

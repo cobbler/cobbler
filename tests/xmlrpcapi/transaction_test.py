@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List, cast
 
 import pytest
 
+from cobbler.cexceptions import CX
 from cobbler.remote import CobblerXMLRPCInterface
 
 logger = logging.getLogger()
@@ -42,6 +43,111 @@ def test_create_profile(
 
     # now it is visible
     assert remote.get_item_handle("profile", "testprofile0") != "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+)
+def test_create_and_remove_profile_inside_same_transaction_does_not_crash_commit(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: an item created (new + modify + save) and then removed again within the same still-open
+    transaction must never reach the real collection at all. ``save_item`` never actually inserts a
+    transaction-tracked object into the real collection -- only ``transaction_commit`` does, via
+    ``add_remove_items``'s "to_add" pass. Before this fix, ``remove_item`` unconditionally recorded a
+    removal ``TransactionTuple`` for the object_id, overwriting its earlier "to add" entry; at commit,
+    ``add_remove_items`` would then try to remove an item from the real collection that had never
+    actually been added to it, since it only ever existed as a transaction-local pending add.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+
+    # Act
+    remote.transaction_begin(token)
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+    assert remote.remove_profile(profile, token, False)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_item_handle("profile", "testprofile0") == "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_remove_and_readd_profile_with_same_name_inside_transaction_is_reachable(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: remove an existing profile and add a brand new, differently-uid'd
+    profile under the SAME name within one transaction. ``add_remove_items``
+    processes all of ``to_add`` (which performs the real index insertion via
+    ``Collection.add()``) before any of ``to_remove``, so by the time the old
+    profile's removal runs, the "name" index's "testprofile0" key already
+    points at the new profile's uid, not the old one's. ``remove_single_index_value``
+    used to unconditionally ``pop`` that key regardless of which uid it
+    currently pointed at, silently deleting the new profile's own, still-live
+    name-index entry and leaving it unreachable by name after a successful,
+    exception-free commit.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+    old_profile_uid = remote.get_profile_handle("testprofile0")
+
+    # Act
+    remote.transaction_begin(token)
+    assert remote.remove_profile(old_profile_uid, token, False)
+    new_profile = remote.new_profile(token)
+    remote.modify_profile(new_profile, ["name"], "testprofile0", token)
+    remote.modify_profile(new_profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(new_profile, True, True, "bypass", token)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_item_handle("profile", "testprofile0") == new_profile
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+)
+def test_get_profile_handle_forwards_token_for_transaction_staged_item(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: the type-specific ``get_profile_handle`` (unlike the generic
+    ``get_item_handle``) must forward its token so a profile created/saved
+    earlier in the same still-open transaction can be re-resolved, exactly
+    as ``copy``/``rename`` commands do after mutating an item.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+
+    # Act
+    remote.transaction_begin(token)
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+
+    # Assert
+    # without a token, the transaction-staged profile is correctly invisible
+    assert remote.get_profile_handle("testprofile0") == "~"
+    # with the token, it must resolve to the staged item's handle
+    assert remote.get_profile_handle("testprofile0", token) == profile
+
+    assert remote.transaction_commit(token)
+    assert remote.get_profile_handle("testprofile0") == profile
 
 
 @pytest.mark.usefixtures(
@@ -646,3 +752,256 @@ def test_create_system_positive(remote: CobblerXMLRPCInterface, token: str):
 
     # Assert
     assert remote.get_item_handle("system", "testsystem0") != "~"
+
+
+def test_modify_template_kernel_options_inside_transaction_does_not_crash(
+    create_autoinstall_template: Callable[[str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: ``Template`` (a plain ``BaseItem``, not an ``InheritableItem``) has
+    no ``kernel_options``/``kernel_options_post`` attributes, but a generic
+    XML-RPC client (e.g. cobblerclient's shared ``Item`` struct) may still
+    issue a ``modify_template`` call for them on every update. Outside a
+    transaction this is a harmless no-op; inside one, the transaction-aware
+    change-tracking code used to unconditionally read the attribute's
+    current value first, raising ``AttributeError``. It must now no-op the
+    same way as outside a transaction, and the transaction must commit
+    cleanly afterward (exercising ``add_remove_items``' depth-based sort,
+    which Template/BaseItem types also have no ``.depth`` for).
+    """
+    # Arrange
+    template = create_autoinstall_template("test_transaction.ks", "")
+
+    # Act
+    remote.transaction_begin(token)
+    assert remote.modify_template(template, ["kernel_options"], {}, token)
+    assert remote.modify_template(template, ["kernel_options_post"], {}, token)
+    assert remote.modify_template(
+        template, ["comment"], "updated in transaction", token
+    )
+    assert remote.save_template(template, True, True, "bypass", token)
+
+    # Assert
+    assert remote.transaction_commit(token)
+    assert (
+        cast(Dict[Any, Any], remote.get_template(template))["comment"]
+        == "updated in transaction"
+    )
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+    "create_testsystem",
+)
+def test_remove_distro_recursive_inside_transaction_does_not_crash(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: ``remove_distro(..., recursive=True)`` inside a transaction walks every
+    dependent item via ``_transaction_descendants``, which reads each dependency pair's
+    "dependant_type_attribute" generically. For most pairs (e.g. ``Profile.distro``) this
+    getter resolves and returns the referenced ``BaseItem``, but for others (e.g.
+    ``System.profile``) it returns the raw uid string instead, and for ``ItemGroup.members``
+    it returns a list of uid strings. The code used to assume a resolved object and access
+    ``.uid`` unconditionally, raising ``AttributeError: 'str' object has no attribute 'uid'``
+    as soon as the walk reached a distro's profile's system (distro -> profile -> system).
+
+    Also covers a second, related bug reached one level deeper: once the walk reaches the
+    system's own ``NetworkInterface`` (distro -> profile -> system -> interface), recursing into
+    ``_transaction_descendants`` for it used to unconditionally call the same-type parent/child
+    tree walk, which assumes a ``.get_parent`` property that only ``InheritableItem`` subtypes
+    have -- ``NetworkInterface`` (like ``Template``) is a plain ``BaseItem`` and always a leaf in
+    this dependency model, raising ``AttributeError: 'NetworkInterface' object has no attribute
+    'get_parent'``.
+
+    And a third bug in the removal commit itself: ``add_remove_items`` used to remove every item
+    in the batch first, then run each one's PXE/DHCP sync cleanup in a second pass afterward. By
+    the time the system's cleanup trigger (which resolves its profile/distro via
+    ``get_conceptual_parent()``) ran, the profile and distro had already been deleted from their
+    collections, so the lookup returned ``None`` and crashed on the next ``.get_conceptual_parent()``
+    call -- ``AttributeError: 'NoneType' object has no attribute 'get_conceptual_parent'``.
+    """
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.get_profile_handle("testprofile0")
+    system_uid = remote.get_system_handle("testsystem0")
+    interface_handle = remote.new_network_interface(system_uid, token)
+    remote.modify_network_interface(interface_handle, ["name"], "eth0", token)
+    assert remote.save_network_interface(interface_handle, True, True, "new", token)
+
+    # Act
+    remote.transaction_begin(token)
+    assert remote.remove_distro(distro_uid, token, True)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_distro_handle("testdistro0") == "~"
+    assert remote.get_profile_handle("testprofile0") == "~"
+    assert remote.get_system_handle("testsystem0") == "~"
+    assert (
+        remote.find_network_interface(
+            {"system_uid": system_uid, "name": "eth0"}, expand=False
+        )
+        == []
+    )
+
+
+def test_modify_profile_group_kernel_options_inside_transaction_does_not_crash(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: ``ProfileGroup`` (an ``InheritableItem`` but not a ``BootableItem``) has
+    no ``kernel_options``/``kernel_options_post`` attributes -- those are
+    ``BootableItem``-only -- but a generic XML-RPC client (e.g. cobblerclient's
+    shared ``Item`` struct) may still issue a ``modify_profile_group`` call for
+    them on every update. Outside a transaction this is a harmless no-op; inside
+    one, the transaction-aware change-tracking code must no-op the same way
+    instead of crashing, and the transaction must commit cleanly afterward.
+    """
+    # Act
+    remote.transaction_begin(token)
+    profile_group = remote.new_profile_group(token)
+    assert remote.modify_profile_group(
+        profile_group, ["name"], "testprofilegroup0", token
+    )
+    assert remote.modify_profile_group(profile_group, ["kernel_options"], {}, token)
+    assert remote.modify_profile_group(
+        profile_group, ["kernel_options_post"], {}, token
+    )
+    assert remote.modify_profile_group(
+        profile_group, ["comment"], "updated in transaction", token
+    )
+    assert remote.save_profile_group(profile_group, True, True, "new", token)
+
+    # Assert
+    assert remote.transaction_commit(token)
+    assert (
+        cast(Dict[Any, Any], remote.get_profile_group(profile_group))["comment"]
+        == "updated in transaction"
+    )
+
+
+def test_copy_and_rename_system_group_inside_transaction_does_not_crash(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Test: copying and then renaming a ``SystemGroup`` (an ``InheritableItem``
+    but not a ``BootableItem``) inside a single open transaction must not crash
+    and must be fully visible once committed.
+    """
+    # Arrange
+    handle = remote.new_system_group(token)
+    remote.modify_system_group(handle, ["name"], "testsystemgroup0", token)
+    assert remote.save_system_group(handle, True, True, "new", token)
+
+    # Act
+    remote.transaction_begin(token)
+    system_group = remote.get_system_group_handle("testsystemgroup0", token)
+    assert remote.copy_system_group(system_group, "testsystemgroupcopy1", token)
+
+    # without token, the copy is not visible
+    assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
+
+    copy_handle = remote.get_system_group_handle("testsystemgroupcopy1", token)
+    assert remote.rename_system_group(copy_handle, "testsystemgrouprenamed1", token)
+
+    # without token, neither the copy's old nor new name is visible
+    assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
+    assert remote.get_item_handle("system_group", "testsystemgrouprenamed1") == "~"
+
+    assert remote.transaction_commit(token)
+
+    # Assert: after commit, the original and the renamed copy are visible,
+    # and the copy's old name is gone.
+    assert remote.get_item_handle("system_group", "testsystemgroup0") != "~"
+    assert remote.get_item_handle("system_group", "testsystemgroupcopy1") == "~"
+    assert remote.get_item_handle("system_group", "testsystemgrouprenamed1") != "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+    "create_testsystem",
+)
+def test_add_remove_items_rolls_back_entire_batch_on_mid_commit_failure(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: ``add_remove_items()`` used to apply queued items one at a time with no
+    rollback -- a failure partway through the batch left every item already applied earlier in
+    the very same commit permanently removed/added, with the rest of the queued batch silently
+    discarded. A transaction must be all-or-nothing, exactly like a database transaction: if any
+    item in the batch fails, everything already applied earlier in that same commit must be
+    reverted too, not left behind as a partial, unrecoverable commit.
+
+    ``to_remove`` is processed deepest-first (System, then Distro), so removing "testsystem0" (a
+    leaf, always succeeds) and "testdistro0" (still depended on by "testprofile0", which is NOT
+    part of this batch) in the same transaction removes the system first, then fails on the
+    distro with an "orphan" error. "testsystem0" must be restored afterward, not left deleted.
+    """
+    # Arrange
+    system_uid = remote.get_system_handle("testsystem0")
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.transaction_begin(token)
+    assert remote.remove_system(system_uid, token)
+    assert remote.remove_distro(distro_uid, token, False)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        remote.transaction_commit(token)
+
+    # The system, removed earlier in the same failed batch, must have been rolled back (restored)
+    # too -- not left behind as a partial, unrecoverable commit.
+    assert remote.get_item_handle("system", "testsystem0") != "~"
+    assert remote.get_item_handle("distro", "testdistro0") != "~"
+    assert remote.get_item_handle("profile", "testprofile0") != "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_add_remove_items_rollback_restores_modified_item_instead_of_deleting_it(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: modifying an already-persisted item queues it in "to_add" (``Collection.add()``
+    just overwrites ``self.listing[ref.uid]`` in place for an existing uid), not "to_remove" -- a
+    plain modification, not a brand new item. A rollback must restore such an item to its
+    pre-modification state, not delete it outright the way undoing a genuinely new item does.
+
+    Modifying "testprofile0"'s comment (succeeds, applied first since "to_add" is processed before
+    "to_remove") and then removing "testdistro0" (fails -- "testprofile0" still depends on it) in
+    the same transaction must, after rollback, leave "testprofile0" existing with its original
+    comment, not deleted.
+    """
+    # Arrange
+    profile = remote.get_profile_handle("testprofile0")
+    original_comment = cast(Dict[Any, Any], remote.get_profile(profile))["comment"]
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.transaction_begin(token)
+    remote.modify_profile(profile, ["comment"], "modified in failed transaction", token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+    assert remote.remove_distro(distro_uid, token, False)
+
+    # Act & Assert
+    with pytest.raises(CX):
+        remote.transaction_commit(token)
+
+    # The profile must still exist (not deleted like rolling back a brand new item would do) and
+    # its original comment must be restored, not left with the failed transaction's modification.
+    assert remote.get_item_handle("profile", "testprofile0") != "~"
+    assert (
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == original_comment
+    )

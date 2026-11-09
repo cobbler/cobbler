@@ -73,9 +73,25 @@ class Distros(collection.Collection[distro.Distro]):
             rebuild_menu=rebuild_menu,
         )
 
+        if with_delete and ref.source_tree_path:
+            still_in_use = any(
+                dist.source_tree_path == ref.source_tree_path
+                for dist in self.api.distros()
+            )
+            if not still_in_use:
+                filesystem_helpers.rmtree(
+                    filesystem_helpers.get_distro_overlay_dir(ref.source_tree_path)
+                )
+
         # look through all mirrored directories and find if any directory is holding this particular distribution's
         # kernel and initrd
         settings = self.api.settings()
+
+        if with_delete:
+            # Named after this distro's own name, which is unique, so unlike the mirrored storage
+            # and overlay cleanup above, no "is another distro still using this" check is needed.
+            filesystem_helpers.rmfile(os.path.join(settings.webdir, "links", ref.name))
+
         possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
         path = None
         kernel = ref.kernel

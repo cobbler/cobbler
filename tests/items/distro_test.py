@@ -263,6 +263,57 @@ def test_boot_loaders(
             assert distro.boot_loaders == expected_result
 
 
+def test_supported_boot_loaders_cache_invalidated_on_breed_change(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: ``supported_boot_loaders`` is lazily computed and cached on first access.
+    The ``breed``/``os_version`` setters must drop that cache, otherwise changing either of them
+    on an already-used distro (e.g. ``cobbler distro edit --breed=...``) leaves ``boot_loaders``
+    validated against the old breed's allowed set forever.
+    """
+    # Arrange
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    test_distro = Distro(cobbler_api)
+
+    # Prime the cache against the default breed/os_version (generic x86_64 fallback includes grub).
+    assert enums.BootLoader.GRUB in test_distro.supported_boot_loaders
+
+    # Act: vmware/esxi67 on x86_64 only supports pxe/ipxe, not grub.
+    test_distro.breed = "vmware"  # type: ignore[method-assign]
+    test_distro.os_version = "esxi67"  # type: ignore[method-assign]
+
+    # Assert
+    assert enums.BootLoader.GRUB not in test_distro.supported_boot_loaders
+    with pytest.raises(ValueError):
+        test_distro.boot_loaders = ["grub"]  # type: ignore[method-assign]
+
+
+def test_boot_loaders_validated_against_resolved_breed_during_deserialize(
+    cobbler_api: CobblerAPI,
+):
+    """
+    Regression test: ``_FROM_DICT_PRIORITY_KEYS`` did not include ``breed``/``os_version``, so
+    during ``from_dict()`` deserialization (e.g. every ``cobblerd`` restart) ``boot_loaders`` could
+    be applied before ``breed``/``os_version`` were, validating against the generic x86_64 fallback
+    (grub/pxe/ipxe) instead of the real, narrower signature for the resolved breed - silently
+    accepting an invalid value that should have been rejected.
+    """
+    # Arrange
+    signatures.load_signatures("/var/lib/cobbler/distro_signatures.json")
+    # vmware/esxi67 on x86_64 only supports pxe/ipxe, not grub. "boot_loaders" is deliberately
+    # the first key here to reproduce the pre-fix ordering (dict/kwarg order is preserved).
+    item_dict = {
+        "boot_loaders": ["grub"],
+        "breed": "vmware",
+        "os_version": "esxi67",
+    }
+
+    # Act / Assert
+    with pytest.raises(ValueError):
+        Distro(cobbler_api, **item_dict)
+
+
 @pytest.mark.parametrize(
     "value,expected_exception",
     [("", does_not_raise()), (0, pytest.raises(TypeError)), ("suse", does_not_raise())],
@@ -481,10 +532,14 @@ def test_redhat_management_password(
         assert distro.redhat_management_password == expected_result
 
 
-@pytest.mark.parametrize("value", [[""], ["Test"]])
+@pytest.mark.parametrize("value", [[], [("", "")], [("Test", "Test2")]])
 def test_source_repos(cobbler_api: CobblerAPI, value: Any):
     """
     Test that verifies if the source repositories can be set as expected.
+
+    ``source_repos`` stores one ``(config_url, baseurl)`` pair per split-tree repo (e.g. RHEL5-style imports),
+    not a flat list of strings -- see ``test_source_repos_rejects_flat_strings`` for the historical bug this
+    guards against.
     """
     # Arrange
     distro = Distro(cobbler_api)
@@ -494,6 +549,31 @@ def test_source_repos(cobbler_api: CobblerAPI, value: Any):
 
     # Assert
     assert distro.source_repos == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        ["Test"],
+        [("only-one-element",)],
+        [("too", "many", "elements")],
+        [(1, "not-a-string")],
+    ],
+)
+def test_source_repos_rejects_flat_strings(cobbler_api: CobblerAPI, value: Any):
+    """
+    Regression test: a commit that only tightened ``source_repos``'s type *annotation* (``List[Any]`` ->
+    ``List[str]``) without adding runtime validation let the producer in ``import_signatures.py`` silently
+    flatten the historical ``(config_url, baseurl)`` pairs into interleaved flat strings, which every consumer
+    (``generate_repo_stanza``, ``yumgen.py``) still indexed as pairs -- corrupting every rendered repo baseurl.
+    The setter must reject anything that is not a list of 2-element string pairs.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        distro.source_repos = value  # type: ignore[method-assign]
 
 
 def test_source_tree_path(cobbler_api: CobblerAPI, tmp_path: pathlib.Path):
@@ -664,6 +744,32 @@ def test_remote_boot_initrd(
 
         # Assert
         assert distro.remote_boot_initrd == value
+
+
+@pytest.mark.parametrize(
+    "value,expected_exception",
+    [
+        ([""], pytest.raises(TypeError)),
+        ("", does_not_raise()),
+        ("http://192.168.1.1/cblr/links/distro/custom-iso/image.iso", does_not_raise()),
+        ("ftp://192.168.1.1/image.iso", pytest.raises(ValueError)),
+    ],
+)
+def test_remote_boot_iso(cobbler_api: CobblerAPI, value: Any, expected_exception: Any):
+    """
+    Test that verifies the ``remote_boot_iso`` property (ledger 1.7 -- the casper/Subiquity live-netboot "url="
+    source) validates its input and round-trips correctly. Unlike ``remote_boot_kernel``/``remote_boot_initrd``
+    this is not GRUB-reparsed, so a plain valid HTTP URL is expected to round-trip unchanged.
+    """
+    # Arrange
+    distro = Distro(cobbler_api)
+
+    # Act
+    with expected_exception:
+        distro.remote_boot_iso = value  # type: ignore[method-assign]
+
+        # Assert
+        assert distro.remote_boot_iso == value
 
 
 @pytest.mark.parametrize(
