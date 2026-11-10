@@ -3,6 +3,7 @@ Tests that validate the functionality of the module that is responsible for abst
 (de)serializers.
 """
 
+import fcntl
 from typing import TYPE_CHECKING
 
 import pytest
@@ -49,8 +50,11 @@ def test_serialize(mocker: "MockerFixture", serializer_obj: serializer.Serialize
     serializer_obj.serialize(input_collection)
 
     # Assert
-    # One access for __grab_lock and one for __release_lock
-    assert mock_lock_file_location.call_count == 2
+    # One access for __grab_lock; releasing reuses that same handle rather than reopening the
+    # lock file (reopening it would unlock/close a different, unrelated open file description
+    # and leak the one that actually holds the flock - see the real root-cause bug this guards
+    # against).
+    assert mock_lock_file_location.call_count == 1
 
 
 def test_serialize_item(mocker: "MockerFixture", serializer_obj: serializer.Serializer):
@@ -74,9 +78,36 @@ def test_serialize_item(mocker: "MockerFixture", serializer_obj: serializer.Seri
 
     # Assert
     storage_object_mock.serialize_item.assert_called_with(input_collection, input_item)
-    # One access for __grab_lock
-    # Two access for __release_lock (mtime is true in this case)
-    assert mock_lock_file_location.call_count == 3
+    # One access for __grab_lock, one for the mtime file write - releasing the lock no longer
+    # reopens the lock file itself.
+    assert mock_lock_file_location.call_count == 2
+
+
+def test_serialize_releases_lock_on_exception(
+    mocker: "MockerFixture", serializer_obj: serializer.Serializer
+):
+    """
+    Regression test: the lock must be released even if the wrapped serialize call raises -
+    otherwise every subsequent serialize/deserialize call in this process, and in any other
+    process, would block forever waiting for a lock that is never coming back.
+    """
+    # Arrange
+    open_mock = mocker.MagicMock()
+    open_mock.fileno.return_value = 5
+    mocker.patch("builtins.open", return_value=mocker.mock_open(mock=open_mock))
+    flock_mock = mocker.patch("fcntl.flock")
+    mocker.patch("os.path.exists", return_value=True)
+    storage_object_mock = mocker.patch.object(serializer_obj, "storage_object")
+    storage_object_mock.serialize.side_effect = RuntimeError("boom")
+    input_collection = mocker.MagicMock()
+
+    # Act
+    with pytest.raises(RuntimeError, match="boom"):
+        serializer_obj.serialize(input_collection)
+
+    # Assert - the lock was still unlocked and the handle closed despite the exception.
+    flock_mock.assert_called_with(5, fcntl.LOCK_UN)
+    open_mock.close.assert_called_once()
 
 
 def test_serialize_delete(
