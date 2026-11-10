@@ -4,12 +4,15 @@ Tests that validate the functionality of XML-RPC API transactions.
 
 import logging
 import os
-from typing import Any, Callable, Dict, List, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, cast
 
 import pytest
 
 from cobbler.cexceptions import CX
 from cobbler.remote import CobblerXMLRPCInterface
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 logger = logging.getLogger()
 
@@ -1005,3 +1008,119 @@ def test_add_remove_items_rollback_restores_modified_item_instead_of_deleting_it
     assert (
         cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == original_comment
     )
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_add_remove_items_quick_sync_acquires_filelock_on_add(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    mocker: "MockerFixture",
+):
+    """
+    Regression test for the quick-sync/full-sync race: ``add_remove_items()`` used to call the per-item quick-sync
+    (``add_quick_pxe_sync``) and ``tftpgen.make_pxe_menu()`` directly, without ever taking the
+    global ``/var/lib/cobbler/lock`` that a full ``cobbler sync`` holds around its destructive
+    directory rebuild -- so a transaction commit could race a concurrent full sync just like the
+    classic (non-transactional) ``save_*`` path could. The whole method now runs under one single
+    acquisition of that lock (see ``test_add_remove_items_quick_sync_acquires_filelock_once_for_whole_add_batch``
+    for proof that this holds for a multi-item batch, not just one acquisition per item): one call
+    for the method's own outer acquisition, plus one for the added system's on-disk serialization
+    (``Collection.add()``'s ``save=True`` path, which now shares this same lock instead of an
+    independent, non-reentrant ``fcntl.flock()`` -- see ``cobbler/serializer.py``).
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    system = remote.new_system(token)
+    remote.modify_system(system, ["name"], "testsystem0", token)
+    remote.modify_system(system, ["profile"], profile_uid, token)
+    assert remote.save_system(system, True, True, "new", token)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_add_remove_items_quick_sync_acquires_filelock_once_for_whole_add_batch(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    mocker: "MockerFixture",
+):
+    """
+    Regression test: ``add_remove_items()`` used to acquire ``/var/lib/cobbler/lock`` separately for
+    each added item's quick-sync (plus once more for the final menu rebuild), dropping and
+    re-acquiring it in between - leaving a window, between any two items of the very same
+    transaction, where a concurrent full ``cobbler sync``'s destructive directory rebuild could
+    interleave. The whole method - every item's on-disk serialization, its quick-sync, and the final
+    menu rebuild - now runs under one single, uninterrupted acquisition of this lock: one call for
+    the method's own outer acquisition, plus one per added item for that item's on-disk
+    serialization (``Collection.add()``'s ``save=True`` path; see ``cobbler/serializer.py``, which
+    now shares this same reentrant lock instead of independently ``flock()``-ing the same file).
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    system_names = ("testsystem0", "testsystem1", "testsystem2")
+    for name in system_names:
+        system = remote.new_system(token)
+        remote.modify_system(system, ["name"], name, token)
+        remote.modify_system(system, ["profile"], profile_uid, token)
+        assert remote.save_system(system, True, True, "new", token)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    assert remote.transaction_commit(token)
+
+    # Assert: one outer acquisition plus one per added system's on-disk serialization.
+    assert filelock_mock.call_count == 1 + len(system_names)
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+    "create_testsystem",
+)
+def test_add_remove_items_quick_sync_acquires_filelock_on_remove(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    mocker: "MockerFixture",
+):
+    """
+    Same regression as above, for the removal call site (``remove_quick_pxe_sync``). The removed
+    item's own ``Collection.remove()`` call (immediately before its quick-sync) unconditionally
+    serializes the deletion to disk; now that the serializer shares this same reentrant lock instead
+    of independently ``flock()``-ing the same file (see ``cobbler/serializer.py``), that nested call
+    is a safe no-op rather than a deadlock, so the whole method - including the removal's own
+    serialization - can run under the one outer acquisition taken at the top of the method: one call
+    for the outer acquisition, plus one for the removed system's on-disk delete.
+    """
+    # Arrange
+    system_uid = remote.get_system_handle("testsystem0")
+    remote.transaction_begin(token)
+    assert remote.remove_system(system_uid, token)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"

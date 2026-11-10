@@ -1569,120 +1569,139 @@ class CobblerAPI:
                 ):
                     raise ValueError("The item has been modified")
 
-        to_remove = [i for i in items if i[2]]
-        to_add = [i for i in items if not i[2]]
+        # The entire rest of this method - every item's add/remove, its on-disk serialization, its
+        # quick-sync, and the final menu rebuild - runs under one single acquisition of this lock,
+        # so a concurrent full `cobbler sync`'s clean_trees() can never interleave mid-transaction;
+        # it either runs entirely before this transaction starts or entirely after it finishes.
+        # This is only safe because `utils.filelock()` is reentrant per-thread AND is now the one
+        # and only lock primitive used for this file: the serializer's own on-disk writes
+        # (`cobbler/serializer.py`'s `serialize_item()`/`serialize_delete()`, reached from
+        # `Collection.add()`/`remove()` below whenever `save`/`with_delete` is set) route through
+        # this same `utils.filelock()` call instead of independently `flock()`-ing the same path a
+        # second time - two independent `flock()` acquisitions of the same file from one thread
+        # would otherwise deadlock (flock is owned by the open file description, not the thread).
+        with utils.filelock("/var/lib/cobbler/lock"):
+            to_remove = [i for i in items if i[2]]
+            to_add = [i for i in items if not i[2]]
 
-        # Plain BaseItem subtypes (e.g. Template, NetworkInterface) have no concept of
-        # depth/parent-child ordering and are always leaves in TYPE_DEPENDENCIES (nothing is ever
-        # a dependent *of* them), so defaulting them to depth 0 - the same priority as a Distro -
-        # is wrong: a System (depth 2) depends on its NetworkInterface, so the interface must be
-        # removed before the system, not alongside/after the shallowest InheritableItem types.
-        # Since they can only ever be a dependency's target, never a dependency itself, it is
-        # always correct to remove them before anything else, and add them after everything else.
-        _LEAF_SORT_DEPTH = 2**31
-        to_remove.sort(key=lambda x: -getattr(x[1], "depth", _LEAF_SORT_DEPTH))
-        to_add.sort(key=lambda x: getattr(x[1], "depth", _LEAF_SORT_DEPTH))
+            # Plain BaseItem subtypes (e.g. Template, NetworkInterface) have no concept of
+            # depth/parent-child ordering and are always leaves in TYPE_DEPENDENCIES (nothing is ever
+            # a dependent *of* them), so defaulting them to depth 0 - the same priority as a Distro -
+            # is wrong: a System (depth 2) depends on its NetworkInterface, so the interface must be
+            # removed before the system, not alongside/after the shallowest InheritableItem types.
+            # Since they can only ever be a dependency's target, never a dependency itself, it is
+            # always correct to remove them before anything else, and add them after everything else.
+            _LEAF_SORT_DEPTH = 2**31
+            to_remove.sort(key=lambda x: -getattr(x[1], "depth", _LEAF_SORT_DEPTH))
+            to_add.sort(key=lambda x: getattr(x[1], "depth", _LEAF_SORT_DEPTH))
 
-        # Undo stack for everything actually applied below, so a failure partway through can
-        # revert it. Each entry is ("add", what, ref) or ("remove", what, snapshot-dict). Reversing
-        # this stack naturally undoes adds deepest-first and restores removes shallowest-first,
-        # which - because to_add/to_remove are already depth-ordered - respects dependency order
-        # without any extra bookkeeping (see the sort comment above).
-        applied: List[Tuple[str, str, Any]] = []
+            # Undo stack for everything actually applied below, so a failure partway through can
+            # revert it. Each entry is ("add", what, ref) or ("remove", what, snapshot-dict). Reversing
+            # this stack naturally undoes adds deepest-first and restores removes shallowest-first,
+            # which - because to_add/to_remove are already depth-ordered - respects dependency order
+            # without any extra bookkeeping (see the sort comment above).
+            applied: List[Tuple[str, str, Any]] = []
 
-        def _rollback() -> None:
-            rollback_errors: List[str] = []
-            for kind, what, payload in reversed(applied):
-                try:
-                    if kind == "add":
-                        self.get_items(what).remove(
-                            payload,
-                            recursive=False,
-                            with_delete=True,
-                            with_sync=False,
-                            with_triggers=False,
-                            rebuild_menu=False,
-                        )
-                    else:
-                        restored = self.get_items(what).factory_produce(self, payload)
-                        self.get_items(what).add(
-                            restored,
-                            check_for_duplicate_names=False,
-                            save=True,
-                            with_sync=False,
-                            with_triggers=False,
-                            rebuild_menu=False,
-                        )
-                except Exception as rollback_exc:  # pylint: disable=broad-except
-                    rollback_errors.append(f"{kind} {what}: {rollback_exc}")
-            if rollback_errors:
-                self.logger.critical(
-                    "add_remove_items: rollback of a failed transaction could not fully undo "
-                    "every change, manual intervention needed: %s",
-                    "; ".join(rollback_errors),
-                )
-
-        try:
-            for what, ref, _, _, base_id, _ in to_add:
-                self.log(f"add_item({what})", [ref.uid])
-                # base_id set means this "add" actually replaces an already-persisted object
-                # (Collection.add() just overwrites self.listing[ref.uid] in place) - a plain
-                # modification, not a brand new item. Snapshot the pre-modification object so a
-                # rollback can restore it, instead of deleting a pre-existing object outright.
-                original_snapshot = None
-                if base_id:
-                    orig_ref = self.get_items(what).find(return_list=False, uid=base_id)
-                    if orig_ref is not None and not isinstance(orig_ref, list):
-                        original_snapshot = orig_ref.to_dict()
-                self.get_items(what).add(
-                    ref,  # type: ignore
-                    check_for_duplicate_names=False,
-                    save=True,
-                    with_sync=False,
-                    with_triggers=True,
-                    rebuild_menu=False,
-                )
-                if original_snapshot is not None:
-                    applied.append(("modify", what, original_snapshot))
-                else:
-                    applied.append(("add", what, ref))
-
-            for what, ref, _, _, _, item_changelog in to_add:
-                ref.in_transaction = False
-                for item in item_changelog:
-                    self.get_items(what).update_index_value(
-                        ref, ".".join(item.attribute), item.old_value, item.new_value
+            def _rollback() -> None:
+                rollback_errors: List[str] = []
+                for kind, what, payload in reversed(applied):
+                    try:
+                        if kind == "add":
+                            self.get_items(what).remove(
+                                payload,
+                                recursive=False,
+                                with_delete=True,
+                                with_sync=False,
+                                with_triggers=False,
+                                rebuild_menu=False,
+                            )
+                        else:
+                            restored = self.get_items(what).factory_produce(
+                                self, payload
+                            )
+                            self.get_items(what).add(
+                                restored,
+                                check_for_duplicate_names=False,
+                                save=True,
+                                with_sync=False,
+                                with_triggers=False,
+                                rebuild_menu=False,
+                            )
+                    except Exception as rollback_exc:  # pylint: disable=broad-except
+                        rollback_errors.append(f"{kind} {what}: {rollback_exc}")
+                if rollback_errors:
+                    self.logger.critical(
+                        "add_remove_items: rollback of a failed transaction could not fully undo "
+                        "every change, manual intervention needed: %s",
+                        "; ".join(rollback_errors),
                     )
 
-            # remove_quick_pxe_sync (e.g. the ISC DHCP manager's remove_single_system) resolves
-            # each item's conceptual parent chain (system -> profile -> distro) live via the
-            # collections. That only works while the rest of the chain is still present, so each
-            # item's cleanup must run immediately after *that* item's own removal, not in a
-            # separate pass after every item in the whole batch has already been removed --
-            # otherwise, by the time a system's cleanup runs, its profile (removed earlier in
-            # to_remove's depth-descending order) is already gone, and get_conceptual_parent()
-            # returns None instead of the profile.
-            for what, ref, _, _, _, _ in to_remove:
-                snapshot = ref.to_dict()
-                self.get_items(what).remove(
-                    ref,
-                    recursive=False,
-                    with_delete=True,
-                    with_sync=False,
-                    with_triggers=True,
-                    rebuild_menu=False,
-                )
-                self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
-                applied.append(("remove", what, snapshot))
-        except Exception:
-            _rollback()
-            raise
+            try:
+                for what, ref, _, _, base_id, _ in to_add:
+                    self.log(f"add_item({what})", [ref.uid])
+                    # base_id set means this "add" actually replaces an already-persisted object
+                    # (Collection.add() just overwrites self.listing[ref.uid] in place) - a plain
+                    # modification, not a brand new item. Snapshot the pre-modification object so a
+                    # rollback can restore it, instead of deleting a pre-existing object outright.
+                    original_snapshot = None
+                    if base_id:
+                        orig_ref = self.get_items(what).find(
+                            return_list=False, uid=base_id
+                        )
+                        if orig_ref is not None and not isinstance(orig_ref, list):
+                            original_snapshot = orig_ref.to_dict()
+                    self.get_items(what).add(
+                        ref,  # type: ignore
+                        check_for_duplicate_names=False,
+                        save=True,
+                        with_sync=False,
+                        with_triggers=True,
+                        rebuild_menu=False,
+                    )
+                    if original_snapshot is not None:
+                        applied.append(("modify", what, original_snapshot))
+                    else:
+                        applied.append(("add", what, ref))
 
-        # Now update all on-disk configuration because the caches are valid again
-        self.log("Executing Cobbler sync for transaction commit")
-        for what, ref, _, _, _, _ in to_add:
-            self.get_items(what).add_quick_pxe_sync(ref, rebuild_menu=False)
-        self.tftpgen.make_pxe_menu()
+                for what, ref, _, _, _, item_changelog in to_add:
+                    ref.in_transaction = False
+                    for item in item_changelog:
+                        self.get_items(what).update_index_value(
+                            ref,
+                            ".".join(item.attribute),
+                            item.old_value,
+                            item.new_value,
+                        )
+
+                # remove_quick_pxe_sync (e.g. the ISC DHCP manager's remove_single_system) resolves
+                # each item's conceptual parent chain (system -> profile -> distro) live via the
+                # collections. That only works while the rest of the chain is still present, so each
+                # item's cleanup must run immediately after *that* item's own removal, not in a
+                # separate pass after every item in the whole batch has already been removed --
+                # otherwise, by the time a system's cleanup runs, its profile (removed earlier in
+                # to_remove's depth-descending order) is already gone, and get_conceptual_parent()
+                # returns None instead of the profile.
+                for what, ref, _, _, _, _ in to_remove:
+                    snapshot = ref.to_dict()
+                    self.get_items(what).remove(
+                        ref,
+                        recursive=False,
+                        with_delete=True,
+                        with_sync=False,
+                        with_triggers=True,
+                        rebuild_menu=False,
+                    )
+                    self.get_items(what).remove_quick_pxe_sync(ref, rebuild_menu=False)
+                    applied.append(("remove", what, snapshot))
+            except Exception:
+                _rollback()
+                raise
+
+            # Now update all on-disk configuration because the caches are valid again
+            self.log("Executing Cobbler sync for transaction commit")
+            for what, ref, _, _, _, _ in to_add:
+                self.get_items(what).add_quick_pxe_sync(ref, rebuild_menu=False)
+            self.tftpgen.make_pxe_menu()
 
     def add_item(
         self,

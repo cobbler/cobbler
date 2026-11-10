@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import traceback
 import urllib.error
 import urllib.request
@@ -1445,20 +1446,53 @@ def is_str_float(value: str) -> bool:
     return False
 
 
+_filelock_local = threading.local()
+
+
 @contextlib.contextmanager
 def filelock(lock_file: str):
     """
-    Context manager to acquire a file lock and release it afterwards
+    Context manager to acquire a file lock and release it afterwards.
+
+    This is re-entrant with respect to the *same thread*: a nested ``with filelock(path)`` for a
+    path already held by this thread is a no-op (it just bumps a depth counter) instead of issuing
+    a second, independent ``os.open()``/``fcntl.flock()`` pair. ``flock()`` locks are owned by the
+    open file description, not the thread, so two such independent acquisitions on the same path
+    from one thread would otherwise deadlock: the second blocks forever waiting on the first, which
+    this very thread can never get back around to releasing. A *different* thread requesting the
+    same path still blocks on a real ``flock()``, unaffected by this.
 
     :param lock_file: Path to the file lock to acquire
     :raises OSError: Raised in case of unexpect error acquiring file lock.
     """
+    held: Dict[str, Tuple[int, int]] = getattr(_filelock_local, "held", None)
+    if held is None:
+        held = {}
+        _filelock_local.held = held
+
+    entry = held.get(lock_file)
+    if entry is not None:
+        # Re-entrant: this thread already holds the real OS-level lock for this path.
+        fd, depth = entry
+        held[lock_file] = (fd, depth + 1)
+        try:
+            yield
+        finally:
+            fd, depth = held[lock_file]
+            if depth <= 1:
+                del held[lock_file]
+            else:
+                held[lock_file] = (fd, depth - 1)
+        return
+
     fd = None
     try:
         fd = os.open(lock_file, os.O_RDWR | os.O_CREAT | os.O_TRUNC, 0o660)
         fcntl.flock(fd, fcntl.LOCK_EX)
+        held[lock_file] = (fd, 1)
         yield
     finally:
+        held.pop(lock_file, None)
         if fd:
             with contextlib.suppress(OSError):
                 fcntl.flock(fd, fcntl.LOCK_UN)

@@ -552,3 +552,56 @@ def test_find_by_indexes(
     assert len(kwargs4) == 0
     assert result5 is None
     assert len(kwargs5) == 0
+
+
+def test_add_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_initrd: str,
+    fk_kernel: str,
+    distro_collection: distros.Distros,
+    mocker: "MockerFixture",
+):
+    """
+    Test that saving a distro with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    item1 = distro.Distro(cobbler_api)
+    item1.name = "test_add_with_sync_acquires_filelock"  # type: ignore[method-assign]
+    item1.initrd = os.path.join(folder, fk_initrd)  # type: ignore
+    item1.kernel = os.path.join(folder, fk_kernel)  # type: ignore
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    distro_collection.add(item1, save=True, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the quick-sync
+    # (with_sync=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_remove_with_sync_acquires_filelock(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    mocker: "MockerFixture",
+):
+    """
+    Test that removing a distro with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    item1 = create_distro("test_remove_with_sync_acquires_filelock")
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    distro_collection.remove(item1, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk delete (always runs) and once for the quick-sync
+    # (with_delete defaults to True, with_sync=True) - both now route through the same lock.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"

@@ -2,7 +2,7 @@
 Tests that validate the functionality of the module that is responsible for managing the list of systems.
 """
 
-from typing import Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict
 
 import pytest
 
@@ -13,6 +13,9 @@ from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import distro, image, profile, system
 
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture(name="system_collection")
@@ -837,3 +840,96 @@ def test_find_by_indexes(
         assert len((kwargs[indx])[1]) == 0
         assert result[2] is None
         assert len((kwargs[indx])[2]) == 1
+
+
+def test_add_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    system_collection: systems.Systems,
+    mocker: "MockerFixture",
+):
+    """
+    Test that saving a system with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    system1 = cobbler_api.new_system(
+        name="test_add_with_sync_acquires_filelock", profile=test_profile.uid
+    )
+    cobbler_api.add_network_interface(
+        cobbler_api.new_network_interface(system_uid=system1.uid, name="default")
+    )
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    system_collection.add(system1, save=True, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the quick-sync
+    # (with_sync=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_add_with_quick_pxe_update_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[..., system.System],
+    system_collection: systems.Systems,
+    mocker: "MockerFixture",
+):
+    """
+    Test that the ``quick_pxe_update``-only path (``with_sync=False``), which calls
+    ``self.lite_sync.update_system_netboot_status(ref)`` directly instead of going through
+    ``add_quick_pxe_sync()``, also takes the global sync lock.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(profile_uid=test_profile.uid)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    system_collection.add(
+        test_system, save=True, with_sync=False, quick_pxe_update=True
+    )
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the netboot-status
+    # update (quick_pxe_update=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_remove_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], distro.Distro],
+    create_profile: Callable[[str], profile.Profile],
+    create_system: Callable[..., system.System],
+    system_collection: systems.Systems,
+    mocker: "MockerFixture",
+):
+    """
+    Test that removing a system with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    test_distro = create_distro()
+    test_profile = create_profile(test_distro.uid)
+    test_system = create_system(profile_uid=test_profile.uid)
+    cobbler_api.remove_network_interface(test_system.interfaces["default"])
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    system_collection.remove(test_system, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk delete (always runs) and once for the quick-sync
+    # (with_delete defaults to True, with_sync=True) - both now route through the same lock.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"

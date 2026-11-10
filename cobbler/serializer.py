@@ -7,14 +7,12 @@ Serializer code for Cobbler
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
 import contextlib
-import fcntl
 import logging
-import os
-import pathlib
-import sys
 import time
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Dict, Iterator, Optional, TextIO
+from typing import TYPE_CHECKING, Any, Dict, Iterator
+
+from cobbler import utils
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -39,54 +37,29 @@ class Serializer:
         self.storage_module = self.__get_storage_module()
         self.storage_object = self.storage_module.storage_factory(api)
 
-    def __grab_lock(self) -> Optional[TextIO]:
-        """
-        Dual purpose locking:
-        (A) flock to avoid multiple process access
-        (B) block signal handler to avoid ctrl+c while writing YAML
-
-        The returned handle is local to this call (not stored on ``self``) so that concurrent
-        callers - cobblerd handles each XML-RPC request in its own thread - each hold their own
-        file descriptor instead of racing to overwrite a shared one, which could silently drop or
-        double-release another thread's still-active lock.
-
-        :return: The open file handle holding the lock. Is ``None`` if locking is disabled.
-        """
-        if not self.lock_enabled:
-            return None
-        try:
-            if not os.path.exists(self.lock_file_location):
-                pathlib.Path(self.lock_file_location).touch()
-            # exclusive lock requires writtable mode (r+) on NFS
-            # https://man7.org/linux/man-pages/man2/flock.2.html
-            # pylint: disable-next=consider-using-with
-            lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
-            fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
-            return lock_handle
-        except Exception as exception:
-            # this is pretty much FATAL, avoid corruption and quit now.
-            self.logger.exception("File locking error.", exc_info=exception)
-            sys.exit(7)
-
     @contextlib.contextmanager
     def __locked(self) -> Iterator[None]:
         """
         Context manager holding the lock for the duration of the ``with`` block.
 
-        Guarantees the lock is released - via ``finally`` - even if the wrapped code raises,
-        unlike a bare grab-then-release call pair, which would leak the lock (and therefore wedge
-        every subsequent serialize/deserialize call in this process, and block other processes
-        entirely) if the wrapped code failed partway through.
+        Delegates to ``utils.filelock()`` - the same lock primitive used for sync/quick-sync
+        coordination (``cobbler/api.py``, ``cobbler/cobbler_collections/collection.py``) - instead
+        of independently ``open()``-ing and ``flock()``-ing the same path. Sharing one reentrant,
+        per-thread-aware lock means a thread that already holds this lock for an unrelated reason
+        (e.g. a quick-sync call site) can safely call into ``serialize_item()``/``serialize_delete()``
+        without a second, independent ``flock()`` attempt on the same file deadlocking the process -
+        ``flock()`` locks are owned by the open file description, not the thread, so two genuinely
+        separate acquisitions of the same path from the very same thread would otherwise block on
+        each other forever. ``utils.filelock()`` itself already guarantees release via ``finally``
+        even if the wrapped code raises.
 
         :return: An iterator that yields exactly once while the lock is held.
         """
-        lock_handle = self.__grab_lock()
-        try:
+        if not self.lock_enabled:
             yield
-        finally:
-            if lock_handle is not None:
-                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
-                lock_handle.close()
+            return
+        with utils.filelock(self.lock_file_location):
+            yield
 
     def __touch_mtime(self) -> None:
         """

@@ -907,6 +907,39 @@ def test_filelock():
     assert thread_times[1] - thread_times[0] >= datetime.timedelta(seconds=1)
 
 
+def test_filelock_is_reentrant_for_same_thread():
+    # Arrange
+    filelock_path = "/tmp/filelock_reentrant_test"
+    thread_times = []
+
+    def thread_fun():
+        thread_times.append(datetime.datetime.now())  # type: ignore
+        with utils.filelock(filelock_path):
+            thread_times.append(datetime.datetime.now())  # type: ignore
+
+    t = Thread(target=thread_fun)
+
+    # Act: nest a second filelock() on the SAME thread while the first is held. If filelock()
+    # were not reentrant, this nested "with" would deadlock the test itself (two independent
+    # flock() acquisitions on the same path from one thread contend with each other).
+    with utils.filelock(filelock_path):
+        t.start()
+        with utils.filelock(filelock_path):
+            time.sleep(1)
+        # still held here (outer level) -- the other thread must still be blocked
+
+    t.join()
+
+    # Assert
+    assert os.path.isfile(filelock_path)
+
+    # The other thread could only acquire the lock after BOTH nested levels released.
+    assert thread_times[1] - thread_times[0] >= datetime.timedelta(seconds=1)
+
+    # No leaked per-thread bookkeeping after the outermost level released.
+    assert filelock_path not in getattr(utils._filelock_local, "held", {})
+
+
 def test_merge_dicts_recursive():
     # Arrange
     base = {  # type: ignore
