@@ -401,8 +401,14 @@ class NetworkInterface(BaseItem):
             # false conflict against this very object.
             return
         if address == "random":
-            # FIXME: Pass virt_type of system
-            address = utils.get_random_mac(self.api)
+            virt_type = enums.VirtType.KVM.value
+            try:
+                # No system attached yet (e.g. a standalone interface not yet
+                # linked via system_uid) - fall back to the default virt_type.
+                virt_type = self.system.virt.type.value
+            except ValueError:
+                pass
+            address = utils.get_random_mac(self.api, virt_type)
         if address != "" and not self.api.settings().allow_duplicate_macs:
             matched = self.api.find_network_interface(
                 return_list=True, mac_address=address
