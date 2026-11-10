@@ -45,11 +45,37 @@ def _make_sync(
     return sync.CobblerSync(cobbler_api, dhcp=dhcp, dns=dns, tftpd=tftpd, httpd=httpd)
 
 
-def test_init_skips_directory_creation_for_dynamic_modules(
+def test_init_does_not_touch_filesystem(
     cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: "MockerFixture"
 ):
     """
-    Constructing CobblerSync must not materialize webdir/tftpboot skeleton directories when the
+    Constructing CobblerSync must not have any filesystem side effects. Directory bootstrapping
+    is a deliberate, explicit step (bootstrap_dirs()) performed only by run() (the full-sync
+    entry point), not a side effect of object construction - every per-item "quick sync" also
+    constructs a CobblerSync, and those directories are already bootstrapped once at daemon/API
+    startup.
+    """
+    # Arrange
+    create_web_dirs = mocker.patch(
+        "cobbler.actions.sync.filesystem_helpers.create_web_dirs"
+    )
+    create_tftpboot_dirs = mocker.patch(
+        "cobbler.actions.sync.filesystem_helpers.create_tftpboot_dirs"
+    )
+
+    # Act
+    _make_sync(cobbler_api, tmp_path)
+
+    # Assert
+    create_web_dirs.assert_not_called()
+    create_tftpboot_dirs.assert_not_called()
+
+
+def test_bootstrap_dirs_skips_directory_creation_for_dynamic_modules(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: "MockerFixture"
+):
+    """
+    bootstrap_dirs() must not materialize webdir/tftpboot skeleton directories when the
     corresponding manager is a dynamic (copy-free) one.
     """
     # Arrange
@@ -59,23 +85,24 @@ def test_init_skips_directory_creation_for_dynamic_modules(
     create_tftpboot_dirs = mocker.patch(
         "cobbler.actions.sync.filesystem_helpers.create_tftpboot_dirs"
     )
-
-    # Act
-    _make_sync(
+    sync_obj = _make_sync(
         cobbler_api, tmp_path, httpd_what="dynamic_httpd", tftpd_what="dynamic_tftp"
     )
+
+    # Act
+    sync_obj.bootstrap_dirs()
 
     # Assert
     create_web_dirs.assert_not_called()
     create_tftpboot_dirs.assert_not_called()
 
 
-def test_init_creates_directories_for_default_modules(
+def test_bootstrap_dirs_creates_directories_for_default_modules(
     cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: "MockerFixture"
 ):
     """
     Regression guard: the default (non-dynamic) managers must still get their directory
-    skeletons created as before.
+    skeletons created when bootstrap_dirs() is called.
     """
     # Arrange
     create_web_dirs = mocker.patch(
@@ -84,13 +111,41 @@ def test_init_creates_directories_for_default_modules(
     create_tftpboot_dirs = mocker.patch(
         "cobbler.actions.sync.filesystem_helpers.create_tftpboot_dirs"
     )
+    sync_obj = _make_sync(
+        cobbler_api, tmp_path, httpd_what="in_httpd", tftpd_what="in_tftpd"
+    )
 
     # Act
-    _make_sync(cobbler_api, tmp_path, httpd_what="in_httpd", tftpd_what="in_tftpd")
+    sync_obj.bootstrap_dirs()
 
     # Assert
     create_web_dirs.assert_called_once()
     create_tftpboot_dirs.assert_called_once()
+
+
+def test_run_calls_bootstrap_dirs(
+    cobbler_api: CobblerAPI, tmp_path: pathlib.Path, mocker: "MockerFixture"
+):
+    """
+    run() (the full-sync entry point) must still (re-)bootstrap the directory skeletons, since
+    construction no longer does so.
+    """
+    # Arrange
+    sync_obj = _make_sync(cobbler_api, tmp_path)
+    bootstrap_dirs = mocker.patch.object(sync_obj, "bootstrap_dirs")
+    mocker.patch.object(sync_obj, "_CobblerSync__common_run")
+    mocker.patch.object(sync_obj, "clean_trees")
+    sync_obj.distros = []
+    sync_obj.settings.manage_dhcp = False
+    sync_obj.settings.manage_dns = False
+    sync_obj.settings.manage_tftpd = False
+    sync_obj.settings.manage_rsync = False
+
+    # Act
+    sync_obj.run()
+
+    # Assert
+    bootstrap_dirs.assert_called_once()
 
 
 def test_clean_trees_skips_webdir_when_dynamic_httpd(
