@@ -13,7 +13,7 @@
                 "macAddress": "{{ interface.macAddress }}",
                 {#- Agama doesn't support setting seperate MTUs. #}
                 "mtu": "{{ interface.ipv4.mtu }}",
-                "gateway4": "{{ interface.if_gateway }}",
+                "gateway4": "{{ interface.ipv4.default_gateway }}",
                 {#- "gateway6": "", #}
                 "addresses": [
                     {{ interface.ipv4.address|tojson }},

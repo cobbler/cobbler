@@ -117,7 +117,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ipv4", {}).get("address", "")
         #set $netmask              = $idata.get("ipv4", {}).get("netmask", "")
-        #set $if_gateway           = $idata.get("if_gateway", "")
+        #set $if_gateway           = $idata.get("ipv4", {}).get("default_gateway", "")
         #set $static_routes        = $idata.get("ipv4", {}).get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")

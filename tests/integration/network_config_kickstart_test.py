@@ -72,7 +72,9 @@ def test_kickstart_vlan_configuration(
     remote.modify_network_interface(iface_id, ["netmask"], "255.255.255.0", token)
     remote.modify_network_interface(iface_id, ["static"], True, token)
     remote.modify_network_interface(iface_id, ["management"], True, token)
-    remote.modify_network_interface(iface_id, ["if_gateway"], "10.13.1.1", token)
+    remote.modify_network_interface(
+        iface_id, ["ipv4", "default_gateway"], "10.13.1.1", token
+    )
     remote.save_network_interface(iface_id, True, True, "new", token)
 
     remote.save_system(system_id, True, True, "new", token)

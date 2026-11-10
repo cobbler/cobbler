@@ -199,7 +199,7 @@
         #for $iface in $ikeys
           #set $idata                = $interfaces[$iface]
           #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
-          #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
+          #set $ipv6_default_gateway = $idata.get("ipv6", {}).get("default_gateway", "")
           #if $ipv6_default_gateway != ""
         <route>
           <destination>default</destination>

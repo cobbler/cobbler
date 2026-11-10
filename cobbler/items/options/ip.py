@@ -6,7 +6,11 @@ Changelog:
 V4.0.0 (unreleased):
     * Initial creation of the module. Introduces ``IPOption`` and the concrete ``IPv4Option``/``IPv6Option``
       classes, exposed as ``ipv4``/``ipv6`` on ``NetworkInterface``. Note the collapse is partial: ``NetworkInterface``
-      retains ``ipv6_default_gateway`` and ``ipv6_static_routes`` as standalone scalar properties.
+      retains ``ipv6_static_routes`` as a standalone scalar property.
+    * Added:
+        * ``IPOption.default_gateway``: str - Per-address-family default gateway, shared by ``IPv4Option`` and
+          ``IPv6Option``. Replaces ``NetworkInterface.if_gateway`` (IPv4) and
+          ``NetworkInterface.ipv6_default_gateway`` (IPv6).
 """
 
 from ipaddress import AddressValueError
@@ -36,11 +40,38 @@ class IPOption(ItemOption["NetworkInterface"]):
     ) -> None:
         super().__init__(api=api, item=item)
         self._address = ""
+        self._default_gateway = ""
         self._static_routes: List[str] = []
         self._mtu = ""
 
         if len(kwargs) > 0:
             self.from_dict(kwargs)
+
+    @property
+    def default_gateway(self) -> str:
+        """
+        default_gateway property.
+
+        :getter: Returns the value for ``default_gateway``.
+        :setter: Sets the value for the property ``default_gateway``.
+        """
+        return self._default_gateway
+
+    @default_gateway.setter
+    def default_gateway(self, address: str):
+        """
+        Setter for the default_gateway of the NetworkInterface class.
+
+        :param address: The new default gateway for the interface.
+        """
+        if not isinstance(address, str):  # type: ignore
+            raise TypeError(
+                "Field default_gateway of object NetworkInterface needs to be of type str!"
+            )
+        if address == "" or utils.is_ip(address):
+            self._default_gateway = address.strip()
+            return
+        raise AddressValueError(f"invalid format of IP address ({address})")
 
     @property
     def static_routes(self) -> List[str]:
@@ -176,7 +207,6 @@ class IPv6Option(IPOption):
         self, api: "CobblerAPI", item: "NetworkInterface", **kwargs: Any
     ) -> None:
         super().__init__(api=api, item=item, **kwargs)
-        self._default_gateway = ""
         self._prefix = ""
         self._secondaries: List[str] = []
 

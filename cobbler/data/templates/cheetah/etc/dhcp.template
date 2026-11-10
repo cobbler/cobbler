@@ -109,8 +109,8 @@ group {
         #if $iface.ipv4.netmask:
             option subnet-mask $iface.ipv4.netmask;
         #end if
-        #if $iface.if_gateway:
-            option routers $iface.if_gateway;
+        #if $iface.ipv4.default_gateway:
+            option routers $iface.ipv4.default_gateway;
         #else if $iface.gateway:
             option routers $iface.gateway;
         #end if

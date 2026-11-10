@@ -161,7 +161,7 @@ class _IscManager(DhcpManagerModule):
                 self.logger.warning("%s has no MAC address", system_obj.name)
                 continue
 
-            iface["gateway"] = iface_obj.if_gateway or system_obj.gateway
+            iface["gateway"] = iface_obj.ipv4.default_gateway or system_obj.gateway
             if iface["interface_type"] in (
                 "bond_slave",
                 "bridge_slave",
