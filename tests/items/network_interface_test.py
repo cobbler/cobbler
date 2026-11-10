@@ -113,7 +113,7 @@ def test_network_interface_to_dict(cobbler_api: CobblerAPI):
     assert "logger" not in result
     assert "api" not in result
     assert result.get("virt_bridge") == enums.VALUE_INHERITED
-    assert len(result) == 23
+    assert len(result) == 21
 
 
 def test_network_interface_to_dict_resolved(cobbler_api: CobblerAPI):
@@ -478,19 +478,19 @@ def test_netmask(cobbler_api: CobblerAPI):
     assert interface.ipv4.netmask == ""
 
 
-def test_if_gateway(cobbler_api: CobblerAPI):
+def test_ipv4_default_gateway(cobbler_api: CobblerAPI):
     """
-    Test to verify that the if_gateway property of NetworkInterface works as expected.
+    Test to verify that the default_gateway property of IPv4Option works as expected.
     """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
-    interface.if_gateway = ""
+    interface.ipv4.default_gateway = ""
 
     # Assert
-    assert isinstance(interface.if_gateway, str)
-    assert interface.if_gateway == ""
+    assert isinstance(interface.ipv4.default_gateway, str)
+    assert interface.ipv4.default_gateway == ""
 
 
 @pytest.mark.parametrize(
@@ -802,18 +802,18 @@ def test_ipv6_default_gateway(
     expected_exception: Any,
 ):
     """
-    Test to verify that the ipv6_default_gateway property of NetworkInterface works as expected.
+    Test to verify that the default_gateway property of IPv6Option works as expected.
     """
     # Arrange
     interface = NetworkInterface(cobbler_api, "")
 
     # Act
     with expected_exception:
-        interface.ipv6_default_gateway = input_address
+        interface.ipv6.default_gateway = input_address
 
         # Assert
-        assert isinstance(interface.ipv6_default_gateway, str)
-        assert interface.ipv6_default_gateway == expected_result
+        assert isinstance(interface.ipv6.default_gateway, str)
+        assert interface.ipv6.default_gateway == expected_result
 
 
 def test_ipv6_static_routes(cobbler_api: CobblerAPI):

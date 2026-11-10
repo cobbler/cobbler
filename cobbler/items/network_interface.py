@@ -15,9 +15,11 @@ V4.0.0 (unreleased):
           "auto".
     * Added:
         * ``dns`` property (``DNSInterfaceOption``).
-        * ``ipv4``/``ipv6`` properties (``IPv4Option``/``IPv6Option``), plus standalone ``ipv6_default_gateway`` and
-          ``ipv6_static_routes`` properties (not yet folded into ``IPv6Option``).
-        * ``dhcp_tag``, ``static``, ``management``, ``mac_address``, ``if_gateway``, ``virt_bridge``,
+        * ``ipv4``/``ipv6`` properties (``IPv4Option``/``IPv6Option``), plus a standalone ``ipv6_static_routes``
+          property (not yet folded into ``IPv6Option``). Per-address-family default gateways live on
+          ``ipv4.default_gateway``/``ipv6.default_gateway`` (``IPOption.default_gateway``), not on
+          ``NetworkInterface`` itself.
+        * ``dhcp_tag``, ``static``, ``management``, ``mac_address``, ``virt_bridge``,
           ``interface_type``, ``interface_master``, ``bonding_opts``, ``bridge_opts``, ``connected_mode``
         * ``system_name``, ``system_uid``, ``system`` back-references to the owning ``System``.
 V3.3.4 (unreleased):
@@ -84,7 +86,6 @@ V2.8.5:
 """
 
 import copy
-from ipaddress import AddressValueError
 from typing import TYPE_CHECKING, Any, List, Type, Union, cast
 
 from cobbler import enums, utils, validate
@@ -133,12 +134,10 @@ class NetworkInterface(BaseItem):
         self._connected_mode = False
         self._dhcp_tag = ""
         self._dns = DNSInterfaceOption(api=api, item=self)
-        self._if_gateway = ""
         self._interface_master = ""
         self._interface_type = enums.NetworkInterfaceType.NA
         self._ipv4 = IPv4Option(api=api, item=self)
         self._ipv6 = IPv6Option(api=api, item=self)
-        self._ipv6_default_gateway = ""
         self._ipv6_static_routes: List[str] = []
         self._mac_address = ""
         self._management = False
@@ -402,8 +401,14 @@ class NetworkInterface(BaseItem):
             # false conflict against this very object.
             return
         if address == "random":
-            # FIXME: Pass virt_type of system
-            address = utils.get_random_mac(self.api)
+            virt_type = enums.VirtType.KVM.value
+            try:
+                # No system attached yet (e.g. a standalone interface not yet
+                # linked via system_uid) - fall back to the default virt_type.
+                virt_type = self.system.virt.type.value
+            except ValueError:
+                pass
+            address = utils.get_random_mac(self.api, virt_type)
         if address != "" and not self.api.settings().allow_duplicate_macs:
             matched = self.api.find_network_interface(
                 return_list=True, mac_address=address
@@ -423,26 +428,6 @@ class NetworkInterface(BaseItem):
         self.api.network_interfaces().update_index_value(
             self, "mac_address", old_mac_address, address
         )
-
-    @property
-    def if_gateway(self) -> str:
-        """
-        if_gateway property.
-
-        :getter: Returns the value for ``if_gateway``.
-        :setter: Sets the value for the property ``if_gateway``.
-        """
-        return self._if_gateway
-
-    @if_gateway.setter
-    def if_gateway(self, gateway: str):
-        """
-        Set the per-interface gateway. Exceptions are raised if the value is invalid. For details see
-        :meth:`~cobbler.validate.ipv4_address`.
-
-        :param gateway: IPv4 address for the gateway
-        """
-        self._if_gateway = validate.ipv4_address(gateway)
 
     @InheritableProperty
     def virt_bridge(self) -> str:
@@ -572,32 +557,6 @@ class NetworkInterface(BaseItem):
                 "Field bridge_opts of object NetworkInterface needs to be of type str!"
             )
         self._bridge_opts = bridge_opts
-
-    @property
-    def ipv6_default_gateway(self) -> str:
-        """
-        ipv6_default_gateway property.
-
-        :getter: Returns the value for ``ipv6_default_gateway``.
-        :setter: Sets the value for the property ``ipv6_default_gateway``.
-        """
-        return self._ipv6_default_gateway
-
-    @ipv6_default_gateway.setter
-    def ipv6_default_gateway(self, address: str):
-        """
-        Setter for the ipv6_default_gateway of the NetworkInterface class.
-
-        :param address: The new default gateway for the interface.
-        """
-        if not isinstance(address, str):  # type: ignore
-            raise TypeError(
-                "Field ipv6_default_gateway of object NetworkInterface needs to be of type str!"
-            )
-        if address == "" or utils.is_ip(address):
-            self._ipv6_default_gateway = address.strip()
-            return
-        raise AddressValueError(f"invalid format of IPv6 IP address ({address})")
 
     @property
     def ipv6_static_routes(self) -> List[str]:

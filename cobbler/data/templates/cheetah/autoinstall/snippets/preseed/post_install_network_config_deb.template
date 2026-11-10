@@ -68,8 +68,8 @@ echo "" >> /etc/network/interfaces
         #set $ip                   = $idata.get("ipv4", {}).get("address", "")
         #set $netmask              = $idata.get("ipv4", {}).get("netmask", "")
         ## configure the gateway if set up, preferring per-interface over global
-        #if $idata.get("if_gateway") != ""
-            #set $if_gateway = $idata.get("if_gateway")
+        #if $idata.get("ipv4", {}).get("default_gateway") != ""
+            #set $if_gateway = $idata.get("ipv4", {}).get("default_gateway")
         #elif $gateway != ""
             #set $if_gateway = $gateway
         #else
