@@ -39,6 +39,7 @@ from cobbler.items import (
 )
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.inheritable_item import InheritableItem
+from cobbler.items.abstract.item_group import ItemGroup
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -670,8 +671,11 @@ class Collection(Generic[ITEM]):
                 repo.Repo,
                 menu.Menu,
                 network_interface.NetworkInterface,
+                ItemGroup,
             ),
         ):
+            # DistroGroup/ProfileGroup/SystemGroup (and any future ItemGroup subclass) are pure
+            # grouping items with no PXE/webdir representation of their own to sync.
             pass
         else:
             self.logger.error(
