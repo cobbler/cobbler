@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import traceback
 import urllib.error
 import urllib.request
@@ -1445,20 +1446,50 @@ def is_str_float(value: str) -> bool:
     return False
 
 
+_filelock_local = threading.local()
+
+
 @contextlib.contextmanager
 def filelock(lock_file: str):
     """
-    Context manager to acquire a file lock and release it afterwards
+    Context manager to acquire a file lock and release it afterwards.
+
+    Re-entrant per thread: a nested ``with filelock(path)`` already held by this thread is a
+    no-op (bumps a depth counter) rather than a second ``flock()`` - which would deadlock, since
+    ``flock()`` is owned by the file description, not the thread. A different thread still blocks
+    on a real ``flock()``.
 
     :param lock_file: Path to the file lock to acquire
     :raises OSError: Raised in case of unexpect error acquiring file lock.
     """
+    held: Optional[Dict[str, Tuple[int, int]]] = getattr(_filelock_local, "held", None)
+    if held is None:
+        held = {}
+        _filelock_local.held = held
+
+    entry = held.get(lock_file)
+    if entry is not None:
+        # Already held by this thread.
+        fd, depth = entry
+        held[lock_file] = (fd, depth + 1)
+        try:
+            yield
+        finally:
+            fd, depth = held[lock_file]
+            if depth <= 1:
+                del held[lock_file]
+            else:
+                held[lock_file] = (fd, depth - 1)
+        return
+
     fd = None
     try:
         fd = os.open(lock_file, os.O_RDWR | os.O_CREAT | os.O_TRUNC, 0o660)
         fcntl.flock(fd, fcntl.LOCK_EX)
+        held[lock_file] = (fd, 1)
         yield
     finally:
+        held.pop(lock_file, None)
         if fd:
             with contextlib.suppress(OSError):
                 fcntl.flock(fd, fcntl.LOCK_UN)

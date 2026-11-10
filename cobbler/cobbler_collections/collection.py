@@ -243,7 +243,8 @@ class Collection(Generic[ITEM]):
                     self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
             if with_sync:
-                self.remove_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
+                with utils.filelock("/var/lib/cobbler/lock"):
+                    self.remove_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
 
     def remove_quick_pxe_sync(self, ref: ITEM, rebuild_menu: bool = True) -> None:
         """
@@ -616,10 +617,12 @@ class Collection(Generic[ITEM]):
                 self.collection_mgr.serialize_one_item(ref)
 
             if with_sync:
-                self.add_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
+                with utils.filelock("/var/lib/cobbler/lock"):
+                    self.add_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
-                    self.lite_sync.update_system_netboot_status(ref)
+                    with utils.filelock("/var/lib/cobbler/lock"):
+                        self.lite_sync.update_system_netboot_status(ref)
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:

@@ -4,12 +4,15 @@ Tests that validate the functionality of XML-RPC API transactions.
 
 import logging
 import os
-from typing import Any, Callable, Dict, List, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, cast
 
 import pytest
 
 from cobbler.cexceptions import CX
 from cobbler.remote import CobblerXMLRPCInterface
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 logger = logging.getLogger()
 
@@ -1005,3 +1008,106 @@ def test_add_remove_items_rollback_restores_modified_item_instead_of_deleting_it
     assert (
         cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == original_comment
     )
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_add_remove_items_quick_sync_acquires_filelock_on_add(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    mocker: "MockerFixture",
+):
+    """
+    ``add_remove_items()`` must acquire ``/var/lib/cobbler/lock`` around its quick-sync and menu
+    rebuild - the same lock a full ``cobbler sync`` holds around its directory rebuild, so the
+    two can't interleave. One call for the method's own acquisition, plus one for the added
+    system's on-disk serialization (``Collection.add()``'s ``save=True`` path, which shares this
+    same lock - see ``cobbler/serializer.py``).
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    system = remote.new_system(token)
+    remote.modify_system(system, ["name"], "testsystem0", token)
+    remote.modify_system(system, ["profile"], profile_uid, token)
+    assert remote.save_system(system, True, True, "new", token)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_add_remove_items_quick_sync_acquires_filelock_once_for_whole_add_batch(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    mocker: "MockerFixture",
+):
+    """
+    A multi-item add batch must run under one single, uninterrupted lock acquisition rather than
+    dropping and re-acquiring the lock between items - which would leave a window for a
+    concurrent full ``cobbler sync``'s directory rebuild to interleave. One call for the method's
+    own outer acquisition, plus one per added item for that item's on-disk serialization
+    (``Collection.add()``'s ``save=True`` path; see ``cobbler/serializer.py``).
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    system_names = ("testsystem0", "testsystem1", "testsystem2")
+    for name in system_names:
+        system = remote.new_system(token)
+        remote.modify_system(system, ["name"], name, token)
+        remote.modify_system(system, ["profile"], profile_uid, token)
+        assert remote.save_system(system, True, True, "new", token)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    assert remote.transaction_commit(token)
+
+    # Assert: one outer acquisition plus one per added system's on-disk serialization.
+    assert filelock_mock.call_count == 1 + len(system_names)
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+    "create_testsystem",
+)
+def test_add_remove_items_quick_sync_acquires_filelock_on_remove(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    mocker: "MockerFixture",
+):
+    """
+    Same as above for the removal call site (``remove_quick_pxe_sync``): the removed item's own
+    on-disk delete and its quick-sync must both run under the one outer lock acquisition. One
+    call for the outer acquisition, plus one for the removed system's on-disk delete.
+    """
+    # Arrange
+    system_uid = remote.get_system_handle("testsystem0")
+    remote.transaction_begin(token)
+    assert remote.remove_system(system_uid, token)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
