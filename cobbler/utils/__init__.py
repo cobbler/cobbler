@@ -522,7 +522,7 @@ def blender(
         results["interfaces"] = {}
         # Use list() to avoid "dictionary changed size during iteration"
         for name, interface in list(root_obj.interfaces.items()):  # type: ignore
-            interface_dict = interface.to_dict()  # type: ignore
+            interface_dict = interface.to_dict(resolved=True)  # type: ignore
             results["interfaces"][name] = interface_dict
             for key in interface_dict:  # type: ignore
                 results[f"{key}_{name}"] = interface_dict[key]  # type: ignore
