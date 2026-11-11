@@ -546,6 +546,7 @@ class Collection(Generic[ITEM]):
         quick_pxe_update: bool = False,
         check_for_duplicate_names: bool = False,
         rebuild_menu: bool = True,
+        expected_mtime: Optional[float] = None,
     ) -> None:
         """
         Add an object to the collection
@@ -561,8 +562,12 @@ class Collection(Generic[ITEM]):
         :param with_triggers: If triggers should be run when the object is added.
         :param quick_pxe_update: This decides if there should be run a quick or full update after the add was done.
         :param check_for_duplicate_names: If the name of an object should be unique or not.
+        :param expected_mtime: If set, the add is rejected with a ``ValueError`` unless the item currently stored
+                                under ``ref.uid`` (if any) still has this exact mtime - an optimistic-concurrency
+                                check against another writer having modified or removed the item in the meantime.
         :raises TypError: Raised in case ``ref`` is None.
-        :raises ValueError: Raised in case the name of ``ref`` is empty.
+        :raises ValueError: Raised in case the name of ``ref`` is empty, or in case ``expected_mtime`` no longer
+                             matches the item currently stored under ``ref.uid``.
         """
         if ref is None:  # type: ignore
             raise TypeError("Unable to add a None object")
@@ -600,6 +605,10 @@ class Collection(Generic[ITEM]):
             )
 
         with self.lock:
+            if expected_mtime is not None:
+                existing = self.listing.get(ref.uid)
+                if existing is None or existing.mtime != expected_mtime:
+                    raise ValueError("The item has been modified")
             self.listing[ref.uid] = ref
             self.add_to_indexes(ref)
 

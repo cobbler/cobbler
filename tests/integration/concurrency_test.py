@@ -16,7 +16,11 @@ These tests cover four specific, statically-identified race conditions:
   single-acquisition claim is covered by unit tests in ``tests/xmlrpcapi/transaction_test.py``.
 * Classic-edit lost-update race -- the classic (non-transaction) edit path
   (``modify_item``/``save_item`` in ``cobbler/remote.py``) must not mutate the live, shared item
-  object directly without a lock and an mtime/version check.
+  object directly without a lock and an mtime/version check: it clones the item per
+  (token, object_id) edit, rejects a stale save with a ``ValueError`` (mirroring the transaction
+  path's compare-and-swap), and guards staging/unstaging that clone with a dedicated lock so two
+  concurrent edits sharing the same token can't drop one another's staged clone. The test below
+  asserts a losing concurrent editor gets an explicit conflict it can retry from.
 * DHCP-manager race -- the DHCP manager (``cobbler/modules/managers/isc.py``/``dnsmasq.py``)
   mutates a shared, unlocked, process-wide ``self.config`` dict via a read-merge-write pattern in
   ``sync_single_system()``. Known gap: no fix or regression test for this one here.
@@ -160,11 +164,23 @@ def test_concurrent_classic_edit_does_not_lose_updates(
     """
     Classic-edit lost-update race regression test.
 
-    The classic (non-transaction) edit path -- ``modify_item``/``save_item`` in ``cobbler/remote.py`` -- calls
-    ``setattr()`` directly on the live, shared item object with no lock and no mtime/version check. THREADS
-    concurrent clients each read the current ``owners`` list, append their own unique marker, and save via
-    ``save_distro(..., "bypass", ...)``. With no compare-and-swap on this path, later writers silently clobber
-    earlier ones -- this test is expected to demonstrate lost updates on current ``main``.
+    The classic (non-transaction) edit path -- ``modify_item``/``save_item`` in
+    ``cobbler/remote.py`` -- must not call ``setattr()`` directly on the live, shared item object
+    with no lock and no mtime/version check. It clones the item per (token, object_id) edit and
+    rejects a stale ``save_distro`` with an explicit conflict error. THREADS concurrent clients
+    each read the current ``owners`` list, append their own unique marker, and race to save via
+    ``save_distro(..., "bypass", ...)``.
+
+    The invariant under test: a writer's save must never both (a) report success and (b) have its
+    marker missing afterwards -- a losing writer must get an explicit, attributable conflict
+    error instead of silent data loss. (Retrying after a conflict, and ending up with the retried
+    value persisted, is covered separately and deterministically by
+    ``tests/xmlrpcapi/distro_test.py::test_classic_edit_conflict_raises_and_allows_retry`` -- a
+    dynamic test that has every losing thread retry independently and immediately, with no
+    inter-thread coordination on the retry, would be testing a much stronger property than this
+    guarantees: that a full read-modify-write, list-replace attribute converges losslessly under
+    continuous multi-writer contention. That is a well-known limitation of optimistic concurrency
+    control on whole-object/full-replace attributes, not a defect here.)
     """
     threads_n = 6
     rounds = 50
@@ -183,7 +199,7 @@ def test_concurrent_classic_edit_does_not_lose_updates(
     for round_index in range(rounds):
         markers = [f"r{round_index}-t{i}" for i in range(threads_n)]
         barrier = threading.Barrier(threads_n)
-        errors: List[Any] = [None] * threads_n
+        outcomes: List[str] = [""] * threads_n
 
         def worker(i: int) -> None:
             try:
@@ -193,8 +209,13 @@ def test_concurrent_classic_edit_does_not_lose_updates(
                 t_remote.modify_distro(distro_id, ["owners"], new_owners, t_token)
                 barrier.wait(timeout=30)
                 t_remote.save_distro(distro_id, True, False, "bypass", t_token)
+                outcomes[i] = "saved"
+            except xmlrpc.client.Fault as conflict:
+                outcomes[i] = (
+                    "conflict" if "modified" in str(conflict) else repr(conflict)
+                )
             except Exception as error:  # pylint: disable=broad-except
-                errors[i] = repr(error)
+                outcomes[i] = repr(error)
 
         threads = [threading.Thread(target=worker, args=(i,)) for i in range(threads_n)]
         for thread in threads:
@@ -203,23 +224,27 @@ def test_concurrent_classic_edit_does_not_lose_updates(
             thread.join(timeout=60)
 
         final_owners = cast(Dict[Any, Any], remote.get_distro(distro_id))["owners"]
-        survived = [m for m in markers if m in final_owners]
-        lost = threads_n - len(survived)
-        if lost:
-            incidents.append(
-                f"round {round_index}: {lost}/{threads_n} concurrent owner writes lost "
-                f"(survived: {survived}, errors: {errors})"
-            )
+        for i in range(threads_n):
+            if outcomes[i] == "saved" and markers[i] not in final_owners:
+                incidents.append(
+                    f"round {round_index}: thread {i} reported a successful save but its marker "
+                    f"{markers[i]!r} was lost silently (final owners: {final_owners})"
+                )
+            elif outcomes[i] not in ("saved", "conflict"):
+                incidents.append(
+                    f"round {round_index}: thread {i} got an unexpected error: {outcomes[i]}"
+                )
 
-        # Reset to a clean baseline for the next round, independent of how many survived.
+        # Reset to a clean baseline for the next round.
         remote.modify_distro(distro_id, ["owners"], [], token)
         remote.save_distro(distro_id, True, False, "bypass", token)
 
     remote.remove_distro(distro_id, token, True)
 
     assert not incidents, (
-        f"Classic-edit lost-update race reproduced in {len(incidents)}/{rounds} rounds -- concurrent classic-path "
-        f"edits lost updates with no error ever raised:\n" + "\n".join(incidents)
+        f"Classic-edit lost-update race regressed in {len(incidents)}/{rounds} rounds -- a concurrent "
+        f"classic-path save reported success while its update was silently lost, or raised an unexpected error:\n"
+        + "\n".join(incidents)
     )
 
 

@@ -1632,7 +1632,7 @@ class CobblerAPI:
                     )
 
             try:
-                for what, ref, _, _, base_id, _ in to_add:
+                for what, ref, _, mtime, base_id, _ in to_add:
                     self.log(f"add_item({what})", [ref.uid])
                     # base_id set means this "add" actually replaces an already-persisted object
                     # (Collection.add() just overwrites self.listing[ref.uid] in place) - a plain
@@ -1652,6 +1652,9 @@ class CobblerAPI:
                         with_sync=False,
                         with_triggers=True,
                         rebuild_menu=False,
+                        # Re-checked here, atomically under Collection.add()'s lock, to close the gap
+                        # between this apply loop and the unlocked pre-check loop above.
+                        expected_mtime=mtime if base_id else None,
                     )
                     if original_snapshot is not None:
                         applied.append(("modify", what, original_snapshot))
@@ -1706,6 +1709,7 @@ class CobblerAPI:
         save: bool = True,
         with_triggers: bool = True,
         with_sync: bool = True,
+        expected_mtime: Optional[float] = None,
     ) -> None:
         """
         Add an abstract item to a collection of its specific items. This is not meant for external use. Please reefer
@@ -1717,6 +1721,8 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param with_triggers: If triggers should be run when the object is added.
         :param with_sync: In case a Cobbler Sync should be executed after the action.
+        :param expected_mtime: If set, rejects the add with a ``ValueError`` unless the currently stored item still
+                                has this exact mtime (optimistic-concurrency check).
         """
         self.log(f"add_item({what})", [ref.uid])
         self.get_items(what).add(
@@ -1725,6 +1731,7 @@ class CobblerAPI:
             save=save,
             with_triggers=with_triggers,
             with_sync=with_sync,
+            expected_mtime=expected_mtime,
         )
 
     def add_distro(
