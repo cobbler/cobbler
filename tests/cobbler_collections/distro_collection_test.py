@@ -605,3 +605,75 @@ def test_remove_with_sync_acquires_filelock(
     assert filelock_mock.call_count == 2
     for call in filelock_mock.call_args_list:
         assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_add_accepts_matching_expected_mtime(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Classic-edit lost-update race regression test: Collection.add() must allow the write through when
+    the caller-supplied expected_mtime still matches the live item's current mtime. Uses a clone of the
+    live item (not the live item itself) to mirror how the classic edit path actually calls add() - with
+    a private, edited clone, distinct from whatever object is currently sitting in ``self.listing``.
+    """
+    # Arrange
+    item1 = create_distro("test_add_accepts_matching_expected_mtime")
+    current_mtime = distro_collection.listing[item1.uid].mtime
+    clone = item1.make_clone()
+    clone.uid = item1.uid
+    clone.comment = "accepted"  # type: ignore
+
+    # Act
+    distro_collection.add(clone, save=True, expected_mtime=current_mtime)
+
+    # Assert
+    assert distro_collection.listing[item1.uid].comment == "accepted"
+
+
+def test_add_rejects_stale_expected_mtime(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Classic-edit lost-update race regression test: Collection.add() must reject an add whose
+    caller-supplied expected_mtime no longer matches the live item's mtime - closing the
+    classic-edit-path lost update race (and, via the same mechanism, the transaction-commit
+    apply loop's TOCTOU).
+    """
+    # Arrange
+    item1 = create_distro("test_add_rejects_stale_expected_mtime")
+    stale_mtime = item1.mtime
+    concurrent_clone = item1.make_clone()
+    concurrent_clone.uid = item1.uid
+    concurrent_clone.comment = "someone else's concurrent edit"  # type: ignore
+    distro_collection.add(concurrent_clone, save=True)
+    assert distro_collection.listing[item1.uid].mtime != stale_mtime
+
+    my_stale_clone = item1.make_clone()
+    my_stale_clone.uid = item1.uid
+    my_stale_clone.comment = "my stale edit"  # type: ignore
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        distro_collection.add(my_stale_clone, save=True, expected_mtime=stale_mtime)
+
+
+def test_add_rejects_expected_mtime_for_removed_item(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Classic-edit lost-update race regression test: an add carrying an expected_mtime must also be
+    rejected if the item was removed from the collection in the meantime, not just if it was modified.
+    """
+    # Arrange
+    item1 = create_distro("test_add_rejects_expected_mtime_for_removed_item")
+    stale_mtime = item1.mtime
+    clone = item1.make_clone()
+    clone.uid = item1.uid
+    distro_collection.remove(item1)
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        distro_collection.add(clone, save=True, expected_mtime=stale_mtime)

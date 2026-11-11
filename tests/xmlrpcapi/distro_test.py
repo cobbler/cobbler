@@ -1,12 +1,17 @@
 import os
-from typing import Any, Callable, List
+import threading
+from typing import TYPE_CHECKING, Any, Callable, List
 
 import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
+from cobbler.items.distro import Distro
 from cobbler.remote import CobblerXMLRPCInterface
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture(autouse=True)
@@ -258,3 +263,126 @@ def test_get_valid_distro_boot_loaders_no_distro(
     # Assert
     assert isinstance(result, list)
     assert result != []
+
+
+def test_classic_edit_conflict_raises_and_allows_retry(
+    request: "pytest.FixtureRequest",
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    token2: str,
+):
+    """
+    Classic-edit lost-update race regression test: two classic (non-transaction) editors racing on the
+    same distro must not silently clobber each other. ``modify_item()`` now clones the live object per (token,
+    object_id) edit and captures its mtime; ``save_item()`` rejects the losing editor's save with a
+    ``ValueError`` instead of silently overwriting the other editor's change, and the loser can
+    recover by re-fetching and retrying.
+    """
+    # Arrange
+    distro_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    kernel_path = os.path.join(folder, fk_kernel)
+    initrd_path = os.path.join(folder, fk_initrd)
+    distro_id = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+
+    # Act - two editors start editing the same distro before either saves.
+    remote.modify_distro(distro_id, ["comment"], "editor A", token)
+    remote.modify_distro(distro_id, ["comment"], "editor B", token2)
+
+    # Editor A saves first and wins cleanly.
+    assert remote.save_distro(distro_id, True, False, "bypass", token)
+    assert remote.get_distro(distro_id)["comment"] == "editor A"
+
+    # Editor B's clone was taken before editor A's save bumped the live item's mtime, so editor B's
+    # save must now raise instead of silently overwriting editor A's change.
+    with pytest.raises(ValueError):
+        remote.save_distro(distro_id, True, False, "bypass", token2)
+    assert remote.get_distro(distro_id)["comment"] == "editor A"
+
+    # Editor B recovers by re-reading the current state and retrying.
+    remote.modify_distro(distro_id, ["comment"], "editor B retried", token2)
+    assert remote.save_distro(distro_id, True, False, "bypass", token2)
+    assert remote.get_distro(distro_id)["comment"] == "editor B retried"
+
+
+def test_concurrent_modify_item_same_token_does_not_lose_staged_clone(
+    mocker: "MockerFixture",
+    request: "pytest.FixtureRequest",
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_kernel: str,
+    fk_initrd: str,
+    create_distro: Callable[[str, str, str, str, str], str],
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    ``editing_items`` staging-dict race regression test: two concurrent ``modify_item()`` calls for
+    the SAME ``(token, object_id)`` used to race on an unlocked check-then-act sequence
+    (``self.editing_items[token].get(object_id)`` -> clone -> insert), so a thread that found no
+    staged clone yet could have its own clone silently overwritten in the dict by the other thread's
+    clone, discarding its attribute change even though both calls reported success. ``modify_item()``
+    now guards that whole sequence with a dedicated lock (``self.editing_items_lock``).
+
+    Patches ``Distro.make_clone()`` with a short rendezvous barrier placed *after* the "is there
+    already a staged clone?" check but *before* the dict insert: under the old, unlocked code, this
+    guarantees any second thread that reaches the check before the first thread's insert also sees
+    "no clone yet" and also calls ``make_clone()``, reliably forcing the race every run regardless of
+    GIL scheduling luck. Under the fix, the lock serializes the two threads' entire critical
+    sections, so only the FIRST thread to acquire the lock ever calls ``make_clone()`` at all - the
+    second thread's call reuses the already-staged clone directly without calling it again. The
+    barrier simply times out quickly in that case, which is expected and not a failure.
+    """
+    # Arrange
+    distro_name = (  # type: ignore
+        request.node.originalname if request.node.originalname else request.node.name  # type: ignore
+    )
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    kernel_path = os.path.join(folder, fk_kernel)
+    initrd_path = os.path.join(folder, fk_initrd)
+    distro_id = create_distro(distro_name, "x86_64", "suse", kernel_path, initrd_path)  # type: ignore
+
+    barrier = threading.Barrier(2)
+    original_make_clone = Distro.make_clone
+
+    def patched_make_clone(self: Distro) -> Distro:
+        try:
+            barrier.wait(timeout=0.5)
+        except threading.BrokenBarrierError:
+            pass
+        return original_make_clone(self)
+
+    mocker.patch.object(Distro, "make_clone", patched_make_clone)
+
+    errors: List[BaseException] = []
+
+    def worker(attribute: str, value: Any) -> None:
+        try:
+            remote.modify_distro(distro_id, [attribute], value, token)
+        except Exception as error:  # pylint: disable=broad-except
+            errors.append(error)
+
+    thread_a = threading.Thread(target=worker, args=("comment", "thread-A-comment"))
+    thread_b = threading.Thread(target=worker, args=("owners", ["thread-B-owner"]))
+    thread_a.start()
+    thread_b.start()
+    thread_a.join(timeout=10)
+    thread_b.join(timeout=10)
+
+    # Act
+    assert not errors, f"modify_distro raised unexpectedly: {errors}"
+    assert remote.save_distro(distro_id, True, False, "bypass", token)
+
+    # Assert - both concurrent edits must have landed on the one shared staged clone; under the
+    # race, only one of the two would survive (whichever write won the dict-overwrite), never both.
+    result = remote.get_distro(distro_id)
+    assert result["comment"] == "thread-A-comment"
+    assert result["owners"] == ["thread-B-owner"]
+
+    # Cleanup
+    remote.remove_distro(distro_id, token)
