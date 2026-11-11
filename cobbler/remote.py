@@ -250,7 +250,7 @@ class EditingItemTuple(NamedTuple):
     """
 
     what: str
-    ref: "InheritableItem"
+    ref: "BaseItem"
     mtime: float
     time: float
 
@@ -3138,7 +3138,7 @@ class CobblerXMLRPCInterface:
                 per_token = self.editing_items.setdefault(token, {})
                 entry = per_token.get(object_id)
                 if entry is None:
-                    new_obj = cast(InheritableItem, obj.make_clone())
+                    new_obj = obj.make_clone()
                     new_obj.uid = obj.uid  # make_clone() drops uid; restore it
                     per_token[object_id] = EditingItemTuple(
                         what, new_obj, obj.mtime, time.time()
@@ -3436,13 +3436,12 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         self._log(f"save_item({what})", object_id=object_id, token=token)
-        obj = self.__get_object(object_id, token)
-        self.check_access(token, f"save_{what}", obj)
-        if token in self.transactions and object_id in self.transactions[token]:
-            # obj.check_if_valid()
-            # the object will be saved in commit_transaction()
-            return True
+        live_obj = self.__get_object(object_id, token)
+        obj = live_obj
 
+        # Authorize against BOTH objects: the live object (so a since-revoked grant can't be
+        # exercised via a stale clone) and the staged clone if it differs from it (so the object
+        # actually being persisted is covered too, since modify_item() edits a private clone).
         expected_mtime: Optional[float] = None
         with self.editing_items_lock:
             per_token = self.editing_items.get(token)
@@ -3454,6 +3453,14 @@ class CobblerXMLRPCInterface:
         if entry is not None:
             obj = entry.ref
             expected_mtime = entry.mtime
+
+        self.check_access(token, f"save_{what}", live_obj)
+        if obj is not live_obj:
+            self.check_access(token, f"save_{what}", obj)
+        if token in self.transactions and object_id in self.transactions[token]:
+            # obj.check_if_valid()
+            # the object will be saved in commit_transaction()
+            return True
 
         if editmode == "new":
             self.api.add_item(
