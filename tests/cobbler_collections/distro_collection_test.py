@@ -3,8 +3,9 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os.path
+import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable, List
 
 import pytest
 
@@ -677,3 +678,64 @@ def test_add_rejects_expected_mtime_for_removed_item(
     # Act & Assert
     with pytest.raises(ValueError):
         distro_collection.add(clone, save=True, expected_mtime=stale_mtime)
+
+
+def test_add_closes_duplicate_name_check_insert_race(
+    create_distro: Callable[..., distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Duplicate-name race regression test: Collection.add()'s duplicate-name check used to run entirely
+    before self.lock was acquired for the actual insert, so two concurrent adds of two
+    different, not-yet-added items sharing the same name could both pass the check before
+    either inserted. Real thread-timing luck would make that race flaky to reproduce in a unit
+    test, so it is forced deterministically here: each thread's *first* call to
+    check_for_duplicate_names (the early, pre-lock check in add()) is made to rendezvous on a
+    barrier right after running the real check, guaranteeing both threads observe "no
+    duplicate" before either reaches the lock - exactly the window the fix closes. A
+    thread-local flag ensures only that first (outer) call waits; the second (inner,
+    already-locked) call must not wait, or the second thread's inner check would block on the
+    barrier while holding the lock, deadlocking against the first thread (which has already
+    returned and will never reach the barrier again).
+    """
+    # Arrange
+    name = "test_add_closes_duplicate_name_check_insert_race"
+    item1 = create_distro(name, with_add=False)
+    item2 = create_distro(name, with_add=False)
+
+    barrier = threading.Barrier(2)
+    thread_state = threading.local()
+    real_check = distro_collection.check_for_duplicate_names
+
+    def synced_check(ref: distro.Distro) -> None:
+        real_check(ref)
+        if not getattr(thread_state, "passed_outer_check", False):
+            thread_state.passed_outer_check = True
+            barrier.wait(timeout=5)
+
+    distro_collection.check_for_duplicate_names = synced_check  # type: ignore[method-assign]
+
+    results: List[Any] = [None, None]
+
+    def worker(index: int, ref: distro.Distro) -> None:
+        try:
+            distro_collection.add(ref, save=False, check_for_duplicate_names=True)
+            results[index] = True
+        except CX:
+            results[index] = False
+
+    threads = [
+        threading.Thread(target=worker, args=(0, item1)),
+        threading.Thread(target=worker, args=(1, item2)),
+    ]
+
+    # Act
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=10)
+
+    # Assert
+    assert sorted(results, key=str) == [False, True]
+    survivors = [v for v in distro_collection.listing.values() if v.name == name]
+    assert len(survivors) == 1

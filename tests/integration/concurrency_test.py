@@ -1,12 +1,16 @@
 """
 Concurrency / data-integrity regression tests for the XML-RPC API and the sync pipeline.
 
-These tests target four specific, statically-identified race conditions that are NOT fixed by the
-``fix/concurrent-item-sync-race`` branch:
+These tests target four specific, statically-identified race conditions. Three of the four are now FIXED by
+the ``fix/concurrent-item-sync-race`` branch and are exercised below as regression tests; the fourth
+(DHCP-manager) remains open:
 
-* Duplicate-name race -- ``Collection.add()`` checks for a duplicate name *before* taking its lock and inserting
-  into ``self.listing`` (``cobbler/cobbler_collections/collection.py``), so two concurrent "new" saves racing on
-  the same name can both pass the check.
+* Duplicate-name race (FIXED) -- ``Collection.add()`` used to check for a duplicate name entirely *before*
+  taking its lock and inserting into ``self.listing`` (``cobbler/cobbler_collections/collection.py``), so two
+  concurrent "new" saves racing on the same name could both pass the check before either inserted. It now
+  re-checks atomically inside the same lock as the insert, so only the thread that actually wins the lock can
+  still pass. The test below now asserts that at most one survivor exists per round, and that the number of
+  saves reporting success matches the number of survivors (no silent success-but-lost outcome).
 * Quick-sync/full-sync race (FIXED) -- ``Collection.add()``/``remove()`` -> ``add_quick_pxe_sync()``/
   ``remove_quick_pxe_sync()`` never took ``/var/lib/cobbler/lock`` (``cobbler/actions/sync.py``), so a per-item
   "quick sync" could run concurrently with a full ``cobbler sync``, which ``rmtree()``s and recreates the shared
@@ -28,8 +32,9 @@ These tests target four specific, statically-identified race conditions that are
   itself guarded by a dedicated lock so two concurrent edits sharing the same token can't silently drop one
   another's staged clone. The test below now asserts that a losing concurrent editor gets an explicit conflict
   it can retry from, rather than a silently dropped update.
-* DHCP-manager race -- the DHCP manager (``cobbler/modules/managers/isc.py``/``dnsmasq.py``) mutates a shared,
-  unlocked, process-wide ``self.config`` dict via a read-merge-write pattern in ``sync_single_system()``.
+* DHCP-manager race (NOT fixed) -- the DHCP manager (``cobbler/modules/managers/isc.py``/``dnsmasq.py``)
+  mutates a shared, unlocked, process-wide ``self.config`` dict via a read-merge-write pattern in
+  ``sync_single_system()``.
 
 Every test here is intentionally timing-sensitive: it runs a stress loop of many rounds, each with several
 barrier-synchronized concurrent XML-RPC clients, because a single attempt is unlikely to hit a narrow race window.
@@ -104,12 +109,16 @@ def test_concurrent_distro_create_rejects_duplicate_names(
     images_fake_path: pathlib.Path,
 ):
     """
-    Duplicate-name race regression test.
+    Duplicate-name race regression test (now exercising the fix).
 
-    ``Collection.add()`` (cobbler/cobbler_collections/collection.py ~538-634) runs its duplicate-name check
-    (``check_for_duplicate_names``) *before* acquiring ``self.lock`` and inserting into ``self.listing``. This
-    fires THREADS concurrent "new_distro + save_distro('new')" calls for the exact same name every round, and
-    asserts that cobblerd never ends up with more than one distro carrying that name.
+    ``Collection.add()`` (cobbler/cobbler_collections/collection.py) used to run its duplicate-name check
+    (``check_for_duplicate_names``) *before* acquiring ``self.lock`` and inserting into ``self.listing``, so two
+    concurrent adds could both pass the check before either inserted. It now re-checks atomically inside the same
+    lock as the insert. This fires THREADS concurrent "new_distro + save_distro('new')" calls for the exact same
+    name every round, and asserts both that cobblerd never ends up with more than one distro carrying that name,
+    and that every ``save_distro`` call reporting success actually has a surviving distro to show for it (a
+    success that doesn't survive would be a silent-loss variant of this same bug, not caught by the survivor
+    count alone).
     """
     threads_n = 8
     rounds = 60
@@ -144,6 +153,7 @@ def test_concurrent_distro_create_rejects_duplicate_names(
             thread.join(timeout=60)
 
         survivors = [d for d in remote.get_distros() if d["name"] == name]
+        successes = [r for r in results if r is not None and r[0] and r[2] is None]
 
         # Clean up every survivor so the next round starts from a clean slate, regardless of outcome.
         for distro in survivors:
@@ -153,6 +163,11 @@ def test_concurrent_distro_create_rejects_duplicate_names(
             incidents.append(
                 f"round {round_index}: {len(survivors)} distros named {name!r} survived "
                 f"concurrent creation (thread results: {results})"
+            )
+        elif len(successes) != len(survivors):
+            incidents.append(
+                f"round {round_index}: {len(successes)} save_distro call(s) reported success but "
+                f"{len(survivors)} distro(s) named {name!r} survived (thread results: {results})"
             )
 
     assert not incidents, (
