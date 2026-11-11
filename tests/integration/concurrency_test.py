@@ -5,7 +5,9 @@ These tests cover four specific, statically-identified race conditions:
 
 * Duplicate-name race -- ``Collection.add()`` must check for a duplicate name and insert into
   ``self.listing`` atomically under its lock (``cobbler/cobbler_collections/collection.py``), so
-  two concurrent "new" saves racing on the same name can't both pass the check.
+  two concurrent "new" saves racing on the same name can't both pass the check. The test below
+  asserts at most one survivor per round, and that the number of saves reporting success matches
+  the number of survivors (no silent success-but-lost outcome).
 * Quick-sync/full-sync race -- every quick-sync call site (``Collection.add()``/``remove()`` ->
   ``add_quick_pxe_sync()``/``remove_quick_pxe_sync()``, including the multi-item
   transaction-commit path in ``CobblerAPI.add_remove_items()``) must take
@@ -100,10 +102,13 @@ def test_concurrent_distro_create_rejects_duplicate_names(
     """
     Duplicate-name race regression test.
 
-    ``Collection.add()`` (cobbler/cobbler_collections/collection.py ~538-634) runs its duplicate-name check
-    (``check_for_duplicate_names``) *before* acquiring ``self.lock`` and inserting into ``self.listing``. This
-    fires THREADS concurrent "new_distro + save_distro('new')" calls for the exact same name every round, and
-    asserts that cobblerd never ends up with more than one distro carrying that name.
+    ``Collection.add()`` (cobbler/cobbler_collections/collection.py) must check for a duplicate
+    name and insert into ``self.listing`` atomically under its lock. This fires THREADS
+    concurrent "new_distro + save_distro('new')" calls for the exact same name every round, and
+    asserts both that cobblerd never ends up with more than one distro carrying that name, and
+    that every ``save_distro`` call reporting success actually has a surviving distro to show for
+    it (a success that doesn't survive would be a silent-loss variant of this same bug, not
+    caught by the survivor count alone).
     """
     threads_n = 8
     rounds = 60
@@ -138,6 +143,7 @@ def test_concurrent_distro_create_rejects_duplicate_names(
             thread.join(timeout=60)
 
         survivors = [d for d in remote.get_distros() if d["name"] == name]
+        successes = [r for r in results if r is not None and r[0] and r[2] is None]
 
         # Clean up every survivor so the next round starts from a clean slate, regardless of outcome.
         for distro in survivors:
@@ -147,6 +153,11 @@ def test_concurrent_distro_create_rejects_duplicate_names(
             incidents.append(
                 f"round {round_index}: {len(survivors)} distros named {name!r} survived "
                 f"concurrent creation (thread results: {results})"
+            )
+        elif len(successes) != len(survivors):
+            incidents.append(
+                f"round {round_index}: {len(successes)} save_distro call(s) reported success but "
+                f"{len(survivors)} distro(s) named {name!r} survived (thread results: {results})"
             )
 
     assert not incidents, (

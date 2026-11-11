@@ -10,7 +10,7 @@ import logging
 import os
 import time
 from abc import abstractmethod
-from threading import Lock
+from threading import RLock
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -68,7 +68,9 @@ class Collection(Generic[ITEM]):
         self.listing: Dict[str, ITEM] = {}
         self.api = self.collection_mgr.api
         self.__lite_sync: Optional["CobblerSync"] = None
-        self.lock: Lock = Lock()
+        # RLock: add() re-enters this lock via check_for_duplicate_names() -> find() while
+        # already holding it.
+        self.lock: RLock = RLock()
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
         self._load_errors: List[Dict[str, Any]] = []
@@ -609,6 +611,12 @@ class Collection(Generic[ITEM]):
                 existing = self.listing.get(ref.uid)
                 if existing is None or existing.mtime != expected_mtime:
                     raise ValueError("The item has been modified")
+            # Re-checked here, atomically with the insert below: two concurrent adds could both
+            # pass the check above before either inserts. This check is what actually closes the
+            # race; the earlier one is just a fast-fail to skip pre-add triggers for an obvious
+            # duplicate.
+            if check_for_duplicate_names:
+                self.check_for_duplicate_names(ref)
             self.listing[ref.uid] = ref
             self.add_to_indexes(ref)
 
