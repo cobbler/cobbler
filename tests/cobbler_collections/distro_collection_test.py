@@ -3,8 +3,9 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os.path
+import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable, List
 
 import pytest
 
@@ -552,3 +553,189 @@ def test_find_by_indexes(
     assert len(kwargs4) == 0
     assert result5 is None
     assert len(kwargs5) == 0
+
+
+def test_add_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_initrd: str,
+    fk_kernel: str,
+    distro_collection: distros.Distros,
+    mocker: "MockerFixture",
+):
+    """
+    Test that saving a distro with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    item1 = distro.Distro(cobbler_api)
+    item1.name = "test_add_with_sync_acquires_filelock"  # type: ignore[method-assign]
+    item1.initrd = os.path.join(folder, fk_initrd)  # type: ignore
+    item1.kernel = os.path.join(folder, fk_kernel)  # type: ignore
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    distro_collection.add(item1, save=True, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the quick-sync
+    # (with_sync=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_remove_with_sync_acquires_filelock(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    mocker: "MockerFixture",
+):
+    """
+    Test that removing a distro with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    item1 = create_distro("test_remove_with_sync_acquires_filelock")
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    distro_collection.remove(item1, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk delete (always runs) and once for the quick-sync
+    # (with_delete defaults to True, with_sync=True) - both now route through the same lock.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_add_accepts_matching_expected_mtime(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Classic-edit lost-update race regression test: Collection.add() must allow the write through when
+    the caller-supplied expected_mtime still matches the live item's current mtime. Uses a clone of the
+    live item (not the live item itself) to mirror how the classic edit path actually calls add() - with
+    a private, edited clone, distinct from whatever object is currently sitting in ``self.listing``.
+    """
+    # Arrange
+    item1 = create_distro("test_add_accepts_matching_expected_mtime")
+    current_mtime = distro_collection.listing[item1.uid].mtime
+    clone = item1.make_clone()
+    clone.uid = item1.uid
+    clone.comment = "accepted"  # type: ignore
+
+    # Act
+    distro_collection.add(clone, save=True, expected_mtime=current_mtime)
+
+    # Assert
+    assert distro_collection.listing[item1.uid].comment == "accepted"
+
+
+def test_add_rejects_stale_expected_mtime(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Classic-edit lost-update race regression test: Collection.add() must reject an add whose
+    caller-supplied expected_mtime no longer matches the live item's mtime - closing the
+    classic-edit-path lost update race (and, via the same mechanism, the transaction-commit
+    apply loop's TOCTOU).
+    """
+    # Arrange
+    item1 = create_distro("test_add_rejects_stale_expected_mtime")
+    stale_mtime = item1.mtime
+    concurrent_clone = item1.make_clone()
+    concurrent_clone.uid = item1.uid
+    concurrent_clone.comment = "someone else's concurrent edit"  # type: ignore
+    distro_collection.add(concurrent_clone, save=True)
+    assert distro_collection.listing[item1.uid].mtime != stale_mtime
+
+    my_stale_clone = item1.make_clone()
+    my_stale_clone.uid = item1.uid
+    my_stale_clone.comment = "my stale edit"  # type: ignore
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        distro_collection.add(my_stale_clone, save=True, expected_mtime=stale_mtime)
+
+
+def test_add_rejects_expected_mtime_for_removed_item(
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Classic-edit lost-update race regression test: an add carrying an expected_mtime must also be
+    rejected if the item was removed from the collection in the meantime, not just if it was modified.
+    """
+    # Arrange
+    item1 = create_distro("test_add_rejects_expected_mtime_for_removed_item")
+    stale_mtime = item1.mtime
+    clone = item1.make_clone()
+    clone.uid = item1.uid
+    distro_collection.remove(item1)
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        distro_collection.add(clone, save=True, expected_mtime=stale_mtime)
+
+
+def test_add_closes_duplicate_name_check_insert_race(
+    create_distro: Callable[..., distro.Distro],
+    distro_collection: distros.Distros,
+):
+    """
+    Duplicate-name race regression test: Collection.add()'s duplicate-name check used to run entirely
+    before self.lock was acquired for the actual insert, so two concurrent adds of two
+    different, not-yet-added items sharing the same name could both pass the check before
+    either inserted. Real thread-timing luck would make that race flaky to reproduce in a unit
+    test, so it is forced deterministically here: each thread's *first* call to
+    check_for_duplicate_names (the early, pre-lock check in add()) is made to rendezvous on a
+    barrier right after running the real check, guaranteeing both threads observe "no
+    duplicate" before either reaches the lock - exactly the window the fix closes. A
+    thread-local flag ensures only that first (outer) call waits; the second (inner,
+    already-locked) call must not wait, or the second thread's inner check would block on the
+    barrier while holding the lock, deadlocking against the first thread (which has already
+    returned and will never reach the barrier again).
+    """
+    # Arrange
+    name = "test_add_closes_duplicate_name_check_insert_race"
+    item1 = create_distro(name, with_add=False)
+    item2 = create_distro(name, with_add=False)
+
+    barrier = threading.Barrier(2)
+    thread_state = threading.local()
+    real_check = distro_collection.check_for_duplicate_names
+
+    def synced_check(ref: distro.Distro) -> None:
+        real_check(ref)
+        if not getattr(thread_state, "passed_outer_check", False):
+            thread_state.passed_outer_check = True
+            barrier.wait(timeout=5)
+
+    distro_collection.check_for_duplicate_names = synced_check  # type: ignore[method-assign]
+
+    results: List[Any] = [None, None]
+
+    def worker(index: int, ref: distro.Distro) -> None:
+        try:
+            distro_collection.add(ref, save=False, check_for_duplicate_names=True)
+            results[index] = True
+        except CX:
+            results[index] = False
+
+    threads = [
+        threading.Thread(target=worker, args=(0, item1)),
+        threading.Thread(target=worker, args=(1, item2)),
+    ]
+
+    # Act
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=10)
+
+    # Assert
+    assert sorted(results, key=str) == [False, True]
+    survivors = [v for v in distro_collection.listing.values() if v.name == name]
+    assert len(survivors) == 1

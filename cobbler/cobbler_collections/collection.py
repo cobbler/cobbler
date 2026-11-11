@@ -10,7 +10,7 @@ import logging
 import os
 import time
 from abc import abstractmethod
-from threading import Lock
+from threading import RLock
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -39,6 +39,7 @@ from cobbler.items import (
 )
 from cobbler.items.abstract.base_item import BaseItem
 from cobbler.items.abstract.inheritable_item import InheritableItem
+from cobbler.items.abstract.item_group import ItemGroup
 
 if TYPE_CHECKING:
     from cobbler.actions.sync import CobblerSync
@@ -67,7 +68,10 @@ class Collection(Generic[ITEM]):
         self.listing: Dict[str, ITEM] = {}
         self.api = self.collection_mgr.api
         self.__lite_sync: Optional["CobblerSync"] = None
-        self.lock: Lock = Lock()
+        # RLock (not a plain Lock) so that add() can call check_for_duplicate_names() -- which
+        # itself calls find(), re-acquiring this same lock -- while already holding it (see
+        # add()'s in-lock duplicate-name check).
+        self.lock: RLock = RLock()
         self._inmemory: bool = not self.api.settings().lazy_start
         self._deserialize_running: bool = False
         self._load_errors: List[Dict[str, Any]] = []
@@ -242,7 +246,8 @@ class Collection(Generic[ITEM]):
                     self.api, ref, "/var/lib/cobbler/triggers/change/*", []
                 )
             if with_sync:
-                self.remove_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
+                with utils.filelock("/var/lib/cobbler/lock"):
+                    self.remove_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
 
     def remove_quick_pxe_sync(self, ref: ITEM, rebuild_menu: bool = True) -> None:
         """
@@ -544,6 +549,7 @@ class Collection(Generic[ITEM]):
         quick_pxe_update: bool = False,
         check_for_duplicate_names: bool = False,
         rebuild_menu: bool = True,
+        expected_mtime: Optional[float] = None,
     ) -> None:
         """
         Add an object to the collection
@@ -559,8 +565,12 @@ class Collection(Generic[ITEM]):
         :param with_triggers: If triggers should be run when the object is added.
         :param quick_pxe_update: This decides if there should be run a quick or full update after the add was done.
         :param check_for_duplicate_names: If the name of an object should be unique or not.
+        :param expected_mtime: If set, the add is rejected with a ``ValueError`` unless the item currently stored
+                                under ``ref.uid`` (if any) still has this exact mtime - an optimistic-concurrency
+                                check against another writer having modified or removed the item in the meantime.
         :raises TypError: Raised in case ``ref`` is None.
-        :raises ValueError: Raised in case the name of ``ref`` is empty.
+        :raises ValueError: Raised in case the name of ``ref`` is empty, or in case ``expected_mtime`` no longer
+                             matches the item currently stored under ``ref.uid``.
         """
         if ref is None:  # type: ignore
             raise TypeError("Unable to add a None object")
@@ -598,6 +608,17 @@ class Collection(Generic[ITEM]):
             )
 
         with self.lock:
+            if expected_mtime is not None:
+                existing = self.listing.get(ref.uid)
+                if existing is None or existing.mtime != expected_mtime:
+                    raise ValueError("The item has been modified")
+            # Re-checked here, atomically with the insert below: the check above (if
+            # check_for_duplicate_names) ran before this lock was acquired, so two concurrent
+            # adds could both have passed it before either inserted. This is the
+            # check that actually closes that race; the earlier one is just a fast-fail that
+            # avoids running pre-add triggers for an obvious duplicate.
+            if check_for_duplicate_names:
+                self.check_for_duplicate_names(ref)
             self.listing[ref.uid] = ref
             self.add_to_indexes(ref)
 
@@ -615,10 +636,12 @@ class Collection(Generic[ITEM]):
                 self.collection_mgr.serialize_one_item(ref)
 
             if with_sync:
-                self.add_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
+                with utils.filelock("/var/lib/cobbler/lock"):
+                    self.add_quick_pxe_sync(ref, rebuild_menu=rebuild_menu)
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
-                    self.lite_sync.update_system_netboot_status(ref)
+                    with utils.filelock("/var/lib/cobbler/lock"):
+                        self.lite_sync.update_system_netboot_status(ref)
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
@@ -670,8 +693,11 @@ class Collection(Generic[ITEM]):
                 repo.Repo,
                 menu.Menu,
                 network_interface.NetworkInterface,
+                ItemGroup,
             ),
         ):
+            # DistroGroup/ProfileGroup/SystemGroup (and any future ItemGroup subclass) are pure
+            # grouping items with no PXE/webdir representation of their own to sync.
             pass
         else:
             self.logger.error(

@@ -242,6 +242,19 @@ class UnsavedItemsTuple(NamedTuple):
     item: "BaseItem"
 
 
+class EditingItemTuple(NamedTuple):
+    """
+    Values captured for a classic (non-transaction) in-progress edit of an already-existing item: a private
+    clone that ``modify_item()`` mutates instead of the live, shared object, and the live object's mtime at the
+    moment the clone was taken, so ``save_item()`` can detect whether it has since been modified concurrently.
+    """
+
+    what: str
+    ref: "BaseItem"
+    mtime: float
+    time: float
+
+
 class CobblerXMLRPCInterface:
     """
     This is the interface used for all XMLRPC methods, for instance, as used by koan or CobblerWeb.
@@ -260,6 +273,12 @@ class CobblerXMLRPCInterface:
         self.token_cache: Dict[str, Tuple[Any, ...]] = {}
         self.unsaved_items: Dict[str, UnsavedItemsTuple] = {}
         self.transactions: Dict[str, Dict[str, TransactionTuple]] = {}
+        self.editing_items: Dict[str, Dict[str, EditingItemTuple]] = {}
+        # Guards read-then-write access to editing_items: modify_item()/save_item() check whether a
+        # clone is already staged for a given (token, object_id) and, if not, stage one, which is a
+        # multi-step operation that two concurrent calls for the same (token, object_id) could
+        # otherwise race on, silently discarding one of the two staged clones.
+        self.editing_items_lock = threading.Lock()
         self.timestamp = self.api.last_modified_time()
         self.events: Dict[str, CobblerEvent] = {}
         self.shared_secret = utils.get_shared_secret()
@@ -3113,6 +3132,22 @@ class CobblerXMLRPCInterface:
             )
             new_obj.in_transaction = True
             obj = new_obj
+        elif token not in self.transactions and object_id not in self.unsaved_items:
+            # Classic (non-transaction) edit of an already-existing item: give this edit its own
+            # private clone instead of mutating the live, shared object directly, and capture the
+            # live object's mtime so save_item() can detect a concurrent modification.
+            with self.editing_items_lock:
+                per_token = self.editing_items.setdefault(token, {})
+                entry = per_token.get(object_id)
+                if entry is None:
+                    new_obj = obj.make_clone()
+                    new_obj.uid = obj.uid  # make_clone() drops uid; restore it
+                    per_token[object_id] = EditingItemTuple(
+                        what, new_obj, obj.mtime, time.time()
+                    )
+                    obj = new_obj
+                else:
+                    obj = entry.ref
 
         if (
             len(attribute) > 0
@@ -3403,12 +3438,36 @@ class CobblerXMLRPCInterface:
         :return: True if the action succeeded.
         """
         self._log(f"save_item({what})", object_id=object_id, token=token)
-        obj = self.__get_object(object_id, token)
-        self.check_access(token, f"save_{what}", obj)
+        live_obj = self.__get_object(object_id, token)
+        obj = live_obj
+
+        # Swap in the staged clone (if any). Authorization is checked against BOTH objects below:
+        # the live object, so a grant that has since been revoked on it can't be exercised via a
+        # stale clone that may have been staged up to CACHE_TIMEOUT ago (a TOCTOU/stale-grant
+        # risk); and the staged clone itself (if different from the live object), so authorization
+        # also covers the object actually about to be persisted, not just the live one - the two
+        # can differ now that modify_item() edits a private clone instead of the live object
+        # directly. Both checks must pass.
+        expected_mtime: Optional[float] = None
+        with self.editing_items_lock:
+            per_token = self.editing_items.get(token)
+            entry = None
+            if per_token is not None and object_id in per_token:
+                entry = per_token.pop(object_id)
+                if not per_token:
+                    del self.editing_items[token]
+        if entry is not None:
+            obj = entry.ref
+            expected_mtime = entry.mtime
+
+        self.check_access(token, f"save_{what}", live_obj)
+        if obj is not live_obj:
+            self.check_access(token, f"save_{what}", obj)
         if token in self.transactions and object_id in self.transactions[token]:
             # obj.check_if_valid()
             # the object will be saved in commit_transaction()
             return True
+
         if editmode == "new":
             self.api.add_item(
                 what,
@@ -3416,10 +3475,15 @@ class CobblerXMLRPCInterface:
                 check_for_duplicate_names=True,
                 with_triggers=with_triggers,
                 with_sync=with_sync,
+                expected_mtime=expected_mtime,
             )
         else:
             self.api.add_item(
-                what, obj, with_triggers=with_triggers, with_sync=with_sync
+                what,
+                obj,
+                with_triggers=with_triggers,
+                with_sync=with_sync,
+                expected_mtime=expected_mtime,
             )
         if object_id in self.unsaved_items:
             del self.unsaved_items[object_id]
@@ -4919,6 +4983,15 @@ class CobblerXMLRPCInterface:
             tokentime, _ = self.unsaved_items[oid]
             if timenow > tokentime + CACHE_TIMEOUT:
                 del self.unsaved_items[oid]
+        # and also abandoned classic edits (modify_item() with no matching save_item())
+        with self.editing_items_lock:
+            for tok in list(self.editing_items.keys()):
+                per_token = self.editing_items[tok]
+                for oid in list(per_token.keys()):
+                    if timenow > per_token[oid].time + CACHE_TIMEOUT:
+                        del per_token[oid]
+                if not per_token:
+                    del self.editing_items[tok]
         for tid in list(self.events.keys()):
             event = self.events[tid]
             if timenow > event.statetime + float(EVENT_TIMEOUT):

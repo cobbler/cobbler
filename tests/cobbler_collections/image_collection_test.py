@@ -3,7 +3,7 @@ Tests that validate the functionality of the module that is responsible for mana
 """
 
 import os.path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
 
@@ -12,9 +12,12 @@ from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import images
 from cobbler.cobbler_collections.manager import CollectionManager
-from cobbler.items import image, menu
+from cobbler.items import image, menu, system
 
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture(name="image_collection")
@@ -442,3 +445,81 @@ def test_find_by_indexes(
     assert len(kwargs6) == 0
     assert result7 is None
     assert len(kwargs7) == 0
+
+
+def test_add_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[str], image.Image],
+    image_collection: images.Images,
+    mocker: "MockerFixture",
+):
+    """
+    Test that saving an image with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    test_image = create_image("test_add_with_sync_acquires_filelock")
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    image_collection.add(test_image, save=True, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the quick-sync
+    # (with_sync=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_add_with_sync_and_attached_system_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    create_image: Callable[[str], image.Image],
+    create_system: Callable[..., system.System],
+    image_collection: images.Images,
+    mocker: "MockerFixture",
+):
+    """
+    Test that saving an image with a system bound directly to it (``System.image``, not
+    ``System.profile``) still completes successfully once the quick-sync call site is
+    lock-protected. ``CobblerSync.add_single_image()`` cascades into re-syncing dependent
+    systems via a direct intra-object call (``self.add_single_system``), not a second
+    lock-acquiring ``CobblerAPI`` call, so this does not nest the lock -- unlike Profile's cascade
+    -- but it is still a distinct, real code path worth covering.
+    """
+    # Arrange
+    test_image = create_image("test_add_with_sync_and_attached_system")
+    create_system(image_uid=test_image.uid)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    image_collection.add(test_image, save=True, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the quick-sync
+    # (with_sync=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_remove_with_sync_acquires_filelock(
+    create_image: Callable[[str], image.Image],
+    image_collection: images.Images,
+    mocker: "MockerFixture",
+):
+    """
+    Test that removing an image with sync enabled takes the global sync lock.
+    """
+    # Arrange
+    test_image = create_image("test_remove_with_sync_acquires_filelock")
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    image_collection.remove(test_image, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk delete (always runs) and once for the quick-sync
+    # (with_delete defaults to True, with_sync=True) - both now route through the same lock.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"

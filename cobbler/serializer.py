@@ -6,14 +6,13 @@ Serializer code for Cobbler
 # SPDX-FileCopyrightText: Copyright 2006-2009, Red Hat, Inc and Others
 # SPDX-FileCopyrightText: Michael DeHaan <michael.dehaan AT gmail>
 
-import fcntl
+import contextlib
 import logging
-import os
-import pathlib
-import sys
 import time
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Dict, Optional, TextIO
+from typing import TYPE_CHECKING, Any, Dict, Iterator
+
+from cobbler import utils
 
 if TYPE_CHECKING:
     from cobbler.api import CobblerAPI
@@ -34,50 +33,44 @@ class Serializer:
         self.api = api
         self.logger = logging.getLogger()
         self.lock_enabled = True
-        self.lock_handle: Optional[TextIO] = None
         self.lock_file_location = "/var/lib/cobbler/lock"
         self.storage_module = self.__get_storage_module()
         self.storage_object = self.storage_module.storage_factory(api)
 
-    def __grab_lock(self) -> None:
+    @contextlib.contextmanager
+    def __locked(self) -> Iterator[None]:
         """
-        Dual purpose locking:
-        (A) flock to avoid multiple process access
-        (B) block signal handler to avoid ctrl+c while writing YAML
-        """
-        try:
-            if self.lock_enabled:
-                if not os.path.exists(self.lock_file_location):
-                    pathlib.Path(self.lock_file_location).touch()
-                # exclusive lock requires writtable mode (r+) on NFS
-                # https://man7.org/linux/man-pages/man2/flock.2.html
-                # pylint: disable-next=consider-using-with
-                self.lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
-                fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_EX)
-        except Exception as exception:
-            # this is pretty much FATAL, avoid corruption and quit now.
-            self.logger.exception("File locking error.", exc_info=exception)
-            sys.exit(7)
+        Context manager holding the lock for the duration of the ``with`` block.
 
-    def __release_lock(self, with_changes: bool = False) -> None:
-        """
-        Releases the lock on the resource that is currently being written.
+        Delegates to ``utils.filelock()`` - the same lock primitive used for sync/quick-sync
+        coordination (``cobbler/api.py``, ``cobbler/cobbler_collections/collection.py``) - instead
+        of independently ``open()``-ing and ``flock()``-ing the same path. Sharing one reentrant,
+        per-thread-aware lock means a thread that already holds this lock for an unrelated reason
+        (e.g. a quick-sync call site) can safely call into ``serialize_item()``/``serialize_delete()``
+        without a second, independent ``flock()`` attempt on the same file deadlocking the process -
+        ``flock()`` locks are owned by the open file description, not the thread, so two genuinely
+        separate acquisitions of the same path from the very same thread would otherwise block on
+        each other forever. ``utils.filelock()`` itself already guarantees release via ``finally``
+        even if the wrapped code raises.
 
-        :param with_changes: If this is true the global modification time is being updated. Default is false.
+        :return: An iterator that yields exactly once while the lock is held.
         """
-        if with_changes:
-            # this file is used to know the time of last modification on cobbler_collections
-            # was made -- allowing the API to work more smoothly without
-            # a lot of unnecessary reloads.
-            with open(self.api.mtime_location, "w", encoding="UTF-8") as mtime_fd:
-                mtime_fd.write(f"{time.time():f}")
-        if self.lock_enabled:
-            # exclusive lock requires writtable mode (r+) on NFS
-            # https://man7.org/linux/man-pages/man2/flock.2.html
-            # pylint: disable-next=consider-using-with
-            self.lock_handle = open(self.lock_file_location, "r+", encoding="UTF-8")
-            fcntl.flock(self.lock_handle.fileno(), fcntl.LOCK_UN)
-            self.lock_handle.close()
+        if not self.lock_enabled:
+            yield
+            return
+        with utils.filelock(self.lock_file_location):
+            yield
+
+    def __touch_mtime(self) -> None:
+        """
+        Record the current time as the global modification time of cobbler_collections, allowing
+        the API to work more smoothly without a lot of unnecessary reloads.
+
+        Must only be called from inside a ``with self.__locked():`` block, after the write it is
+        recording has actually succeeded.
+        """
+        with open(self.api.mtime_location, "w", encoding="UTF-8") as mtime_fd:
+            mtime_fd.write(f"{time.time():f}")
 
     def serialize(self, collection: "Collection[ITEM]") -> None:
         """
@@ -85,10 +78,8 @@ class Serializer:
 
         :param collection: The collection to serialize.
         """
-
-        self.__grab_lock()
-        self.storage_object.serialize(collection)
-        self.__release_lock()
+        with self.__locked():
+            self.storage_object.serialize(collection)
 
     def serialize_item(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
@@ -97,10 +88,9 @@ class Serializer:
         :param collection: The Cobbler collection to know the type of the item.
         :param item: The collection item to serialize.
         """
-
-        self.__grab_lock()
-        self.storage_object.serialize_item(collection, item)
-        self.__release_lock(with_changes=True)
+        with self.__locked():
+            self.storage_object.serialize_item(collection, item)
+            self.__touch_mtime()
 
     def serialize_delete(self, collection: "Collection[ITEM]", item: "ITEM") -> None:
         """
@@ -109,10 +99,9 @@ class Serializer:
         :param collection: The Cobbler collection to know the type of the item.
         :param item: The collection item to delete.
         """
-
-        self.__grab_lock()
-        self.storage_object.serialize_delete(collection, item)
-        self.__release_lock(with_changes=True)
+        with self.__locked():
+            self.storage_object.serialize_delete(collection, item)
+            self.__touch_mtime()
 
     def deserialize(
         self, collection: "Collection[ITEM]", topological: bool = True
@@ -125,9 +114,8 @@ class Serializer:
                             ensures properly ordered object loading from disk with objects having parent/child
                             relationships, i.e. profiles/subprofiles.  See cobbler/items/abstract/inheritable_item.py
         """
-        self.__grab_lock()
-        self.storage_object.deserialize(collection, topological)
-        self.__release_lock()
+        with self.__locked():
+            self.storage_object.deserialize(collection, topological)
 
     def deserialize_item(self, collection_type: str, uid: str) -> Dict[str, Any]:
         """
@@ -137,10 +125,8 @@ class Serializer:
         :param uid: The uid of the collection item to deserialize.
         :return: The deserialized item data as a dict.
         """
-        self.__grab_lock()
-        result = self.storage_object.deserialize_item(collection_type, uid)
-        self.__release_lock()
-        return result
+        with self.__locked():
+            return self.storage_object.deserialize_item(collection_type, uid)
 
     def __get_storage_module(self) -> ModuleType:
         """

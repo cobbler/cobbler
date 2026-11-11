@@ -2,7 +2,7 @@
 Tests that validate the functionality of the module that is responsible for managing the list of menus.
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -13,6 +13,9 @@ from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.items import menu
 
 from tests.conftest import does_not_raise
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.fixture(name="menu_collection")
@@ -417,3 +420,57 @@ def test_find_by_indexes(
     assert len(kwargs4) == 0
     assert result5 is None
     assert len(kwargs5) == 0
+
+
+def test_add_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    menu_collection: menus.Menus,
+    mocker: "MockerFixture",
+):
+    """
+    Test that saving a menu with sync enabled still takes the global sync lock, even
+    though ``add_quick_pxe_sync()``'s Menu branch is itself a no-op -- the call site wraps the
+    dispatch unconditionally, regardless of which item type ends up being a no-op.
+    """
+    # Arrange
+    item1 = cobbler_api.new_menu()
+    item1.name = "test_add_with_sync_acquires_filelock"  # type: ignore[method-assign]
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    menu_collection.add(item1, save=True, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk write (save=True) and once for the quick-sync
+    # (with_sync=True) - both now route through the same lock primitive.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+def test_remove_with_sync_acquires_filelock(
+    cobbler_api: CobblerAPI,
+    menu_collection: menus.Menus,
+    mocker: "MockerFixture",
+):
+    """
+    Test that removing a menu with sync enabled takes the global sync lock. Menu removal's
+    ``remove_quick_pxe_sync()`` override re-renders the PXE/iPXE/GRUB menu files from current item
+    state (``CobblerSync.remove_single_menu()`` -> ``make_pxe_menu()``), which is exactly the class
+    of shared-directory write the quick-sync/full-sync race is about.
+    """
+    # Arrange
+    item1 = cobbler_api.new_menu()
+    item1.name = "test_remove_with_sync_acquires_filelock"  # type: ignore[method-assign]
+    menu_collection.add(item1)
+    filelock_mock = mocker.patch("cobbler.utils.filelock")
+
+    # Act
+    menu_collection.remove(item1, with_sync=True)
+
+    # Assert
+    # Once for the serializer's own on-disk delete (always runs) and once for the quick-sync
+    # (with_delete defaults to True, with_sync=True) - both now route through the same lock.
+    assert filelock_mock.call_count == 2
+    for call in filelock_mock.call_args_list:
+        assert call.args[0] == "/var/lib/cobbler/lock"

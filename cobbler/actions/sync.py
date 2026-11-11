@@ -91,6 +91,21 @@ class CobblerSync:
         self.distromirror_config = os.path.join(
             self.settings.webdir, "distro_mirror/config"
         )
+
+    def bootstrap_dirs(self) -> None:
+        """
+        Rebuild the webdir/tftpboot directory skeletons from scratch.
+
+        This is destructive (it clears and repopulates shared directories like ``webdir/misc``)
+        and is not safe to run concurrently with another sync - it is only meant to be called from
+        :meth:`run`, the full-sync entry point, which is already serialized against other syncs by
+        ``CobblerAPI.sync()``'s file lock. Day-to-day object creation goes through the per-item
+        "quick sync" methods instead, which never call this: those directories are already
+        bootstrapped once at daemon/API startup by
+        ``CobblerAPI._CobblerAPI__directory_startup_preparations()``, and repeating that unprotected
+        rebuild on every single quick sync both serves no purpose (nothing added anything that would
+        need re-bootstrapping) and is racy under concurrent requests.
+        """
         # Dynamic serving modules materialize nothing on disk, so skip creating the directory
         # skeletons they'd otherwise never populate.
         if self.tftpd.what() != "dynamic_tftp":
@@ -152,6 +167,7 @@ class CobblerSync:
         Using the ``Check().run_`` functions previously is recommended
         """
         self.__common_run()
+        self.bootstrap_dirs()
 
         # execute the core of the sync operation
         self.logger.info("cleaning trees")
