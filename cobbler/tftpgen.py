@@ -972,11 +972,6 @@ class TFTPGen:
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "suse":
                 append_line = "%s inst.auto=%s" % (append_line, autoinstall_path)
-                if blended["autoinstall_meta"].get("tree"):
-                    append_line += (
-                        " root=live:%s/LiveOS/squashfs.img"
-                        % blended["autoinstall_meta"]["tree"]
-                    )
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
                               % (append_line, autoinstall_path)

@@ -1,0 +1,23 @@
+#set $repo_data = $getVar("repo_data",[])
+#if $repo_data is not None and 0 < len(repo_data):
+  #set $repos = 0
+    "extraRepositories": [
+  #for $repo in $repo_data:
+    #if $repos > 0:
+      },
+    #end if
+      {
+        "alias": "${repo.name}",
+##        "gpgFingerprints": ["AEF1 EE83 0A27 90AB ABC2 CDA2 8F91 B0E6 C862 B42C"],
+    #if $repo.mirror_locally:
+        "url": "http://$http_server/cblr/repo_mirror/${repo.name}"
+    #else:
+        "url": "${repo.mirror}"
+    #end if
+    #set $repos += 1
+  #end for
+  #if $repos > 0:
+      }
+  #end if
+    ],
+#end if
