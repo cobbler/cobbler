@@ -1982,7 +1982,7 @@
         "initrd_file": "initrd(.*)",
         "isolinux_ok": false,
         "default_autoinstall": "sample_agama.json",
-        "kernel_options": "",
+        "kernel_options": "inst.install_url=$tree/install root=live:$tree/LiveOS/squashfs.img ip=dhcp",
         "kernel_options_post": "",
         "boot_files": []
       },
@@ -2006,7 +2006,7 @@
         "initrd_file": "initrd(.*)",
         "isolinux_ok": false,
         "default_autoinstall": "sample_agama.json",
-        "kernel_options": "",
+        "kernel_options": "inst.install_url=$tree/install root=live:$tree/LiveOS/squashfs.img ip=dhcp",
         "kernel_options_post": "",
         "boot_files": []
       },
