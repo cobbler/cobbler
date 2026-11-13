@@ -18,6 +18,7 @@ $SNIPPET('agama_networking')
 
   "software": {
     "packages": ["agama-scripts", "sudo"],
+$SNIPPET('agama_repos')
     "onlyRequired": false
   },
 
