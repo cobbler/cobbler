@@ -83,7 +83,7 @@
           #end if
           #set $domains += 1
         #end for
-        "dnsSearchlist": [$dns]
+        "dnsSearchlist": [$dns],
       #end if
         "id": "$iface"
     #elif $iface_type in ("bond","bridge","bond_slave","bridge_slave","bonded_bridge_slave")
