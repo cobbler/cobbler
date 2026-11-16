@@ -91,6 +91,15 @@ class CobblerSync:
         self.distromirror_config = os.path.join(
             self.settings.webdir, "distro_mirror/config"
         )
+
+    def bootstrap_dirs(self) -> None:
+        """
+        Rebuild the webdir/tftpboot directory skeletons from scratch.
+
+        Destructive and not safe to run concurrently with another sync - only call this from
+        :meth:`run`, which is serialized against other syncs by ``CobblerAPI.sync()``'s file lock.
+        Quick-sync does not call this; those directories are already bootstrapped once at startup.
+        """
         # Dynamic serving modules materialize nothing on disk, so skip creating the directory
         # skeletons they'd otherwise never populate.
         if self.tftpd.what() != "dynamic_tftp":
@@ -151,6 +160,7 @@ class CobblerSync:
         Syncs the current configuration file with the config tree.
         Using the ``Check().run_`` functions previously is recommended
         """
+        self.bootstrap_dirs()
         self.__common_run()
 
         # execute the core of the sync operation

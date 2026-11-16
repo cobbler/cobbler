@@ -218,6 +218,9 @@ def test_sync_systems(
     test_distro = create_distro()
     test_profile = create_profile(test_distro.uid)
     test_system = create_system(test_profile.uid)
+    # Creating the fixtures above also acquires the lock via their own quick-sync; reset so
+    # the assertion below only reflects sync_systems()'s own call.
+    filelock_mock.reset_mock()
 
     # Act
     cobbler_api.sync_systems([test_system], input_verbose)  # type: ignore
