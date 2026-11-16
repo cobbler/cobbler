@@ -60,7 +60,8 @@ jobs:
           tftpd-hpa
           rsync
           xorriso
-          fence-agents
+          fence-agents-base
+          fence-agents-extra
           fakeroot
           patch
           pax
