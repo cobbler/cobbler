@@ -1,0 +1,1 @@
+Fix utils.blender to resolve inherited network interface properties so values such as virt_bridge reach rendered metadata.
