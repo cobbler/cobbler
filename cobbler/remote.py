@@ -3115,6 +3115,13 @@ class CobblerXMLRPCInterface:
             attribute=".".join(attribute),
             token=token,
         )
+        if any(name == "uid" or name.startswith("_") for name in attribute):
+            # uid must stay trustworthy for identity checks elsewhere (e.g. NetworkInterface's
+            # duplicate detection); private fields aren't public API either. Don't echo the
+            # caller-supplied attribute path into the message - untrusted input in log/error text.
+            raise ValueError(
+                "Internal or computed attributes cannot be modified directly."
+            )
         obj = self.__get_object(object_id, token)
         self.check_access(token, f"modify_{what}", obj, attribute)
 
