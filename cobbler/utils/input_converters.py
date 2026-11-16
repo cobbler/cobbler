@@ -102,8 +102,9 @@ def input_string_or_dict_no_inherit(
         new_dict.pop("", None)
         return new_dict
     if isinstance(options, dict):  # type: ignore
-        options.pop("", None)
-        return options
+        new_dict = options.copy()
+        new_dict.pop("", None)
+        return new_dict
     raise TypeError("invalid input type")
 
 

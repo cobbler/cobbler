@@ -1,0 +1,1 @@
+Fix `input_string_or_dict_no_inherit()` mutating the caller's dictionary when removing the empty-string key; it now returns a normalized copy and leaves the input unchanged.

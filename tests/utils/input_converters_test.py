@@ -56,6 +56,19 @@ def test_input_string_or_dict(
         assert expected_result == result
 
 
+def test_input_string_or_dict_does_not_mutate_dict():
+    # Arrange
+    options = {"": "discard", "keep": "value"}
+
+    # Act
+    result = input_converters.input_string_or_dict_no_inherit(options)
+
+    # Assert
+    assert result == {"keep": "value"}
+    assert options == {"": "discard", "keep": "value"}
+    assert result is not options
+
+
 @pytest.mark.parametrize(
     "testinput,expected_exception,expected_result",
     [
