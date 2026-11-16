@@ -39,11 +39,11 @@ jobs:
           # setuptools_scm needs the full history (incl. tags) to derive the
           # version; a shallow checkout makes it guess a bogus version.
           fetch-depth: 0
-      - name: Set up Python 3.9
+      - name: Set up Python
         # https://github.com/actions/setup-python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: 3.9
+          python-version: ">=3.11"
       - name: Update package cache
         run: sudo apt-get -yq update
       - name: Install all dependencies
