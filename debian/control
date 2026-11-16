@@ -26,7 +26,8 @@ Architecture: all
 Depends:
  systemd,
  tftpd-hpa | atftpd,
- fence-agents,
+ fence-agents | fence-agents-base,
+ fence-agents | fence-agents-extra,
  rsync,
  xorriso,
  python3,

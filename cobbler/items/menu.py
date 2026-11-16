@@ -69,14 +69,16 @@ class Menu(BootableItem):
     # override some base class methods first (BootableItem)
     #
 
-    def make_clone(self) -> "Menu":
+    def make_clone(self, keep_uid: bool = False) -> "Menu":
         """
         Clone this menu object. Please manually adjust all value yourself to make the cloned object unique.
 
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`.
         :return: The cloned instance of this object.
         """
         _dict = copy.deepcopy(self.to_dict())
-        _dict.pop("uid", None)
+        if not keep_uid:
+            _dict.pop("uid", None)
         return Menu(self.api, **_dict)
 
     #

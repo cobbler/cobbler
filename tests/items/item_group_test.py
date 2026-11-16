@@ -23,7 +23,7 @@ class DummyItemGroup(ItemGroup):
     def __init__(self, api: CobblerAPI, **kwargs: Any):
         super().__init__(api, **kwargs)
 
-    def make_clone(self) -> "BaseItem":
+    def make_clone(self, keep_uid: bool = False) -> "BaseItem":
         return self
 
     def _resolve(self, property_name: List[str]) -> Any:

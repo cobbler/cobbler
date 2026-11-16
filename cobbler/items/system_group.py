@@ -31,10 +31,13 @@ class SystemGroup(ItemGroup):
         if not self._has_initialized:
             self._has_initialized = True
 
-    def make_clone(self) -> "BaseItem":
+    def make_clone(self, keep_uid: bool = False) -> "BaseItem":
         """
         Clone this system group
+
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`.
         """
         _dict = copy.deepcopy(self.to_dict())
-        _dict.pop("uid", None)
+        if not keep_uid:
+            _dict.pop("uid", None)
         return SystemGroup(self.api, **_dict)

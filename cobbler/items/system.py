@@ -317,14 +317,16 @@ class System(BootableItem):
     # override some base class methods first (BootableItem)
     #
 
-    def make_clone(self):
+    def make_clone(self, keep_uid: bool = False):
         """
         Clone this system object. Please manually adjust all value yourself to make the cloned object unique.
 
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`.
         :return: The cloned instance of this object.
         """
         _dict = copy.deepcopy(self.to_dict())
-        _dict.pop("uid", None)
+        if not keep_uid:
+            _dict.pop("uid", None)
         if isinstance(_dict.get("autoinstall"), dict):
             # This is a concrete dict object, not inherited.
             autoinstall = _dict.pop("autoinstall")

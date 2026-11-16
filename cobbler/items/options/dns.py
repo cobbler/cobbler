@@ -148,6 +148,10 @@ class DNSInterfaceOption(ItemOption["NetworkInterface"]):
             if not isinstance(matched, list):  # type: ignore
                 raise ValueError("Incompatible return type detected!")
             for match in matched:
+                if match.uid == self._item.uid:
+                    # Our own live counterpart (see NetworkInterface.make_clone(keep_uid=True)),
+                    # not a duplicate.
+                    continue
                 raise ValueError(
                     f'DNS name duplicate found "{dns_name}". Object with the conflict has the name "{match.uid}"'
                 )

@@ -349,12 +349,12 @@ def test_concurrent_modify_item_same_token_does_not_lose_staged_clone(
     barrier = threading.Barrier(2)
     original_make_clone = Distro.make_clone
 
-    def patched_make_clone(self: Distro) -> Distro:
+    def patched_make_clone(self: Distro, keep_uid: bool = False) -> Distro:
         try:
             barrier.wait(timeout=0.5)
         except threading.BrokenBarrierError:
             pass
-        return original_make_clone(self)
+        return original_make_clone(self, keep_uid=keep_uid)
 
     mocker.patch.object(Distro, "make_clone", patched_make_clone)
 

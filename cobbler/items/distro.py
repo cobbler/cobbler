@@ -202,16 +202,18 @@ class Distro(BootableItem):
     # override some base class methods first (BootableItem)
     #
 
-    def make_clone(self):
+    def make_clone(self, keep_uid: bool = False):
         """
         Clone a distro object.
 
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`.
         :return: The cloned object. Not persisted on the disk or in a database.
         """
-        # FIXME: Change unique base attributes
         _dict = copy.deepcopy(self.to_dict())
         # Drop attributes which are computed from other attributes
-        computed_properties = ["remote_grub_initrd", "remote_grub_kernel", "uid"]
+        computed_properties = ["remote_grub_initrd", "remote_grub_kernel"]
+        if not keep_uid:
+            computed_properties.append("uid")
         for property_name in computed_properties:
             _dict.pop(property_name, None)
         return Distro(self.api, **_dict)

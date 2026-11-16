@@ -960,3 +960,55 @@ def test_inheritance(
             # Assert
             assert prev_value == new_value
             assert prev_value == getattr(interface, new_key)
+
+
+def test_make_clone(cobbler_api: CobblerAPI):
+    """
+    Test that verifies that cloning an object logically is working as expected.
+    """
+    # Arrange
+    interface = NetworkInterface(cobbler_api, "")
+
+    # Act
+    result = interface.make_clone()
+
+    # Assert
+    assert result != interface
+    assert result.uid != interface.uid
+
+
+def test_make_clone_keep_uid_with_duplicate_prone_fields_set(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[], Distro],
+    create_profile: Callable[[str], Profile],
+    create_system: Callable[[str], System],
+):
+    """
+    Cloning a *live, registered* interface whose mac_address/ipv4.address/ipv6.address/dns.name
+    are all set must not raise a false "duplicate" against itself: reconstructing the clone
+    replays these fields through their setters while the live original is still registered.
+    """
+    # Arrange
+    distro = create_distro()
+    profile = create_profile(distro.uid)
+    system = create_system(profile.uid)
+    interface = system.interfaces["default"]
+    interface.mac_address = "AA:AA:AA:AA:AA:AA"
+    interface.ipv4.address = "172.30.0.2"
+    interface.ipv6.address = "2001:db8:3c4d::2"
+    interface.dns.name = "host.example.org"
+    cobbler_api.add_system(system)
+
+    # Act
+    clone = interface.make_clone(keep_uid=True)
+
+    # Assert
+    assert clone.uid == interface.uid
+    assert clone.mac_address == interface.mac_address
+    assert clone.ipv4.address == interface.ipv4.address
+    assert clone.ipv6.address == interface.ipv6.address
+    assert clone.dns.name == interface.dns.name
+
+    # The default (fresh uid, for genuine duplication) must still reject an unchanged copy.
+    with pytest.raises(ValueError):
+        interface.make_clone()

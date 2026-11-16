@@ -167,6 +167,10 @@ class IPv4Option(IPOption):
                     "Unexpected search result during ip deduplication search!"
                 )
             for match in matched:
+                if match.uid == self._item.uid:
+                    # Our own live counterpart (see NetworkInterface.make_clone(keep_uid=True)),
+                    # not a duplicate.
+                    continue
                 raise ValueError(
                     f'IP address duplicate found "{address}". Object with the conflict has the name "{match.uid}"'
                 )
@@ -248,6 +252,10 @@ class IPv6Option(IPOption):
                     "Unexpected search result during ip deduplication search!"
                 )
             for match in matched:
+                if match.uid == self._item.uid:
+                    # Our own live counterpart (see NetworkInterface.make_clone(keep_uid=True)),
+                    # not a duplicate.
+                    continue
                 raise ValueError(
                     f'IPv6 address duplicate found "{address}". Object with the conflict has the name'
                     f'"{match.uid}"'

@@ -31,10 +31,12 @@ class MockItem(BaseItem):
         if not self._has_initialized:
             self._has_initialized = True
 
-    def make_clone(self) -> BaseItem:
+    def make_clone(self, keep_uid: bool = False) -> BaseItem:
         _dict = copy.deepcopy(self.to_dict())
         # Drop attributes which are computed from other attributes
-        computed_properties = ["uid"]
+        computed_properties: List[str] = []
+        if not keep_uid:
+            computed_properties.append("uid")
         for property_name in computed_properties:
             _dict.pop(property_name, None)
         return MockItem(self.api, **_dict)

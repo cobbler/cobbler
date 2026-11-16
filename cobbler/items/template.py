@@ -87,17 +87,19 @@ class Template(BaseItem):
         if not self._has_initialized:
             self._has_initialized = True
 
-    def make_clone(self) -> "Template":
+    def make_clone(self, keep_uid: bool = False) -> "Template":
         """
         Clone this template object. Please manually adjust all value yourself to make the cloned object unique.
 
         The ``built_in`` flag is always dropped on the clone, since a clone of a built-in template is a regular,
         editable and persistable template rather than the read-only original.
 
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`.
         :return: The cloned instance of this object.
         """
         seed_dict = copy.deepcopy(self.to_dict())
-        seed_dict.pop("uid", None)
+        if not keep_uid:
+            seed_dict.pop("uid", None)
         seed_dict.pop("built_in", None)
         # "content" round-trips through the public setter via from_dict(), which writes
         # through to the target URI and raises if its path is still empty (e.g. right

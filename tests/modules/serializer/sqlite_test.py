@@ -38,7 +38,7 @@ class MockBootableItem(BootableItem):
     Test Item for the serializer tests.
     """
 
-    def make_clone(self) -> "MockBootableItem":
+    def make_clone(self, keep_uid: bool = False) -> "MockBootableItem":
         return MockBootableItem(self.api)
 
 
