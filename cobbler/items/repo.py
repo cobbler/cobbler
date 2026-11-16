@@ -157,14 +157,16 @@ class Repo(BootableItem):
     # override some base class methods first (BootableItem)
     #
 
-    def make_clone(self) -> "Repo":
+    def make_clone(self, keep_uid: bool = False) -> "Repo":
         """
         Clone this repo object. Please manually adjust all value yourself to make the cloned object unique.
 
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`.
         :return: The cloned instance of this object.
         """
         _dict = copy.deepcopy(self.to_dict())
-        _dict.pop("uid", None)
+        if not keep_uid:
+            _dict.pop("uid", None)
         return Repo(self.api, **_dict)
 
     def check_if_valid(self) -> None:

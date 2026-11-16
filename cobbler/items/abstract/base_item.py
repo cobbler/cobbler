@@ -418,9 +418,14 @@ class BaseItem(ABC):
             raise CX("Name is required")
 
     @abstractmethod
-    def make_clone(self) -> "BaseItem":
+    def make_clone(self, keep_uid: bool = False) -> "BaseItem":
         """
-        Must be defined in any subclass
+        Must be defined in any subclass.
+
+        :param keep_uid: If True, the clone keeps this object's uid instead of getting a fresh one.
+                          Used by CobblerXMLRPCInterface's classic (non-transaction) edit session,
+                          whose private clone is always persisted back under the original uid -
+                          unlike genuine duplication (copy_item/rename_item), which needs a fresh one.
         """
 
     @abstractmethod

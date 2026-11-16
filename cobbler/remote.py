@@ -3119,7 +3119,7 @@ class CobblerXMLRPCInterface:
         self.check_access(token, f"modify_{what}", obj, attribute)
 
         if token in self.transactions and object_id not in self.transactions[token]:
-            new_obj = cast(InheritableItem, obj.make_clone())
+            new_obj = cast(InheritableItem, obj.make_clone(keep_uid=True))
             self.transactions[token][object_id] = TransactionTuple(
                 what,
                 new_obj,
@@ -3138,8 +3138,7 @@ class CobblerXMLRPCInterface:
                 per_token = self.editing_items.setdefault(token, {})
                 entry = per_token.get(object_id)
                 if entry is None:
-                    new_obj = obj.make_clone()
-                    new_obj.uid = obj.uid  # make_clone() drops uid; restore it
+                    new_obj = obj.make_clone(keep_uid=True)
                     per_token[object_id] = EditingItemTuple(
                         what, new_obj, obj.mtime, time.time()
                     )

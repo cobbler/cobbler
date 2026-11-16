@@ -112,6 +112,10 @@ class NetworkInterface(BaseItem):
     TYPE_NAME = "network_interface"
     COLLECTION_TYPE = "network_interface"
 
+    # Apply "uid" (when present) before mac_address/ipv4/ipv6/dns, so make_clone(keep_uid=True)'s
+    # same-uid exclusion in their duplicate checks is already in effect when those fields are set.
+    _FROM_DICT_PRIORITY_KEYS = BaseItem._FROM_DICT_PRIORITY_KEYS + ("uid",)
+
     def __init__(
         self,
         api: "CobblerAPI",
@@ -164,18 +168,20 @@ class NetworkInterface(BaseItem):
             (self._mac_address, self._ipv4.address, self._dns.name, self._ipv6.address)
         )
 
-    def make_clone(self) -> "NetworkInterface":
+    def make_clone(self, keep_uid: bool = False) -> "NetworkInterface":
         """
         Clone this network interface object. Please manually adjust all value yourself to make the cloned object
         unique.
 
+        :param keep_uid: See :meth:`~cobbler.items.abstract.base_item.BaseItem.make_clone`. Also makes
+                          mac_address/ipv4.address/ipv6.address/dns.name's duplicate check recognize the
+                          still-live original as this same interface, instead of mistaking it for a
+                          conflicting duplicate.
         :return: The cloned instance of this object.
         """
         _dict = copy.deepcopy(self.to_dict())
-        # Drop attributes which are computed from other attributes
-        computed_properties = ["uid"]
-        for property_name in computed_properties:
-            _dict.pop(property_name, None)
+        if not keep_uid:
+            _dict.pop("uid", None)
         return NetworkInterface(self.api, **_dict)
 
     def _resolve(self, property_name: List[str]) -> Any:
@@ -420,6 +426,9 @@ class NetworkInterface(BaseItem):
                     "Unexpected search result during ip deduplication search!"
                 )
             for match in matched:
+                if match.uid == self.uid:
+                    # Our own live counterpart (see make_clone(keep_uid=True)), not a duplicate.
+                    continue
                 raise ValueError(
                     f'MAC address duplicate found "{address}". Object with the conflict has the name "{match.uid}"'
                 )
