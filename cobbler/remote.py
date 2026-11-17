@@ -3115,10 +3115,16 @@ class CobblerXMLRPCInterface:
             attribute=".".join(attribute),
             token=token,
         )
-        if any(name == "uid" or name.startswith("_") for name in attribute):
+        if any(
+            name in ("uid", "ctime", "depth") or name.startswith("_")
+            for name in attribute
+        ):
             # uid must stay trustworthy for identity checks elsewhere (e.g. NetworkInterface's
-            # duplicate detection); private fields aren't public API either. Don't echo the
-            # caller-supplied attribute path into the message - untrusted input in log/error text.
+            # duplicate detection); private fields aren't public API either. ctime is only
+            # overwritten at persist time if it's still 0.0 (collection.py), so a forged non-zero
+            # value would stick; depth is recomputed solely from the parent chain and a bogus
+            # value can break that item's load-time resolution. Don't echo the caller-supplied
+            # attribute path into the message - untrusted input in log/error text.
             raise ValueError(
                 "Internal or computed attributes cannot be modified directly."
             )
