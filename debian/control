@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: The Cobbler Authors <cobbler.project@gmail.com>
 Build-Depends:
  git-core,
- python3 (>=3.6),
+ python3 (>=3.11),
  python3-distro,
  python3-setuptools,
  python3-setuptools-scm,

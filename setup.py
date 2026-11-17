@@ -54,13 +54,16 @@ if __name__ == "__main__":
         license="GPLv2+",
         classifiers=[
             "Development Status :: 5 - Production/Stable",
-            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3 :: Only",
+            "Programming Language :: Python :: 3.11",
             "Topic :: System :: Installation/Setup",
             "Topic :: System :: Systems Administration",
             "Intended Audience :: System Administrators",
             "Natural Language :: English",
             "Operating System :: POSIX :: Linux",
         ],
+        python_requires=">=3.11",
         keywords=["pxe", "autoinstallation", "dhcp", "tftp", "provisioning"],
         install_requires=[
             "requests",
