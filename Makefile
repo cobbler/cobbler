@@ -68,11 +68,7 @@ apidoc: ## Regenerates the docs/code-autodoc folder from the current source tree
 	@cd docs; sphinx-apidoc --no-toc -o code-autodoc ../cobbler
 
 man: ## Creates documentation and man pages using Sphinx
-	@if python3 -c "from importlib.metadata import version; from sys import exit; exit(0 if tuple(int(p) for p in version('setuptools_scm').split('.')[:2]) >= (8, 2) else 1)" 2>/dev/null; then \
-		python3 -m setuptools_scm --force-write-version-files > /dev/null; \
-	else \
-		python3 setup.py --version > /dev/null 2>&1; \
-	fi
+	@python3 -c "import setuptools_scm; from setuptools_scm import Configuration; c = Configuration.from_file(); setuptools_scm.get_version(write_to=c.version_file, write_to_template=c.version_file_template)" > /dev/null
 	@cd docs; make man > /dev/null 2>&1
 	@mkdir -p cobbler/data/man/man1 cobbler/data/man/man5 cobbler/data/man/man8
 	@find docs/_build/man -name "*.1" -exec cp -f {} cobbler/data/man/man1/ \;
@@ -122,7 +118,7 @@ build: authors man ## Runs the Python Build.
 	@git config --global --add safe.directory /code; \
 	${PYTHON} -m pip wheel --verbose --wheel-dir ./build .
 
-install: build ## Runs the build target and then installs via setup.py
+install: build ## Runs the build target and then installs the built wheel
 	@git config --global --add safe.directory /code; \
 	${PYTHON} -m pip install --verbose --no-compile --no-deps --no-index --root $(DESTDIR) ./build/cobbler*.whl
 

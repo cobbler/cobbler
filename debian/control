@@ -8,6 +8,7 @@ Build-Depends:
  python3-distro,
  python3-setuptools,
  python3-setuptools-scm,
+ pybuild-plugin-pyproject,
  python3-netaddr,
  python3-requests,
  python3-schema,

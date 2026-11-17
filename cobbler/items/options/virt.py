@@ -38,7 +38,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
         self,
         api: "CobblerAPI",
         item: Union["Image", "Profile", "System"],
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().__init__(api=api, item=item, **kwargs)
         self._auto_boot: Union[bool, str] = enums.VALUE_INHERITED
