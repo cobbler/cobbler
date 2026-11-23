@@ -23,3 +23,5 @@ cobbler mkloaders
 [ -f /var/lib/cobbler/loaders/mboot.c32 ]
 [ -f /var/lib/cobbler/loaders/pxelinux.0 ]
 [ -f /var/lib/cobbler/loaders/undionly.pxe ]
+[ -f /var/lib/cobbler/loaders/undionly.kpxe ]
+
