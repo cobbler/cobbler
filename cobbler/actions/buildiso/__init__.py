@@ -183,13 +183,15 @@ class BuildIso:
             return all_objs
 
         filtered_objects = []
+        bad_names = []
         for name in selected_items:
             item_object = all_objs.find(name=name)
             if item_object is not None:
                 filtered_objects.append(item_object)
-                selected_items.remove(name)
+            else:
+                bad_names.append(name)
 
-        for bad_name in selected_items:
+        for bad_name in bad_names:
             self.logger.warning('"%s" is not a valid profile or system', bad_name)
 
         if len(filtered_objects) == 0:
@@ -207,21 +209,39 @@ class BuildIso:
             raise ValueError(f"Distribution {distro_name} not found.")
         return distro_obj
 
+    def _profile_names_of_distro(self, distro_obj) -> List[str]:
+        """Return the names of the top-level profiles which belong to ``distro_obj``.
+
+        ``Distro.children`` cannot be used for this: it is driven by ``COLLECTION_TYPE`` and therefore lists distros
+        whose parent is the distro name, which is never the case. Profiles reference their distro via ``profile.distro``
+        instead, so the membership test has to go through the profiles collection.
+
+        :param distro_obj: The distro whose profiles should be returned.
+        :return: The names of the profiles which are assigned to the given distro.
+        """
+        profile_names = []
+        for profile_obj in self.api.profiles():
+            profile_distro = profile_obj.distro
+            if profile_distro is not None and profile_distro.name == distro_obj.name:
+                profile_names.append(profile_obj.name)
+        return profile_names
+
     def parse_profiles(self, profiles, distro_obj):
+        distro_profile_names = self._profile_names_of_distro(distro_obj)
         profile_names = utils.input_string_or_list_no_inherit(profiles)
         if profile_names:
             self.logger.debug("Checking that %s belong to distro %s", profiles, distro_obj.name)
-            orphans = set(profile_names) - set(distro_obj.children)
+            orphans = set(profile_names) - set(distro_profile_names)
             if len(orphans) > 0:
                 raise ValueError(
                     "When building a standalone ISO, all --profiles must be"
                     " under --distro. Extra --profiles: {}".format(
-                        ",".join(sorted(str(o for o in orphans)))
+                        ",".join(sorted(orphans))
                     )
                 )
             return self.filter_profiles(profile_names)
         else:
-            return self.filter_profiles(distro_obj.children)
+            return self.filter_profiles(distro_profile_names)
 
     def _copy_isolinux_files(self):
         """
