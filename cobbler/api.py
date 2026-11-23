@@ -1556,7 +1556,7 @@ class CobblerAPI:
 
         :param items: The list of items.
         """
-        for what, ref, _, mtime, base_id, _ in items:
+        for what, ref, _, mtime, base_id, _, _, _ in items:
             if base_id:
                 orig_ref = self.find_items(
                     what, criteria={"uid": base_id}, return_list=False
@@ -1632,7 +1632,7 @@ class CobblerAPI:
                     )
 
             try:
-                for what, ref, _, mtime, base_id, _ in to_add:
+                for what, ref, _, mtime, base_id, _, _, _ in to_add:
                     self.log(f"add_item({what})", [ref.uid])
                     # base_id set means this "add" actually replaces an already-persisted object
                     # (Collection.add() just overwrites self.listing[ref.uid] in place) - a plain
@@ -1661,7 +1661,7 @@ class CobblerAPI:
                     else:
                         applied.append(("add", what, ref))
 
-                for what, ref, _, _, _, item_changelog in to_add:
+                for what, ref, _, _, _, item_changelog, _, _ in to_add:
                     ref.in_transaction = False
                     for item in item_changelog:
                         self.get_items(what).update_index_value(
@@ -1679,7 +1679,7 @@ class CobblerAPI:
                 # otherwise, by the time a system's cleanup runs, its profile (removed earlier in
                 # to_remove's depth-descending order) is already gone, and get_conceptual_parent()
                 # returns None instead of the profile.
-                for what, ref, _, _, _, _ in to_remove:
+                for what, ref, _, _, _, _, _, _ in to_remove:
                     snapshot = ref.to_dict()
                     self.get_items(what).remove(
                         ref,
@@ -1697,7 +1697,7 @@ class CobblerAPI:
 
             # Now update all on-disk configuration because the caches are valid again
             self.log("Executing Cobbler sync for transaction commit")
-            for what, ref, _, _, _, _ in to_add:
+            for what, ref, _, _, _, _, _, _ in to_add:
                 self.get_items(what).add_quick_pxe_sync(ref, rebuild_menu=False)
             self.tftpgen.make_pxe_menu()
 

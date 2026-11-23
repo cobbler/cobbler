@@ -231,6 +231,19 @@ class TransactionTuple(NamedTuple):
     mtime: float
     uid: str
     item_modifications: List[TransactionItemModifications]
+    # The exact check_access() resource string used when this operation was staged (e.g.
+    # "new_profile", "copy_profile", "modify_profile", "remove_profile") - carried through so
+    # transaction_commit()'s re-authorization check (G-01c) re-asserts the very same check, not a
+    # coarser approximation that could deny (or wrongly allow) under a resource-name-sensitive
+    # authorization module.
+    resource: str
+    # For a copy_item()/rename_item() entry, the uid of the live object this one was cloned from;
+    # None for every other kind of entry. A copy's/rename's own uid is brand new and never
+    # persisted, so the generic live-object lookup in transaction_commit()'s re-authorization loop
+    # always finds nothing for it and would otherwise silently fall back to the frozen clone's
+    # owners - masking an access change made to the real, live source object between staging and
+    # commit. source_uid lets that recheck target the actual live object instead.
+    source_uid: Optional[str]
 
 
 class UnsavedItemsTuple(NamedTuple):
@@ -1133,7 +1146,7 @@ class CobblerXMLRPCInterface:
             and token in self.transactions
             and object_id in self.transactions[token]
         ):
-            _, obj, removed, _, _, _ = self.transactions[token][object_id]
+            _, obj, removed, _, _, _, _, _ = self.transactions[token][object_id]
             if removed:
                 raise ValueError("Object has been deleted in current transaction!")
             return obj
@@ -1142,6 +1155,28 @@ class CobblerXMLRPCInterface:
         obj = self.api.find_items("", criteria={"uid": object_id}, return_list=False)  # type: ignore
         if obj is None or isinstance(obj, list):
             raise ValueError("Object not found or ambigous match!")
+        return obj
+
+    def __get_live_object_for_auth(self, object_id: str) -> Optional["BaseItem"]:
+        """
+        Helper function. Resolve an object id straight to its live, persisted object, bypassing
+        any transaction-staged clone or not-yet-saved object that ``__get_object()`` would
+        otherwise prefer.
+
+        Used exclusively for authorization checks: ``__get_object()`` prefers an already-staged
+        transaction clone over the live object once one exists for a given ``(token, object_id)``,
+        so authorizing against whatever it returns would mean every call after the first one in a
+        still-open transaction checks access against state captured at that first call, not
+        current live state (e.g. a live ownership change made after staging).
+
+        :param object_id: The id for the object to resolve.
+        :return: The live object, or ``None`` if there is no persisted object yet (e.g. a
+                 brand-new item created but not yet saved) - callers should fall back to whatever
+                 ``__get_object()`` returned in that case.
+        """
+        obj = self.api.find_items("", criteria={"uid": object_id}, return_list=False)  # type: ignore
+        if obj is None or isinstance(obj, list):
+            return None
         return obj
 
     def __resolve_optional_uid(
@@ -2133,7 +2168,7 @@ class CobblerXMLRPCInterface:
             raise CX("invalid object name")
 
         if token in self.transactions:
-            for handle, (iwhat, item_obj, deleted, _, _, _) in self.transactions[
+            for handle, (iwhat, item_obj, deleted, _, _, _, _, _) in self.transactions[
                 token
             ].items():
                 if iwhat == what and item_obj.name == name:
@@ -2297,7 +2332,7 @@ class CobblerXMLRPCInterface:
         if token in self.transactions:
             handle = obj.uid
             if handle in self.transactions[token]:
-                _, item, deleted, _, _, _ = self.transactions[token][handle]
+                _, item, deleted, _, _, _, _, _ = self.transactions[token][handle]
                 if deleted:
                     return None
                 return item
@@ -2407,7 +2442,19 @@ class CobblerXMLRPCInterface:
             obj = cast(InheritableItem, self.__get_object(object_id, token))
         except ValueError:
             return False
-        self.check_access(token, f"remove_{what}", obj)
+        # Authorize against live state, not a possibly-stale transaction clone (G-01b): only a
+        # repeat call on an object already staged earlier in this transaction could have gotten a
+        # clone back from __get_object() above, so only re-resolve the live object in that case -
+        # outside that narrow window __get_object() already returned the live object directly, and
+        # a second, type-agnostic lookup here would be pure waste on every remove_item() call.
+        live_obj = None
+        if (
+            token
+            and token in self.transactions
+            and object_id in self.transactions[token]
+        ):
+            live_obj = self.__get_live_object_for_auth(object_id)
+        self.check_access(token, f"remove_{what}", live_obj or obj)
         if token in self.transactions:
             # If this object_id has no counterpart in the real, persisted collection, it was
             # created (new_item + save_item) entirely within this still-open transaction - save_item
@@ -2416,15 +2463,19 @@ class CobblerXMLRPCInterface:
             # try to remove something that was never really added, at commit time. Instead, simply
             # drop the pending "add" entry, exactly like rename_item already does for the equivalent
             # case (renaming an item created earlier in the same transaction).
-            persisted_obj = self.api.find_items(
-                what, criteria={"uid": object_id}, return_list=False
+            persisted_obj = (
+                live_obj
+                if live_obj is not None
+                else self.api.find_items(
+                    what, criteria={"uid": object_id}, return_list=False
+                )
             )
             if persisted_obj is None:
                 if object_id in self.transactions[token]:
                     del self.transactions[token][object_id]
             else:
                 self.transactions[token][object_id] = TransactionTuple(
-                    what, obj, True, obj.mtime, obj.uid, []
+                    what, obj, True, obj.mtime, obj.uid, [], f"remove_{what}", None
                 )
             if recursive:
                 for k in self._transaction_descendants(token, obj):
@@ -2435,6 +2486,8 @@ class CobblerXMLRPCInterface:
                         k.mtime,
                         k.uid,
                         [],
+                        f"remove_{k.COLLECTION_TYPE}",
+                        None,
                     )
 
             return True
@@ -2593,12 +2646,22 @@ class CobblerXMLRPCInterface:
         """
         self._log(f"copy_item({what})", object_id=object_id, token=token)
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"copy_{what}", obj)
+        # See the equivalent comment in remove_item(): only re-resolve the live object for
+        # authorization when a repeat call could have gotten a stale clone back from
+        # __get_object() above (G-01b) - otherwise it already returned the live object directly.
+        live_obj = None
+        if (
+            token
+            and token in self.transactions
+            and object_id in self.transactions[token]
+        ):
+            live_obj = self.__get_live_object_for_auth(object_id)
+        self.check_access(token, f"copy_{what}", live_obj or obj)
         if token in self.transactions:
             obj_copy = cast(InheritableItem, obj.make_clone())
             obj_copy.name = newname
             self.transactions[token][obj_copy.uid] = TransactionTuple(
-                what, obj_copy, False, 0.0, "", []
+                what, obj_copy, False, 0.0, "", [], f"copy_{what}", object_id
             )
             return True
 
@@ -2769,16 +2832,69 @@ class CobblerXMLRPCInterface:
         if token is None:
             raise ValueError('"token" must be provided to rename an item!')
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"modify_{what}", obj)
+        # See the equivalent comment in remove_item(): only re-resolve the live object for
+        # authorization when a repeat call could have gotten a stale clone back from
+        # __get_object() above (G-01b) - otherwise it already returned the live object directly.
+        live_obj = None
+        if (
+            token
+            and token in self.transactions
+            and object_id in self.transactions[token]
+        ):
+            live_obj = self.__get_live_object_for_auth(object_id)
+        self.check_access(token, f"modify_{what}", live_obj or obj)
         if token in self.transactions:
+            # Conceptually a rename preserves identity (same uid), unlike copy_item() which must
+            # produce a new, distinct one - matching the non-transactional Collection.rename(),
+            # which only ever does `ref.name = newname` in place. BUT a keep_uid=True clone cannot
+            # be used to represent that here: the "name" property setter
+            # (base_item.py's `name.setter`) unconditionally calls
+            # `self.api.get_items(...).update_index_value(self, "name", old_name, new_name)` on
+            # ANY object whose `.name` is set, even one that was never added to any collection -
+            # and since a keep_uid clone shares its uid with the live object, that call corrupts
+            # the live collection's shared name index the moment the clone's name changes, making
+            # the still-unrenamed live object unfindable by its real, current name before this
+            # transaction ever commits. (Confirmed pre-existing and not specific to transactions:
+            # the same corruption reproduces via the classic, non-transaction modify_item() path -
+            # `modify_profile(id, ["name"], newname, token)` alone, with no save_item() call,
+            # already breaks find_profile() by the old name. Out of scope to fix here.) So, same
+            # as copy_item(), stage the rename under a fresh uid and track source_uid so
+            # transaction_commit() can still re-authorize against the live source object.
             obj_copy = cast(InheritableItem, obj.make_clone())
             obj_copy.name = newname
+            # If object_id is itself only transaction-local (a not-yet-persisted copy, or an
+            # earlier rename step in this same transaction), its own entry won't survive past the
+            # "drop the pending add" branch below once superseded by this new uid - so trace back
+            # to ITS source_uid (the true, ultimately-persisted ancestor) instead of pointing at
+            # an intermediate uid that is about to stop existing anywhere, persisted or staged. A
+            # brand-new item (via new_item(), never persisted at all - identifiable by its own
+            # TransactionTuple.uid being empty, the same "no base_id" marker add_remove_items()
+            # itself relies on) has no live ancestor whatsoever, so source_uid stays None for it,
+            # same as new_item()'s own entry.
+            existing_source = self.transactions[token].get(object_id)
+            if existing_source is not None and existing_source.source_uid is not None:
+                effective_source_uid = existing_source.source_uid
+            elif existing_source is not None and not existing_source.uid:
+                effective_source_uid = None
+            else:
+                effective_source_uid = object_id
             self.transactions[token][obj_copy.uid] = TransactionTuple(
-                what, obj_copy, False, 0.0, "", []
+                what,
+                obj_copy,
+                False,
+                0.0,
+                "",
+                [],
+                f"modify_{what}",
+                effective_source_uid,
             )
 
-            saved_obj = self.api.find_items(
-                what, criteria={"uid": object_id}, return_list=False
+            saved_obj = (
+                live_obj
+                if live_obj is not None
+                else self.api.find_items(
+                    what, criteria={"uid": object_id}, return_list=False
+                )
             )
             if saved_obj is not None:
                 self.transactions[token][object_id] = TransactionTuple(
@@ -2788,6 +2904,8 @@ class CobblerXMLRPCInterface:
                     cast(InheritableItem, saved_obj).mtime,
                     cast(InheritableItem, saved_obj).uid,
                     [],
+                    f"remove_{what}",
+                    None,
                 )
             else:
                 del self.transactions[token][object_id]
@@ -2962,7 +3080,7 @@ class CobblerXMLRPCInterface:
         new_item = self.api.new_item(what, is_subobject, **kwargs)
         if token in self.transactions:
             self.transactions[token][new_item.uid] = TransactionTuple(
-                what, new_item, False, 0.0, "", []
+                what, new_item, False, 0.0, "", [], f"new_{what}", None
             )
             return new_item.uid
         self.unsaved_items[new_item.uid] = UnsavedItemsTuple(time.time(), new_item)
@@ -3129,7 +3247,20 @@ class CobblerXMLRPCInterface:
                 "Internal or computed attributes cannot be modified directly."
             )
         obj = self.__get_object(object_id, token)
-        self.check_access(token, f"modify_{what}", obj, attribute)
+        # Authorize against the live object, never a transaction-staged clone: __get_object()
+        # above prefers an already-staged clone once one exists for this (token, object_id), so a
+        # second-or-later call in the same still-open transaction would otherwise authorize
+        # against state captured at the first call instead of current live state (G-01b). Only
+        # re-resolve the live object in that case - a first call has no clone yet, so `obj` above
+        # is already live, and a second, type-agnostic lookup would be pure waste.
+        live_obj = None
+        if (
+            token
+            and token in self.transactions
+            and object_id in self.transactions[token]
+        ):
+            live_obj = self.__get_live_object_for_auth(object_id)
+        self.check_access(token, f"modify_{what}", live_obj or obj, attribute)
 
         if token in self.transactions and object_id not in self.transactions[token]:
             new_obj = cast(InheritableItem, obj.make_clone(keep_uid=True))
@@ -3140,6 +3271,8 @@ class CobblerXMLRPCInterface:
                 obj.mtime,
                 obj.uid,
                 [],
+                f"modify_{what}",
+                None,
             )
             new_obj.in_transaction = True
             obj = new_obj
@@ -3171,7 +3304,9 @@ class CobblerXMLRPCInterface:
                     arg.uid if isinstance(arg, base_item.BaseItem) else arg,
                 )
             )
-            for what, parent, to_delete, _, _, _ in self.transactions[token].values():
+            for what, parent, to_delete, _, _, _, _, _ in self.transactions[
+                token
+            ].values():
                 if what in InheritableItem.TYPE_DEPENDENCIES and parent.uid == arg:
                     for (
                         dependant_item_type,
@@ -4984,6 +5119,10 @@ class CobblerXMLRPCInterface:
             if timenow > tokentime + self.api.settings().auth_token_expiration:
                 self._log("expiring token", token=token, debug=True)
                 del self.token_cache[token]
+                # An open transaction has no timeout of its own and never re-authorizes once a
+                # clone is staged (see __get_object()/transaction_commit()) - once its token is
+                # gone, the transaction must go with it rather than linger indefinitely.
+                self.transactions.pop(token, None)
         # and also expired objects
         for oid in list(self.unsaved_items.keys()):
             tokentime, _ = self.unsaved_items[oid]
@@ -5167,6 +5306,7 @@ class CobblerXMLRPCInterface:
         self._log("logout", token=token)
         if token in self.token_cache:
             del self.token_cache[token]
+            self.transactions.pop(token, None)
             return True
         return False
 
@@ -5330,7 +5470,52 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: bool if operation was successful
         """
+        if token not in self.transactions:
+            raise ValueError(
+                "No open transaction for this token (it may have expired or the token was "
+                "invalidated)."
+            )
         try:
+            # Each staged operation was only authorized once, at stage time, against whatever was
+            # live then. Re-check against current live state immediately before persisting, so an
+            # access change that happened after staging (but before commit) is still honored -
+            # add_remove_items() itself only re-validates mtime, never authorization.
+            for object_id, txn in self.transactions[token].items():
+                live_obj = self.api.find_items(
+                    txn.what, criteria={"uid": object_id}, return_list=False
+                )
+                auth_obj = (
+                    txn.ref
+                    if live_obj is None or isinstance(live_obj, list)
+                    else live_obj
+                )
+                self.check_access(token, txn.resource, auth_obj)
+                if txn.source_uid is not None:
+                    # A copy_item()/rename_item() entry's own uid is brand new and never
+                    # persisted, so the live-object lookup above always misses it and auth_obj
+                    # falls back to the frozen clone made at staging time. Re-check against the
+                    # actual live source object too, so an access change made to it between
+                    # staging and commit isn't masked by that fallback. The source may itself be
+                    # only transaction-local (e.g. copying/renaming a copy staged earlier in the
+                    # same transaction, never persisted) - prefer that staged entry's current ref
+                    # over a real collection lookup, same preference order __get_object() uses.
+                    source_txn = self.transactions[token].get(txn.source_uid)
+                    if source_txn is not None and not source_txn.to_delete:
+                        live_source: Optional["BaseItem"] = source_txn.ref
+                    else:
+                        found_source = self.api.find_items(
+                            txn.what,
+                            criteria={"uid": txn.source_uid},
+                            return_list=False,
+                        )
+                        live_source = (
+                            None if isinstance(found_source, list) else found_source
+                        )
+                    if live_source is None:
+                        raise ValueError(
+                            f"Source object for {txn.resource} no longer exists."
+                        )
+                    self.check_access(token, txn.resource, live_source)
             self.api.add_remove_items(list(self.transactions[token].values()))
         finally:
             del self.transactions[token]
@@ -5343,6 +5528,11 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: bool if operation was successful
         """
+        if token not in self.transactions:
+            raise ValueError(
+                "No open transaction for this token (it may have expired or the token was "
+                "invalidated)."
+            )
         del self.transactions[token]
         return True
 

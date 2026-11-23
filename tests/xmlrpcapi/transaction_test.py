@@ -1111,3 +1111,325 @@ def test_add_remove_items_quick_sync_acquires_filelock_on_remove(
     assert filelock_mock.call_count == 2
     for call in filelock_mock.call_args_list:
         assert call.args[0] == "/var/lib/cobbler/lock"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_modify_item_rechecks_access_against_live_object_not_stale_clone(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test (G-01b): a second modify_profile() call on the same object inside one still-
+    open transaction must authorize against the object's current, live state - not the clone
+    staged by the first call. Before the fix, __get_object() always preferred the already-staged
+    clone once one existed, so check_access() for the second (and every later) call saw the
+    owners captured at the first call, not any change made to the live object afterwards.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    remote.modify_profile(profile_uid, ["comment"], "first edit", token)
+
+    # Simulate access being revoked mid-transaction by mutating the LIVE object directly.
+    live_profile = remote.api.find_profile(name="testprofile0")
+    assert live_profile is not None and not isinstance(live_profile, list)
+    live_profile.owners = ["someone-else"]
+
+    # Act
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        remote.modify_profile(profile_uid, ["comment"], "second edit", token)
+        args, _ = mock_check_access.call_args
+        checked_obj = args[2]
+
+    remote.transaction_abort(token)
+
+    # Assert
+    assert checked_obj.owners == ["someone-else"]
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+)
+def test_transaction_commit_rechecks_access_at_persistence_time(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test (G-01c): transaction_commit() must re-check authorization against live state
+    at the point of actual persistence, not rely solely on the one-time checks performed when
+    each operation was staged. Before the fix, transaction_commit() called
+    api.add_remove_items() directly with no check_access() call anywhere in the commit path.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.transaction_begin(token)
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, ["name"], "testprofile_g01c", token)
+    remote.modify_profile(profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+
+    # Act / Assert
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        assert remote.transaction_commit(token)
+        assert mock_check_access.called
+
+
+def test_invalidate_expired_tokens_drops_open_transaction(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: an open transaction must be dropped once its owning token expires, so a
+    stale, unbounded transaction can't keep staged edits (and their now-outdated authorization
+    decisions) alive forever. __invalidate_expired_tokens() already expires token_cache entries
+    past auth_token_expiration; it must do the same for self.transactions.
+    """
+    # Arrange
+    remote.transaction_begin(token)
+    remote.new_profile(token)
+    assert token in remote.transactions
+
+    _, user = remote.token_cache[token]
+    remote.token_cache[token] = (0.0, user)
+
+    # Act
+    assert remote.token_check(token) is False
+
+    # Assert
+    assert token not in remote.transactions
+
+
+def test_logout_drops_open_transaction(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: logging out a token must immediately drop any transaction it had open, not
+    just its token_cache entry - logout() deletes token_cache independently of
+    __invalidate_expired_tokens(), so a cleanup hook placed only there would not fire on logout.
+    """
+    # Arrange
+    remote.transaction_begin(token)
+    remote.new_profile(token)
+    assert token in remote.transactions
+
+    # Act
+    assert remote.logout(token)
+
+    # Assert
+    assert token not in remote.transactions
+
+
+def test_transaction_commit_raises_clear_error_for_unknown_token(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: calling transaction_commit() for a token with no open transaction - whether
+    one was never begun, or it was dropped out from under it by expiry/logout - must raise a
+    clear, diagnosable error instead of a bare KeyError.
+    """
+    # Act / Assert
+    with pytest.raises(ValueError):
+        remote.transaction_commit(token)
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_rechecks_access_with_original_resource_name(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: transaction_commit()'s re-authorization must check the same resource name
+    that was actually checked when each operation was staged (new_/copy_/modify_/remove_), not a
+    coarser approximation collapsed from just the to_delete flag. A resource-name-sensitive
+    authorization module (unlike the shipped ownership module, which only looks at obj.owners)
+    could otherwise deny a legitimately-staged "copy"/"new" at commit time under the wrong
+    resource name, discarding an entire correctly-authorized transaction.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    distro_uid = remote.get_distro_handle("testdistro0")
+    remote.transaction_begin(token)
+    new_profile = remote.new_profile(token)
+    remote.modify_profile(new_profile, ["name"], "testprofile_new", token)
+    remote.modify_profile(new_profile, ["distro"], distro_uid, token)
+    assert remote.save_profile(new_profile, True, True, "bypass", token)
+    assert remote.copy_profile(profile_uid, "testprofile_copy", token)
+
+    # Act
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        assert remote.transaction_commit(token)
+        resources_checked = {call.args[1] for call in mock_check_access.call_args_list}
+
+    # Assert
+    assert "new_profile" in resources_checked
+    assert "copy_profile" in resources_checked
+
+
+def test_modify_item_outside_transaction_does_not_resolve_live_object_twice(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: a plain (non-transactional) modify_profile() call must not pay for a second,
+    type-agnostic live-object lookup for authorization. __get_object() already returns the live
+    object directly whenever there is no already-staged transaction clone for it, so re-resolving
+    it a second time via __get_live_object_for_auth() is pure waste on the common, non-transaction
+    hot path.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, ["name"], "testprofile_no_txn", token)
+
+    # Act
+    with patch.object(
+        remote, "_CobblerXMLRPCInterface__get_live_object_for_auth"
+    ) as mock_live_lookup:
+        remote.modify_profile(profile, ["comment"], "second edit", token)
+
+    # Assert
+    mock_live_lookup.assert_not_called()
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_rechecks_access_against_live_copy_source(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: transaction_commit()'s re-authorization for a staged copy_item() (or
+    rename_item()) operation must check the CURRENT live state of the copy's source object, not
+    the frozen clone captured when the copy was staged. The copy's own object_id is a brand-new
+    uid that was never persisted, so the generic live-object lookup in the recheck loop always
+    finds nothing for it and silently falls back to the stale clone's owners - masking an access
+    change made to the real, live source object between staging and commit.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    assert remote.copy_profile(profile_uid, "testprofile_copy_source_check", token)
+
+    # Simulate access being revoked on the source mid-transaction.
+    live_source = remote.api.find_profile(name="testprofile0")
+    assert live_source is not None and not isinstance(live_source, list)
+    live_source.owners = ["someone-else"]
+
+    # Act
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        assert remote.transaction_commit(token)
+        checked_owners = {
+            tuple(call.args[2].owners)
+            for call in mock_check_access.call_args_list
+            if len(call.args) > 2
+            and call.args[2] is not None
+            and hasattr(call.args[2], "owners")
+        }
+
+    # Assert
+    assert ("someone-else",) in checked_owners
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_rechecks_access_against_live_rename_source(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: transaction_commit()'s re-authorization for a staged rename_item() must
+    check the CURRENT live state of the renamed object's source, not the frozen clone captured
+    when the rename was staged. Like copy_item(), a rename's staged entry lives under a brand-new
+    uid that was never persisted, so the generic live-object lookup always misses it and would
+    otherwise silently fall back to the stale clone's owners.
+    """
+    from unittest.mock import patch
+
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    assert remote.rename_profile(profile_uid, "testprofile_rename_source_check", token)
+
+    # Simulate access being revoked on the source mid-transaction.
+    live_source = remote.api.find_profile(name="testprofile0")
+    assert live_source is not None and not isinstance(live_source, list)
+    live_source.owners = ["someone-else"]
+
+    # Act
+    with patch.object(
+        remote, "check_access", wraps=remote.check_access
+    ) as mock_check_access:
+        assert remote.transaction_commit(token)
+        checked_owners = {
+            tuple(call.args[2].owners)
+            for call in mock_check_access.call_args_list
+            if len(call.args) > 2
+            and call.args[2] is not None
+            and hasattr(call.args[2], "owners")
+        }
+
+    # Assert
+    assert ("someone-else",) in checked_owners
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_rechecks_access_against_live_source_through_rename_chain(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Regression test: renaming an object that is itself only a transaction-local, not-yet-
+    persisted rename (a "rename of a rename" in the same transaction) must still trace back to
+    the real, persisted ancestor for the commit-time source recheck - not to the intermediate
+    uid, which gets dropped once superseded by the second rename and would otherwise make the
+    recheck raise "source no longer exists" for a perfectly legitimate chained rename.
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+    remote.transaction_begin(token)
+    assert remote.rename_profile(profile_uid, "testprofile_chain1", token)
+    renamed_once = remote.get_item_handle("profile", "testprofile_chain1", token)
+    assert renamed_once != "~"
+    assert remote.rename_profile(renamed_once, "testprofile_chain2", token)
+
+    # Act / Assert: must commit cleanly, not raise "source no longer exists".
+    assert remote.transaction_commit(token)
+    assert remote.get_item_handle("profile", "testprofile_chain2") != "~"
