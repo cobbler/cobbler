@@ -301,7 +301,9 @@ def test_blender_inherit(
     test_profile_lvl0: Profile = create_profile(test_distro.uid)
     test_profile_lvl0.kernel_options = {"test": "bar", "not-wanted": None}
     test_profile_lvl0.dns.name_servers = ["8.8.4.4"]
-    test_profile_lvl1: Profile = create_profile(profile_uid=test_profile_lvl0.uid)
+    test_profile_lvl1: Profile = create_profile(
+        profile_uid=test_profile_lvl0.uid, name="test_blender_inherit_lvl1"
+    )
     test_system: System = create_system(profile_uid=test_profile_lvl1.uid)
     test_system.dns.name_servers = ["8.8.8.8"]
     test_system.kernel_options = {"!not-wanted": None}
