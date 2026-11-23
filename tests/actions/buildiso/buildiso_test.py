@@ -156,6 +156,96 @@ def test_filter_profile(cobbler_api, create_distro, create_profile):
     assert expected_result == result
 
 
+def test_filter_items_keeps_all_selected_names(
+    cobbler_api, create_distro, create_profile
+):
+    # Arrange
+    test_distro = create_distro()
+    selected = [
+        create_profile(test_distro.name, name="profile-one").name,
+        create_profile(test_distro.name, name="profile-two").name,
+        create_profile(test_distro.name, name="profile-three").name,
+    ]
+    build_iso = buildiso.BuildIso(cobbler_api)
+
+    # Act
+    result = build_iso.filter_items(cobbler_api.profiles(), selected)
+
+    # Assert
+    assert sorted(item.name for item in result) == sorted(selected)
+
+
+def test_filter_items_does_not_modify_selection(
+    cobbler_api, create_distro, create_profile
+):
+    # Arrange
+    test_distro = create_distro()
+    selected = [create_profile(test_distro.name).name]
+    expected_selection = list(selected)
+    build_iso = buildiso.BuildIso(cobbler_api)
+
+    # Act
+    build_iso.filter_items(cobbler_api.profiles(), selected)
+
+    # Assert
+    assert selected == expected_selection
+
+
+def test_parse_profiles_rejects_profile_of_other_distro(
+    cobbler_api, create_distro, create_profile
+):
+    # Arrange
+    test_distro = create_distro(name="owning-distro")
+    other_distro = create_distro(name="other-distro")
+    own_profile = create_profile(test_distro.name, name="own-profile")
+    foreign_profile = create_profile(other_distro.name, name="foreign-profile")
+    build_iso = StandaloneBuildiso(cobbler_api)
+
+    # Act + Assert
+    with pytest.raises(ValueError) as exc_info:
+        build_iso.parse_profiles(
+            f"{own_profile.name} {foreign_profile.name}", test_distro
+        )
+
+    assert "Extra --profiles: foreign-profile" in str(exc_info.value)
+
+
+def test_parse_profiles_accepts_profiles_of_distro(
+    cobbler_api, create_distro, create_profile
+):
+    # Arrange
+    test_distro = create_distro()
+    first_profile = create_profile(test_distro.name, name="first-profile")
+    second_profile = create_profile(test_distro.name, name="second-profile")
+    build_iso = StandaloneBuildiso(cobbler_api)
+
+    # Act
+    result = build_iso.parse_profiles(
+        f"{first_profile.name} {second_profile.name}", test_distro
+    )
+
+    # Assert
+    assert result == [first_profile, second_profile]
+
+
+def test_parse_profiles_without_selection_returns_distro_profiles(
+    cobbler_api, create_distro, create_profile
+):
+    # Arrange
+    test_distro = create_distro(name="selected-distro")
+    test_profile = create_profile(test_distro.name, name="selected-profile")
+    other_distro = create_distro(name="unrelated-distro")
+    other_profile = create_profile(other_distro.name, name="unrelated-profile")
+    build_iso = StandaloneBuildiso(cobbler_api)
+
+    # Act
+    result = build_iso.parse_profiles(None, test_distro)
+
+    # Assert
+    assert [item.name for item in result] == [test_profile.name]
+    assert other_profile.name not in [item.name for item in result]
+
+
 def test_netboot_run(
     cobbler_api,
     create_distro,
