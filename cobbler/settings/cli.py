@@ -139,7 +139,9 @@ def migrate(args: argparse.Namespace) -> int:
         return __update_settings(result_settings, args.target, args.preserve_settings)
 
     # if --target not supplied
-    print(yaml.dump(result_settings))
+    # types-PyYAML leaves dump()'s Dumper parameter unannotated, making its own type
+    # partially unknown to pyright regardless of our argument's type.
+    print(yaml.dump(result_settings))  # pyright: ignore[reportUnknownMemberType]
     return 0
 
 

@@ -4,10 +4,11 @@ Priority: optional
 Maintainer: The Cobbler Authors <cobbler.project@gmail.com>
 Build-Depends:
  git-core,
- python3 (>=3.6),
+ python3 (>=3.11),
  python3-distro,
  python3-setuptools,
  python3-setuptools-scm,
+ pybuild-plugin-pyproject,
  python3-netaddr,
  python3-requests,
  python3-schema,
@@ -15,7 +16,7 @@ Build-Depends:
  python3-dns,
  python3-sphinx,
  python3-yaml,
- libcobblersignatures,
+ libcobblersignatures (>= 0.5.1),
  dh-python,
  debhelper (>=12)
 Standards-Version: 4.5.1

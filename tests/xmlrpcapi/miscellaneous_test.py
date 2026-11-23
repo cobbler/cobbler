@@ -754,3 +754,41 @@ def test_rename_item_passes_resolved_object_to_check_access(
         passed_obj = args[2]
         assert passed_obj is not None
         assert getattr(passed_obj, "uid", None) == distro_uid
+
+
+@pytest.mark.parametrize(
+    "attribute,value",
+    [
+        (["uid"], "spoofed-uid"),
+        (["ctime"], 123456789.0),
+        (["depth"], 5),
+        (["_ctime"], 123456789.0),
+    ],
+)
+def test_modify_item_rejects_internal_and_computed_attributes(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+    create_kernel_initrd: Callable[[str, str], str],
+    create_distro: Callable[[str, str, str, str, str], str],
+    attribute: List[str],
+    value: Union[str, float, int],
+):
+    """
+    Regression test: modify_item()'s generic attribute-path dispatch must reject uid, private
+    (leading-underscore) attributes, and the internal/computed fields ctime and depth - none of
+    these are meant to be externally settable. ctime isn't unconditionally overwritten at persist
+    time like mtime is (only set if it's still 0.0), so a forged non-zero value would otherwise
+    stick; depth is recomputed solely from the parent chain, so a bogus value can break that
+    item's load-time resolution.
+    """
+    # Arrange
+    basepath = create_kernel_initrd("vmlinuz4", "initrd4.img")
+    path_kernel = os.path.join(basepath, "vmlinuz4")
+    path_initrd = os.path.join(basepath, "initrd4.img")
+    distro_uid = create_distro(
+        "testdistro_denylist", "x86_64", "suse", path_kernel, path_initrd
+    )
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        remote.modify_distro(distro_uid, attribute, value, token)
