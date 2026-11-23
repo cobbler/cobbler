@@ -646,7 +646,11 @@ def update_settings_file(
             )
 
         with open(filepath, "w", encoding="UTF-8") as settings_file:
-            yaml_dump = yaml.safe_dump(validated_data)
+            # types-PyYAML leaves safe_dump()'s Dumper parameter unannotated, making its
+            # own type partially unknown to pyright regardless of our argument's type.
+            yaml_dump = yaml.safe_dump(  # pyright: ignore[reportUnknownMemberType]
+                validated_data
+            )
             header = "# Cobbler settings file\n"
             header += "# Docs for this file can be found at: https://cobbler.readthedocs.io/en/latest/cobbler-conf.html"
             header += "\n\n"

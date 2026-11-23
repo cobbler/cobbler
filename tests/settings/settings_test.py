@@ -226,14 +226,20 @@ def test_read_settings_file_with_ignore_keys(tmpdir: pathlib.Path):
         new_settings = yaml.safe_load(settings_file)
         new_settings.update({"foobar": 1234})
     with open(settings_path, "w") as new_settings_file:
-        new_settings_file.write(yaml.dump(new_settings))
+        # types-PyYAML leaves dump()'s Dumper parameter unannotated, making its own
+        # type partially unknown to pyright regardless of our argument's type.
+        new_settings_file.write(
+            yaml.dump(new_settings)  # pyright: ignore[reportUnknownMemberType]
+        )
 
     # Act
     result = settings.read_settings_file(settings_path, ignore_keys=["foobar"])
 
     with open(settings_path, "w") as new_settings_file:
         new_settings.pop("foobar")
-        new_settings_file.write(yaml.dump(new_settings))
+        new_settings_file.write(
+            yaml.dump(new_settings)  # pyright: ignore[reportUnknownMemberType]
+        )
 
     # Assert
     assert isinstance(result, dict)
@@ -250,14 +256,18 @@ def test_read_settings_file_with_ignore_keys_failing(tmpdir: pathlib.Path):
         new_settings = yaml.safe_load(settings_file)
         new_settings.update({"foobar": 1234})
     with open(settings_path, "w") as new_settings_file:
-        new_settings_file.write(yaml.dump(new_settings))
+        new_settings_file.write(
+            yaml.dump(new_settings)  # pyright: ignore[reportUnknownMemberType]
+        )
 
     # Act
     result = settings.read_settings_file(settings_path)
 
     with open(settings_path, "w") as new_settings_file:
         new_settings.pop("foobar")
-        new_settings_file.write(yaml.dump(new_settings))
+        new_settings_file.write(
+            yaml.dump(new_settings)  # pyright: ignore[reportUnknownMemberType]
+        )
 
     # Assert
     assert not result

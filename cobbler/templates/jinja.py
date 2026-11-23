@@ -68,7 +68,9 @@ def toyaml(data: Any) -> str:
     """
     Function which is registred as a custom Jinja filter and allows convering arbitrary data into YAML.
     """
-    return yaml.dump(data).rstrip("\n")
+    # types-PyYAML leaves dump()'s Dumper parameter unannotated, making its own type
+    # partially unknown to pyright regardless of our argument's type.
+    return yaml.dump(data).rstrip("\n")  # pyright: ignore[reportUnknownMemberType]
 
 
 class JinjaTemplateProvider(BaseTemplateProvider):

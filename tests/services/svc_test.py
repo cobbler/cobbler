@@ -38,7 +38,11 @@ def stub_cobbler_svc(monkeypatch: pytest.MonkeyPatch):
 def _write_settings(**extra: Any) -> None:
     content: Dict[str, Any] = {"xmlrpc_port": 25151}
     content.update(extra)
-    SETTINGS_PATH.write_text(yaml.dump(content), encoding="UTF-8")
+    # types-PyYAML leaves dump()'s Dumper parameter unannotated, making its own type
+    # partially unknown to pyright regardless of our argument's type.
+    SETTINGS_PATH.write_text(
+        yaml.dump(content), encoding="UTF-8"  # pyright: ignore[reportUnknownMemberType]
+    )
 
 
 def _call_application() -> None:
