@@ -34,7 +34,7 @@ dependencies = [
     "schema",
     "systemd-python",
     "gunicorn",
-    "libcobblersignatures>=0.5.0",
+    "libcobblersignatures>=0.5.1",
 ]
 
 [project.urls]
