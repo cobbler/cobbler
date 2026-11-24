@@ -523,16 +523,27 @@ class Collection(Generic[ITEM]):
                         distro_obj.initrd = distro_obj.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_one_item(distro_obj)
 
-    def check_for_duplicate_names(self, ref: ITEM) -> None:
+    def check_for_duplicate_names(
+        self, ref: ITEM, exclude_uids: Optional[Set[str]] = None
+    ) -> None:
         """
         This method verified if the name of an object is a duplicate or not.
 
+        :param ref: The object whose name is being checked.
+        :param exclude_uids: uids that must not be treated as a collision - e.g. the uids of
+                              items being removed in the same transaction, or the object's own
+                              uid when this is an in-place modification of an already-persisted
+                              item.
         :raises TypeError: In case the search result had an incorrect type.
         :raises CX: In case an item with that name already exists.
         """
         search_result = self.find(True, name=ref.name)
         if not isinstance(search_result, list):
             raise TypeError("Search result must be of type list!")
+        if exclude_uids:
+            search_result = [
+                match for match in search_result if match.uid not in exclude_uids
+            ]
         if len(search_result) > 0:
             raise CX(
                 f'An object with that name "{ref.name}" exists already. Try "edit"?'
@@ -549,6 +560,7 @@ class Collection(Generic[ITEM]):
         check_for_duplicate_names: bool = False,
         rebuild_menu: bool = True,
         expected_mtime: Optional[float] = None,
+        exclude_uids: Optional[Set[str]] = None,
     ) -> None:
         """
         Add an object to the collection
@@ -567,6 +579,10 @@ class Collection(Generic[ITEM]):
         :param expected_mtime: If set, the add is rejected with a ``ValueError`` unless the item currently stored
                                 under ``ref.uid`` (if any) still has this exact mtime - an optimistic-concurrency
                                 check against another writer having modified or removed the item in the meantime.
+        :param exclude_uids: uids to exclude when checking for duplicate names - e.g. items being removed in
+                              the same transaction, or ``ref.uid`` itself when this is an in-place modification
+                              of an already-persisted item. Only consulted when ``check_for_duplicate_names``
+                              is true.
         :raises TypError: Raised in case ``ref`` is None.
         :raises ValueError: Raised in case the name of ``ref`` is empty, or in case ``expected_mtime`` no longer
                              matches the item currently stored under ``ref.uid``.
@@ -593,7 +609,7 @@ class Collection(Generic[ITEM]):
 
         # Avoid adding objects to the collection with the same name
         if check_for_duplicate_names:
-            self.check_for_duplicate_names(ref)
+            self.check_for_duplicate_names(ref, exclude_uids=exclude_uids)
 
         if ref.COLLECTION_TYPE != self.collection_type():
             raise TypeError("API error: storing wrong data type in collection")
@@ -616,9 +632,9 @@ class Collection(Generic[ITEM]):
             # race; the earlier one is just a fast-fail to skip pre-add triggers for an obvious
             # duplicate.
             if check_for_duplicate_names:
-                self.check_for_duplicate_names(ref)
+                self.check_for_duplicate_names(ref, exclude_uids=exclude_uids)
             self.listing[ref.uid] = ref
-            self.add_to_indexes(ref)
+            self.add_to_indexes(ref, exclude_uids=exclude_uids)
 
         # perform filesystem operations
         if save:
@@ -833,9 +849,17 @@ class Collection(Generic[ITEM]):
         value: str,
         indx_dict: Dict[Union[str, int], Union[str, Set[str]]],
         is_indx_nonunique: bool,
+        exclude_uids: Optional[Set[str]] = None,
     ) -> None:
         """
         Add the single index value.
+
+        :param exclude_uids: uids allowed to be overwritten in a "unique" (``is_indx_nonunique``
+                              false) index slot without raising - e.g. items being removed in the
+                              same transaction, or the item's own uid when this is an in-place
+                              modification.
+        :raises CX: In case a "unique" index slot already points at a different, non-excluded
+                    uid - this would otherwise silently make the previous item unreachable by name.
         """
         if is_indx_nonunique:
             if key in indx_dict:
@@ -844,13 +868,28 @@ class Collection(Generic[ITEM]):
                 indx_dict[key] = set([value])
         else:
             if key:
+                existing_value = indx_dict.get(key)
+                if (
+                    existing_value is not None
+                    and existing_value != value
+                    and existing_value not in (exclude_uids or set())
+                ):
+                    raise CX(
+                        f'Internal error: index "{key}" is already in use by uid '
+                        f'"{existing_value}", cannot overwrite it with uid "{value}" - '
+                        "this indicates a duplicate-name check was bypassed somewhere."
+                    )
                 indx_dict[key] = value
 
-    def add_to_indexes(self, ref: ITEM) -> None:
+    def add_to_indexes(
+        self, ref: ITEM, exclude_uids: Optional[Set[str]] = None
+    ) -> None:
         """
         Add indexes for the object.
 
         :param ref: The reference to the object whose indexes are updated.
+        :param exclude_uids: uids excluded from the write-time duplicate-index guard, forwarded
+                              to :meth:`add_single_index_value`.
         """
         for indx in self.indexes:
             if indx == "name" or ref.inmemory:
@@ -858,7 +897,13 @@ class Collection(Generic[ITEM]):
                     ref,
                     indx,
                     self._get_index_property(ref, indx),
-                    self.add_single_index_value,
+                    lambda key, value, indx_dict, is_indx_nonunique: self.add_single_index_value(
+                        key,
+                        value,
+                        indx_dict,
+                        is_indx_nonunique,
+                        exclude_uids=exclude_uids,
+                    ),
                 )
 
     def remove_single_index_value(

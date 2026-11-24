@@ -2,7 +2,7 @@
 Cobbler module that at runtime holds all network interfaces in Cobbler.
 """
 
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional, Set
 
 from cobbler.cexceptions import CX
 from cobbler.cobbler_collections import collection
@@ -43,7 +43,9 @@ class NetworkInterfaces(collection.Collection[network_interface.NetworkInterface
         )
 
     def check_for_duplicate_names(
-        self, ref: network_interface.NetworkInterface
+        self,
+        ref: network_interface.NetworkInterface,
+        exclude_uids: Optional[Set[str]] = None,
     ) -> None:
         """
         This method verifies if the name of a network interface is a duplicate within the scope of its owning
@@ -51,12 +53,17 @@ class NetworkInterfaces(collection.Collection[network_interface.NetworkInterface
         network interfaces with the same name are allowed as long as they belong to different systems.
 
         :param ref: The network interface to check for a duplicate name.
+        :param exclude_uids: uids that must not be treated as a collision.
         :raises TypeError: In case the search result had an incorrect type.
         :raises CX: In case a network interface with that name already exists on the same system.
         """
         search_result = self.find(True, system_uid=ref.system_uid, name=ref.name)
         if not isinstance(search_result, list):
             raise TypeError("Search result must be of type list!")
+        if exclude_uids:
+            search_result = [
+                match for match in search_result if match.uid not in exclude_uids
+            ]
         if len(search_result) > 0:
             raise CX(
                 f'An object with that name "{ref.name}" exists already on system {ref.system_uid}. Try "edit"?'

@@ -122,6 +122,110 @@ def test_remove_and_readd_profile_with_same_name_inside_transaction_is_reachable
 @pytest.mark.usefixtures(
     "create_testdistro",
     "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_rejects_duplicate_system_name_across_transactions(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Creating two systems with the same name in separate, sequential transactions
+    must be rejected at commit.
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+
+    # Act
+    remote.transaction_begin(token)
+    system1 = remote.new_system(token)
+    remote.modify_system(system1, ["name"], "dup-sys", token)
+    remote.modify_system(system1, ["profile"], profile_uid, token)
+    assert remote.save_system(system1, True, True, "new", token)
+    assert remote.transaction_commit(token)
+
+    remote.transaction_begin(token)
+    system2 = remote.new_system(token)
+    remote.modify_system(system2, ["name"], "dup-sys", token)
+    remote.modify_system(system2, ["profile"], profile_uid, token)
+    assert remote.save_system(system2, True, True, "new", token)
+
+    # Assert
+    with pytest.raises(CX):
+        remote.transaction_commit(token)
+
+    systems = cast(List[Dict[Any, Any]], remote.get_systems())
+    matching = [s for s in systems if s["name"] == "dup-sys"]
+    assert len(matching) == 1
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_rejects_duplicate_system_name_within_same_transaction(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Two brand-new systems staged with the identical name inside the same transaction
+    must also be rejected at commit, with the whole batch rolled back.
+    """
+    # Arrange
+    profile_uid = remote.get_profile_handle("testprofile0")
+
+    # Act
+    remote.transaction_begin(token)
+    system1 = remote.new_system(token)
+    remote.modify_system(system1, ["name"], "dup-sys-same-tx", token)
+    remote.modify_system(system1, ["profile"], profile_uid, token)
+    assert remote.save_system(system1, True, True, "new", token)
+
+    system2 = remote.new_system(token)
+    remote.modify_system(system2, ["name"], "dup-sys-same-tx", token)
+    remote.modify_system(system2, ["profile"], profile_uid, token)
+    assert remote.save_system(system2, True, True, "new", token)
+
+    # Assert
+    with pytest.raises(CX):
+        remote.transaction_commit(token)
+
+    assert remote.get_item_handle("system", "dup-sys-same-tx") == "~"
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
+    "create_testprofile",
+)
+def test_transaction_commit_allows_renaming_item_to_its_own_current_name(
+    remote: CobblerXMLRPCInterface,
+    token: str,
+):
+    """
+    Setting an item's name to the value it already has (and editing an unrelated
+    field) must keep succeeding, even with duplicate-name checking enabled.
+    """
+    # Arrange
+    profile = remote.get_profile_handle("testprofile0")
+
+    # Act
+    remote.transaction_begin(token)
+    remote.modify_profile(profile, ["name"], "testprofile0", token)
+    remote.modify_profile(profile, ["comment"], "still editable", token)
+    assert remote.save_profile(profile, True, True, "bypass", token)
+    assert remote.transaction_commit(token)
+
+    # Assert
+    assert remote.get_item_handle("profile", "testprofile0") == profile
+    assert (
+        cast(Dict[Any, Any], remote.get_profile(profile))["comment"] == "still editable"
+    )
+
+
+@pytest.mark.usefixtures(
+    "create_testdistro",
+    "create_testmenu",
 )
 def test_get_profile_handle_forwards_token_for_transaction_staged_item(
     remote: CobblerXMLRPCInterface,

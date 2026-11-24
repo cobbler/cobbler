@@ -1579,6 +1579,11 @@ class CobblerAPI:
             to_remove = [i for i in items if i[2]]
             to_add = [i for i in items if not i[2]]
 
+            # Exclude uids removed in this same transaction from the duplicate-name check below -
+            # rename removes the old item and re-adds one under the same name (see remote.py's
+            # rename_item()).
+            removal_uids = {ref.uid for _, ref, _, _, _, _, _, _ in to_remove}
+
             # Plain BaseItem subtypes (e.g. Template, NetworkInterface) have no concept of
             # depth/parent-child ordering and are always leaves in TYPE_DEPENDENCIES (nothing is ever
             # a dependent *of* them), so defaulting them to depth 0 - the same priority as a Distro -
@@ -1647,7 +1652,10 @@ class CobblerAPI:
                             original_snapshot = orig_ref.to_dict()
                     self.get_items(what).add(
                         ref,  # type: ignore
-                        check_for_duplicate_names=False,
+                        check_for_duplicate_names=True,
+                        # Also exclude the item's own uid, so an in-place modification doesn't
+                        # collide with its own, not-yet-overwritten entry.
+                        exclude_uids=removal_uids | {ref.uid},
                         save=True,
                         with_sync=False,
                         with_triggers=True,

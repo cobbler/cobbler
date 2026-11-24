@@ -54,8 +54,8 @@ def test_startnet_net_use_retry_only_retries_on_transient_error_53(
 
 def test_startnet_net_use_authenticates_when_samba_credentials_set(
     cobbler_api: CobblerAPI,
-    create_distro: Callable[[], Distro],
-    create_profile: Callable[[str], Profile],
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
 ):
     """
     Test-gap closure: with no samba_distro_user/password set, "net use" must stay credential-less
@@ -70,8 +70,13 @@ def test_startnet_net_use_authenticates_when_samba_credentials_set(
     assert "/user:" not in result_without_creds
 
     # Arrange
-    test_distro = create_distro()
-    test_profile = create_profile(test_distro.uid)
+    test_distro = create_distro(
+        "test_startnet_net_use_authenticates_when_samba_credentials_set2"
+    )
+    test_profile = create_profile(
+        test_distro.uid,
+        name="test_startnet_net_use_authenticates_when_samba_credentials_set2",
+    )
     test_profile.autoinstall_meta = {
         "samba_distro_user": "cobbler",
         "samba_distro_password": "secret",
@@ -122,8 +127,8 @@ def test_startnet_unattend_uses_full_unc_path_not_mapped_drive(
 
 def test_startnet_bypass_win11_requirements_opt_in(
     cobbler_api: CobblerAPI,
-    create_distro: Callable[[], Distro],
-    create_profile: Callable[[str], Profile],
+    create_distro: Callable[..., Distro],
+    create_profile: Callable[..., Profile],
 ):
     """
     Test-gap closure: the Windows 11 hardware-check LabConfig bypass must only be applied when
@@ -136,8 +141,10 @@ def test_startnet_bypass_win11_requirements_opt_in(
     assert "BypassTPMCheck" not in result_without_bypass
 
     # Arrange
-    test_distro = create_distro()
-    test_profile = create_profile(test_distro.uid)
+    test_distro = create_distro("test_startnet_bypass_win11_requirements_opt_in2")
+    test_profile = create_profile(
+        test_distro.uid, name="test_startnet_bypass_win11_requirements_opt_in2"
+    )
     test_profile.autoinstall_meta = {"bypass_win11_requirements": "1"}
 
     target_template = cobbler_api.find_template(False, False, name="built-in-startnet")

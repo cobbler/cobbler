@@ -67,7 +67,12 @@ def setup_profile(
     cobbler_api.modify_profile(profile, ["name"], "security_test_profile", token)
     cobbler_api.modify_profile(profile, ["distro"], distro, token)
     cobbler_api.save_profile(profile, True, True, "bypass", token)
-    return
+
+    yield
+
+    # Tests in this module reuse the same hardcoded distro/profile name - clean up so the
+    # next test doesn't collide.
+    cobbler_api.remove_distro(distro, token, True)
 
 
 def test_arbitrary_file_disclosure_1(

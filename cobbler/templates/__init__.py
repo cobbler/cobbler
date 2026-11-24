@@ -311,7 +311,12 @@ class Templar:
         for provider in self.__loaded_template_providers.values():
             built_in_templates = provider.built_in_templates
             for template in built_in_templates:
-                self.api.add_template(template)
+                # CobblerAPI/CollectionManager share process-wide state (Borg pattern), so a
+                # built-in template with this name may already be loaded from an earlier
+                # CobblerAPI() construction in this process - skip it instead of adding a
+                # duplicate.
+                if self.api.find_template(name=template.name) is None:
+                    self.api.add_template(template)
             total_templates += len(built_in_templates)
         self.logger.info("Loaded %s built-in templates", total_templates)
 

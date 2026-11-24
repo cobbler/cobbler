@@ -5,7 +5,7 @@ Tests that validate the functionality of the module that is responsible for mana
 import os.path
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Set
 
 import pytest
 
@@ -294,6 +294,33 @@ def test_duplicate_add(
     # Act & Assert
     with pytest.raises(CX):
         distro_collection.add(item2, check_for_duplicate_names=True)
+
+
+def test_add_without_duplicate_check_raises_on_index_collision(
+    cobbler_api: CobblerAPI,
+    create_distro: Callable[[str], distro.Distro],
+    distro_collection: distros.Distros,
+    create_kernel_initrd: Callable[[str, str], str],
+    fk_initrd: str,
+    fk_kernel: str,
+):
+    """
+    Adding a second item with a colliding name while bypassing the duplicate-name
+    check must raise instead of silently overwriting the "name" index's unique slot,
+    which would make the first item unreachable by name.
+    """
+    # Arrange
+    name = "test_index_collision"
+    create_distro(name)
+    folder = create_kernel_initrd(fk_kernel, fk_initrd)
+    item2 = distro.Distro(cobbler_api)
+    item2.name = name  # type: ignore[method-assign]
+    item2.initrd = os.path.join(folder, fk_initrd)  # type: ignore
+    item2.kernel = os.path.join(folder, fk_kernel)  # type: ignore
+
+    # Act & Assert
+    with pytest.raises(CX):
+        distro_collection.add(item2, check_for_duplicate_names=False)
 
 
 def test_remove(
@@ -702,8 +729,10 @@ def test_add_closes_duplicate_name_check_insert_race(
     thread_state = threading.local()
     real_check = distro_collection.check_for_duplicate_names
 
-    def synced_check(ref: distro.Distro) -> None:
-        real_check(ref)
+    def synced_check(
+        ref: distro.Distro, exclude_uids: Optional[Set[str]] = None
+    ) -> None:
+        real_check(ref, exclude_uids=exclude_uids)
         if not getattr(thread_state, "passed_outer_check", False):
             thread_state.passed_outer_check = True
             barrier.wait(timeout=5)
