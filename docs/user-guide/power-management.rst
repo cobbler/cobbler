@@ -124,9 +124,9 @@ has local access to the cobbler machine). Also do not reuse important passwords 
 this concerns you, you can still use this feature, just don't store the username/password in Cobbler for your
 power management devices.
 
-If you are not going to to store power control passwords in Cobbler, leave the username and password fields blank.
+If you are not going to store power control passwords in Cobbler, leave the username and password fields blank.
 
-Cobbler will first try to source them from it's environment using the ``COBBLER_POWER_USER`` and ``COBBLER_POWER_PASS``
+Cobbler will first try to source them from its environment using the ``COBBLER_POWER_USER`` and ``COBBLER_POWER_PASS``
 variables.
 
 This may also be too insecure for some, so in this case, don't set these, and supply ``--power-user`` and

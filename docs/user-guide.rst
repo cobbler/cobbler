@@ -175,5 +175,7 @@ model's known limitations.
 Web-Interface
 #############
 
-Please be patient until we have time with the 4.0.0 release to create a new web UI. The old Django based was preventing
-needed change inside the internals in Cobbler.
+The old Django-based UI was preventing needed change inside the internals of Cobbler and was removed. It has been
+replaced by `Cobbler Web <https://github.com/cobbler/cobbler-web>`_, a separate Angular-based project. See its
+`documentation <https://cobbler.github.io/cobbler-web/>`_ for usage, and :ref:`docker-deployment` for a walkthrough
+of deploying it alongside Cobbler.

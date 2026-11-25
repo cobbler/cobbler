@@ -7,14 +7,15 @@ The TFTP Directory
 For booting machines in a PXE and/or HTTP-Boot environment the TFTP directory is the most important directory. This
 folder contains all static files required for booting a system.
 
-The folder of this is dependant on your distro and can be changed in the Cobbler settings. The default should be
+The folder of this is dependent on your distro and can be changed in the Cobbler settings. The default should be
 correctly set during the package build of your Linux distro or during the installation process (if you are use the
 source installation).
 
 Behaviour
 #########
 
-A good explanation of ``cobbler sync`` can be found here: :ref:`cli-cobbler-sync`
+A good explanation of ``cobbler sync`` can be found in the
+`Cobbler CLI documentation <https://cobbler-cli.readthedocs.io/en/latest/>`_.
 
 In the following we will examine the behaviour for the TFTP directory more in details.
 
@@ -101,7 +102,8 @@ in :ref:`settings-ref`), which materializes the TFTP directory on disk so that a
 process can serve it statically.
 
 Cobbler also ships a second module, ``managers.dynamic_tftp``, for use with a separate, stateless TFTP server such as
-`cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_. Instead of materializing files on disk, that server calls
+`cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_ (`documentation <https://cobbler-tftp.rtfd.io/en/latest/>`_).
+Instead of materializing files on disk, that server calls
 back into Cobbler's XML-RPC API (``get_tftp_file``) for every request, and Cobbler resolves the requested path on the
 fly -- reading bootloaders/kernels/initrds/images straight from where they already live, and rendering PXE/GRUB/menu
 configuration in memory.

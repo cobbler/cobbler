@@ -5,12 +5,12 @@ Repository Management
 General
 #######
 
-This has already been covered a good bit in the command reference section, for details see: :ref:`cobbler-cli-reposync`
+This has already been covered a good bit in the `Cobbler CLI documentation <https://cobbler-cli.readthedocs.io/en/latest/>`_.
 
 Yum repository management is an optional feature and is not required to provision through Cobbler. However, if Cobbler
 is configured to mirror certain repositories, this feature can be used to associate profiles with those repositories.
 Systems installed under those profiles will be autoconfigured to use these repository mirrors in ``/etc/yum.repos.d``,
-and if supported (Fedora Core 6 and later), these repositories can be leveraged within Anaconda.
+and if supported (modern Fedora/RHEL-family distributions), these repositories can be leveraged within Anaconda.
 
 This can be useful if
 
@@ -108,11 +108,11 @@ The following example shows:
 
     cobbler check
     # set up your cobbler distros here.
-    cobbler autoadd
-    cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates
-    cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras
+    cobbler repo autoadd
+    cobbler repo add --mirror=https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/ --name=fedora44x86_64os
+    cobbler repo add --mirror=https://dl.fedoraproject.org/pub/fedora/linux/updates/44/Everything/x86_64/ --name=fedora44x86_64updates
     cobbler reposync
-    cobbler profile add --name=p1 --distro=existing_distro_name --autoinstall=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras"
+    cobbler profile add --name=p1 --distro=existing_distro_name --autoinstall=/etc/cobbler/kickstart_fedora44.ks --repos="fedora44x86_64os fedora44x86_64updates"
 
 Import Workflow
 ###############
@@ -127,8 +127,8 @@ This example shows:
 You can use a network rsync mirror, a mounted DVD location, or a tree you have available via a network filesystem.
 
 Import knows how to autodetect the architecture of what is being imported. To make sure things are named
-correctly, it's a good idea to specify ``--arch``. For instance, if you import a distribution named "fedora8"
-from an x86_64 ISO, specify ``--arch=x86_64`` and the distro will be named "fedora8-x86_64"
+correctly, it's a good idea to specify ``--arch``. For instance, if you import a distribution named "fedora44"
+from an x86_64 ISO, specify ``--arch=x86_64`` and the distro will be named "fedora44-x86_64"
 automatically, and the right architecture field will also be set on the distribution object. If you are batch importing
 an entire mirror (containing multiple distributions and arches), you don't have to do this. Cobbler will set the
 names for things based on the paths it finds for you.
@@ -136,9 +136,9 @@ names for things based on the paths it finds for you.
 .. code-block:: shell
 
     cobbler check
-    cobbler import --path=rsync://yourfavoritemirror.com/rhel/5/os/x86_64 --name=rhel5 --arch=x86_64
+    cobbler import --path=rsync://yourfavoritemirror.com/rhel/10/os/x86_64 --name=rhel10 --arch=x86_64
     # OR
-    cobbler import --path=/mnt/dvd --name=rhel5 --arch=x86_64
+    cobbler import --path=/mnt/dvd --name=rhel10 --arch=x86_64
     # OR (using an external NAS box without mirroring)
     cobbler import --path=/path/where/filer/is/mounted --name=anyname --available-as=nfs://nfs.example.org:/where/mounted/
     # wait for mirror to rsync...

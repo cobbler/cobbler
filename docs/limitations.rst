@@ -26,10 +26,15 @@ The Linux Kernel describes its quoting at:
 
 Consult the documentation of your operating system for how it deals with this if it is not Linux.
 
-Special Case: Uyuni/SUSE Manager
-################################
+Special Case: Uyuni/SUSE Multi Linux Manager
+#############################################
 
-.. note:: SUSE Manager is a flavor of Uyuni. The term Uyuni refers to both pieces of software in this context.
+.. note:: SUSE Multi Linux Manager is a flavor of Uyuni. The term Uyuni refers to both pieces of software in this
+          context.
+
+.. note:: SUSE Multi Linux Manager was formerly named "SUSE Manager". The product was renamed; this page uses the
+          current name, but you may still encounter "SUSE Manager" in older documentation, settings key names
+          (e.g. ``uyuni_authentication_endpoint``), and third-party material.
 
 Uyuni uses Cobbler for driving auto-installations. When using Cobbler in the context of Uyuni, you need to know that
 Cobbler is not seen as the source of truth by Uyuni. This means, in case you don't have any auto-installation

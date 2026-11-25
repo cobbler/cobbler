@@ -7,6 +7,12 @@ Starting with 4.0.0
 
 - TBD
 
+Starting with 3.3.5
+###################
+
+- Two new settings were added: ``cache_enabled`` and ``lazy_start``. Both are optional booleans, so existing settings
+  files migrate without needing any changes.
+
 Starting with 3.3.3
 ###################
 

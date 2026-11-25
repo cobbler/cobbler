@@ -389,7 +389,7 @@ Additional Windows metadata
 Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro,
 profile or system. The source files for Windows boot files should be located in the
 ``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory. The trigger copies them to
-``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents.
+``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and changes their contents.
 The resulting files will be available via tftp and http.
 
 The ``sync_post_wingen`` trigger uses the following set of metadata:

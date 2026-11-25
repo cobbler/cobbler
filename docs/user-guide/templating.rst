@@ -114,7 +114,6 @@ For detailed information, please check the docstrings of the linked XML-RPC API 
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.get_template_file_for_profile`
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.get_template_file_for_system`
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.get_templates_since`
-* :meth:`cobbler.remote.CobblerXMLRPCInterface.get_template_as_rendered`
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.templates_refresh_content`
 
 Changes for version 4.0.0
@@ -178,7 +177,7 @@ disk. The result of the script is that the built-in template is not used anymore
             "name": "custom-dhcp",
             "template_type": "cheetah",  # or "jinja" if using Jinja syntax
             "uri": "/var/lib/cobbler/templates/dhcp.template",
-            "tags": ["dhcp", "active"],
+            "tags": ["dhcpv4", "active"],
         },
         token,
     )
@@ -189,8 +188,8 @@ disk. The result of the script is that the built-in template is not used anymore
     # 7. Refresh templates cache
     server.background_templates_refresh_content({}, token)
 
-Limitations and Suprises
-########################
+Limitations and Surprises
+#########################
 
 Before templates are passed to Jinja or Cheetah, there is a pre-processing of templates happening. During pre-processing
 Cobbler replaces variables like ``@@my_key@@`` in the template. Those keys are currently limited by the regex of ``\S``,

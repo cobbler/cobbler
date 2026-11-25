@@ -47,7 +47,7 @@ Setup
 #####
 
 After installing, run ``cobbler check`` to verify that cobbler's ecosystem is configured correctly. Cobbler check will
-direct you on how to modify it's config files using a text editor.
+direct you on how to modify its config files using a text editor.
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings where you will need to
 use your judgement as to whether they apply to your environment. Run ``cobbler sync`` after making any changes to the

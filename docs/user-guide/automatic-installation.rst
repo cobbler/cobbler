@@ -277,7 +277,7 @@ template with this name. This serves as a way to recycle frequently used automat
 duplication. Snippets can contain templating variables, and the variables will be evaluated according to the profile
 and/or system as one would expect.
 
-Snippets can also be overridden for specific profile names or system names. Do do this simply set a tag with
+Snippets can also be overridden for specific profile names or system names. To do this, simply set a tag with
 ``per_<item type>`` and a second tag with the desired identifier (either name or UID) so the template qualifies as an
 override.
 

@@ -205,12 +205,9 @@ We leave packaging to downstream; this means you have to check the repositories 
 However we provide docker files for
 
 - Fedora 43
-- openSUSE Leap 15.6
+- openSUSE Leap 16.1
 - openSUSE Tumbleweed
-- Rocky Linux 9
 - Rocky Linux 10
-- Debian 11 Bullseye
-- Debian 12 Bookworm
 - Debian 13 Trixie
 
 which will give you packages which will work better then building from source yourself.
@@ -224,7 +221,6 @@ To build the packages you to need to execute the following in the root folder of
 
 - openSUSE Leap 16.1: ``./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile``
 - Fedora 43: ``./docker/rpms/build-and-install-rpms.sh fc43 docker/rpms/Fedora_43/Fedora43.dockerfile``
-- Rocky Linux 9: ``./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile``
 - Rocky Linux 10: ``./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile``
 - Debian 13: ``./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile``
 
@@ -244,19 +240,20 @@ RPM
 
     $ make rpms
     ... (lots of output) ...
-    Wrote: /path/to/cobbler/rpm-build/cobbler-3.0.0-1.fc20.src.rpm
-    Wrote: /path/to/cobbler/rpm-build/cobbler-3.0.0-1.fc20.noarch.rpm
-    Wrote: /path/to/cobbler/rpm-build/koan-3.0.0-1.fc20.noarch.rpm
-    Wrote: /path/to/cobbler/rpm-build/cobbler-web-3.0.0-1.fc20.noarch.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.0-1.fc43.src.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.0-1.fc43.noarch.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-apache2-4.0.0-1.fc43.noarch.rpm
 
-As you can see, an RPM is output for each component of Cobbler, as well as a source RPM. This command was run on a
-system running Fedora 20, hence the fc20 in the RPM name - this will be different based on the distribution you're
-running.
+As you can see, an RPM is output for the main package, its subpackages (``apache2``/``nginx``/``tests``/
+``tests-containers``, depending on your build configuration), as well as a source RPM. This command was run on a
+system running Fedora 43, hence the fc43 in the RPM name - this will be different based on the distribution you're
+running. Note that Koan and Cobbler Web are no longer built from this repository; they are maintained as separate
+projects.
 
 DEB
 ###
 
-To install Cobbler from source on a Debian-Based system, the following steps need to be made (tested on Debian Buster):
+To install Cobbler from source on a Debian-Based system, the following steps need to be made (tested on Debian 13 Trixie):
 
 .. code-block:: shell
 

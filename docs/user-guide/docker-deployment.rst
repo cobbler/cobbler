@@ -690,8 +690,8 @@ See also
 * ``compose.yml``/``compose.dev.yml`` and ``docker/compose/*.yml`` -- the reference Compose stack itself.
 * ``docker/images/cobblerd/Dockerfile`` -- the single shared runtime image for both the ``cobblerd`` and
   ``http-api`` roles.
-* `cobbler-web <https://github.com/cobbler/cobbler-web>`_ -- the Cobbler Web UI project itself, served by this
-  stack's optional ``web`` service.
+* `cobbler-web <https://github.com/cobbler/cobbler-web>`_ (`documentation <https://cobbler.github.io/cobbler-web/>`_)
+  -- the Cobbler Web UI project itself, served by this stack's optional ``web`` service.
 * :ref:`settings-ref` for the full list of ``settings.yaml`` keys.
 * :ref:`dhcp-management` and :ref:`dns-management` for the DHCP/DNS managers that ``process_management`` restarts.
 * :ref:`tftp-directory` for background on TFTP directory materialization and ``dynamic_tftp``.

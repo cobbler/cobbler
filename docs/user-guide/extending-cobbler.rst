@@ -83,7 +83,7 @@ Performance Note
 
 If you have a very large number of systems, using the Cobbler API from scripts with old style (non-Python modules, just
 scripts in ``/var/lib/cobbler/triggers``) is a very very bad idea. The reason for this is that the Cobbler API brings
-the Cobbler engine up with it, and since it's a seperate process, you have to wait for that to load. If you invoke 3000
+the Cobbler engine up with it, and since it's a separate process, you have to wait for that to load. If you invoke 3000
 triggers editing 3000 objects, you can see where this would get slow pretty quickly. However, if you write a modular
 trigger (see above) this suffers no performance penalties -- it's crazy fast and you experience no problems.
 
@@ -190,7 +190,7 @@ An example from the serializers is:
       serializers:
         module: "serializer.file"
 
-Each module, regardless of it's nature, must have the following function that returns the type of module (as a string)
+Each module, regardless of its nature, must have the following function that returns the type of module (as a string)
 on an acceptable load (when the module can be loaded) or raises an exception otherwise.
 
 The trivial case for a cli module is:

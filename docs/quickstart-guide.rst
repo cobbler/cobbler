@@ -9,7 +9,7 @@ installation methodology of your chosen distribution(s).
 
 We will assume you have successfully installed Cobbler, please refer to the
 :doc:`Installation Guide </installation-guide>` for instructions for your specific operating system. Finally, this part
-guide will focus only on the CLI application.
+of the guide will focus only on the CLI application.
 
 
 Preparing your OS
@@ -25,7 +25,13 @@ feature-set we provide, resulting in AVC denials that break Cobbler's functional
 
 Firewall
 ========
-TBD
+
+Open the ports for the services Cobbler is going to provide. At a minimum this is the XML-RPC API port (``25151``/tcp,
+configurable via ``xmlrpc_port``, see :ref:`settings-ref`) and the HTTP port used to serve the distro mirror and
+autoinstall files (``80``/tcp by default, configurable via ``http_port``). If Cobbler is also managing DHCP and/or DNS
+(``manage_dhcp_v4``/``manage_dhcp_v6``/``manage_dns``), additionally open ``67``/udp and ``68``/udp for DHCP, and
+``53``/tcp and ``53``/udp for DNS. For TFTP/PXE booting, open ``69``/udp. See :ref:`dhcp-management` and
+:ref:`dns-management` for details on those two services.
 
 
 Changing settings
@@ -84,9 +90,26 @@ where it can download the network boot files. Cobbler can manage this for you, v
    manage_dhcp_v4: false
    manage_dhcp_v6: false
 
-Change one or both of the settings to ``true`` so Cobbler will generate the ``dhcpd.conf`` file based on the currently
-active DHCP template that configuured. This template will most likely need to be modified as well, based on your
-network settings. For an example to use your own DHCP template please check out :ref:`templating`
+Change one or both of the settings to ``true`` so Cobbler will generate the ``dhcpd.conf`` file based on the active
+DHCP ``Template`` item (see :ref:`templating` and :ref:`dhcp-management`). Templates are selected by tag: for the
+``isc`` manager, a template needs the ``dhcpv4`` (or ``dhcpv6``) tag, and the one additionally tagged ``active`` wins
+over Cobbler's built-in template (tagged ``default``). You will most likely need to supply your own template based on
+your network settings.
+
+Export the built-in template as a starting point, adjust it for your network, place it under
+``autoinstall_templates_dir`` (``/var/lib/cobbler/templates`` by default), and register your customized copy with
+the ``active`` tag:
+
+.. code-block:: shell
+
+    $ cobbler template content --name=built-in-dhcp > my-dhcp.template
+    # edit my-dhcp.template in your preferred editor
+    $ cp my-dhcp.template /var/lib/cobbler/templates/
+    $ cobbler template add --name=my-dhcp --template-type=cheetah --uri-path=my-dhcp.template --tags=dhcpv4,active
+
+.. note:: ``--uri-path`` must be a path relative to ``autoinstall_templates_dir`` that already exists on disk -- it is
+          not created from ``--content-file`` unless ``autoinstall_templates_allow_new_files`` is enabled (see
+          :ref:`settings-ref`).
 
 For most uses, you'll only need to modify this block:
 
@@ -221,7 +244,7 @@ Download an ISO image
 In order to import a distribution, you will need a DVD ISO for your distribution.
 
 .. note::
-   You must use a full DVD, and not a "Live CD" ISO. For this example, we'll be using the Fedora 17 x86_64 ISO.
+   You must use a full DVD, and not a "Live CD" ISO. For this example, we'll be using the Fedora 44 x86_64 ISO.
 
 .. warning::
    When running Cobbler via systemd, you cannot mount the ISO to ``/tmp`` or a sub-folder of it because we are using the
@@ -231,7 +254,7 @@ Once this file is downloaded, mount it somewhere:
 
 .. code-block:: shell
 
-    $ mount -t iso9660 -o loop,ro /path/to/isos/Fedora-17-x86_64-DVD.iso /mnt
+    $ mount -t iso9660 -o loop,ro /path/to/isos/Fedora-44-x86_64-DVD.iso /mnt
 
 
 Run the import
@@ -241,7 +264,7 @@ You are now ready to import the distribution. The name and path arguments are th
 
 .. code-block:: shell
 
-    $ cobbler import --name=fedora17 --arch=x86_64 --path=/mnt
+    $ cobbler import --name=fedora44 --arch=x86_64 --path=/mnt
 
 The ``--arch`` option need not be specified, as it will normally be auto-detected. We're doing so in this example in
 order to prevent multiple architectures from being found.
@@ -269,20 +292,20 @@ The report command shows the details of objects in Cobbler:
 
 .. code-block:: shell
 
-    $ cobbler distro report --name=fedora17-x86_64
-    Name                            : fedora17-x86_64
+    $ cobbler distro report --name=fedora44-x86_64
+    Name                            : fedora44-x86_64
     Architecture                    : x86_64
     TFTP Boot Files                 : {}
     Breed                           : redhat
     Comment                         :
     Fetchable Files                 : {}
-    Initrd                          : /var/www/cobbler/distro_mirror/fedora17-x86_64/images/pxeboot/initrd.img
-    Kernel                          : /var/www/cobbler/distro_mirror/fedora17-x86_64/images/pxeboot/vmlinuz
+    Initrd                          : /var/www/cobbler/distro_mirror/fedora44-x86_64/images/pxeboot/initrd.img
+    Kernel                          : /var/www/cobbler/distro_mirror/fedora44-x86_64/images/pxeboot/vmlinuz
     Kernel Options                  : {}
     Kernel Options (Post Install)   : {}
-    Automatic Installation Template Metadata : {'tree': 'http://@@http_server@@/cblr/links/fedora17-x86_64'}
+    Automatic Installation Template Metadata : {'tree': 'http://@@http_server@@/cblr/links/fedora44-x86_64'}
     Management Classes              : []
-    OS Version                      : fedora17
+    OS Version                      : fedora44
     Owners                          : ['admin']
     Red Hat Management Key          : <<inherit>>
     Red Hat Management Server       : <<inherit>>
@@ -310,7 +333,7 @@ name and profile are the only two required fields:
 
 .. code-block:: shell
 
-    $ cobbler system add --name=test --profile=fedora17-x86_64
+    $ cobbler system add --name=test --profile=fedora44-x86_64
     $ cobbler system list
     test
     $ cobbler system report --name=test
@@ -339,7 +362,7 @@ name and profile are the only two required fields:
     Power Management Password      :
     Power Management Type          : ipmilanplus
     Power Management Username      :
-    Profile                        : fedora17-x86_64
+    Profile                        : fedora44-x86_64
     Proxy                          : <<inherit>>
     Red Hat Management Key         : <<inherit>>
     Red Hat Management Server      : <<inherit>>
