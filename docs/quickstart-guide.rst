@@ -7,9 +7,9 @@ manage, but it does support a great deal of functionality immediately after inst
 needed. Before getting started with Cobbler, you should have a good working knowledge of PXE as well as the automated
 installation methodology of your chosen distribution(s).
 
-We will assume you have successfully installed Cobbler, please refer to the
-:doc:`Installation Guide </installation-guide>` for instructions for your specific operating system. Finally, this part
-of the guide will focus only on the CLI application.
+We will assume you have successfully installed Cobbler, please refer to the :doc:`Installation Guide
+</installation-guide>` for instructions for your specific operating system. Finally, this part of the guide will focus
+only on the CLI application.
 
 
 Preparing your OS
@@ -90,15 +90,15 @@ where it can download the network boot files. Cobbler can manage this for you, v
    manage_dhcp_v4: false
    manage_dhcp_v6: false
 
-Change one or both of the settings to ``true`` so Cobbler will generate the ``dhcpd.conf`` file based on the active
-DHCP ``Template`` item (see :ref:`templating` and :ref:`dhcp-management`). Templates are selected by tag: for the
-``isc`` manager, a template needs the ``dhcpv4`` (or ``dhcpv6``) tag, and the one additionally tagged ``active`` wins
-over Cobbler's built-in template (tagged ``default``). You will most likely need to supply your own template based on
-your network settings.
+Change one or both of the settings to ``true`` so Cobbler will generate the ``dhcpd.conf`` file based on the active DHCP
+``Template`` item (see :ref:`templating` and :ref:`dhcp-management`). Templates are selected by tag: for the ``isc``
+manager, a template needs the ``dhcpv4`` (or ``dhcpv6``) tag, and the one additionally tagged ``active`` wins over
+Cobbler's built-in template (tagged ``default``). You will most likely need to supply your own template based on your
+network settings.
 
 Export the built-in template as a starting point, adjust it for your network, place it under
-``autoinstall_templates_dir`` (``/var/lib/cobbler/templates`` by default), and register your customized copy with
-the ``active`` tag:
+``autoinstall_templates_dir`` (``/var/lib/cobbler/templates`` by default), and register your customized copy with the
+``active`` tag:
 
 .. code-block:: shell
 
@@ -178,10 +178,10 @@ If everything has gone well, you should see output from the status command like 
 Checking for problems and your first sync
 #########################################
 
-Now that the `cobblerd` service is up and running, it's time to check for problems. Cobbler's check command will make some
-suggestions, but it is important to remember that these are mainly only suggestions and probably aren't critical for
-basic functionality. If you are running iptables or SELinux, it is important to review any messages concerning those that
-check may report.
+Now that the `cobblerd` service is up and running, it's time to check for problems. Cobbler's check command will make
+some suggestions, but it is important to remember that these are mainly only suggestions and probably aren't critical
+for basic functionality. If you are running iptables or SELinux, it is important to review any messages concerning those
+that check may report.
 
 .. code-block:: shell
 
@@ -394,9 +394,9 @@ The default gateway isn't specified per-NIC, so just add that separately (along 
     $ cobbler system edit --name=test --gateway=192.168.1.1 --hostname=test.mydomain.com
 
 The ``--hostname`` field corresponds to the local system name and is returned by the ``hostname`` command. The
-``--dns-name`` (which can be set per-NIC) should correspond to a DNS A-record tied to the IP of that interface.
-Neither are required, but it is a good practice to specify both. Some advanced features (like configuration management)
-rely on the ``--dns-name`` field for system record look-ups.
+``--dns-name`` (which can be set per-NIC) should correspond to a DNS A-record tied to the IP of that interface. Neither
+are required, but it is a good practice to specify both. Some advanced features (like configuration management) rely on
+the ``--dns-name`` field for system record look-ups.
 
 Whenever a system is edited, Cobbler executes what is known as a "lite sync", which regenerates critical files like the
 PXE boot file in the TFTP root directory. One thing it will **NOT** do is execute service management actions, like

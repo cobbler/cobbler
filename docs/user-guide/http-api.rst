@@ -25,7 +25,8 @@ All endpoints on this page except ``tree`` (documented near the end of this page
 settings
 ========
 
-Returns the currently loaded settings. For specific settings please see :ref:`the settings.yaml documentation <settings-ref>`.
+Returns the currently loaded settings. For specific settings please see :ref:`the settings.yaml documentation
+<settings-ref>`.
 
 Example Call:
 
@@ -89,8 +90,8 @@ Example Output:
 Selecting a specific template
 ------------------------------
 
-An optional ``file/<template>`` path segment selects which autoinstall template to render, instead of the one
-assigned to the resolved profile or system:
+An optional ``file/<template>`` path segment selects which autoinstall template to render, instead of the one assigned
+to the resolved profile or system:
 
 .. code-block:: console
 
@@ -99,28 +100,28 @@ assigned to the resolved profile or system:
 Cloud-init sub-files
 --------------------
 
-cloud-init-based autoinstalls are made up of several separate files -- ``user-data``,
-``meta-data``, ``vendor-data`` and ``network-config`` -- rather than a single rendered document. Which one gets
-rendered is selected with a further ``subfile/<name>`` path segment, appended after ``file/<template>``:
+cloud-init-based autoinstalls are made up of several separate files -- ``user-data``, ``meta-data``, ``vendor-data`` and
+``network-config`` -- rather than a single rendered document. Which one gets rendered is selected with a further
+``subfile/<name>`` path segment, appended after ``file/<template>``:
 
 .. code-block:: console
 
     curl http://localhost/cblr/svc/op/autoinstall/system/example_system/file/example_template/subfile/user-data
     curl http://localhost/cblr/svc/op/autoinstall/system/example_system/file/example_template/subfile/meta-data
 
-.. note:: Subfile selection only ever works through this URL path segment. A query string (e.g.
-          ``?subfile=user-data``) has no effect, by design -- the underlying request dispatcher parses the whole
-          form from the URL path, not the query string, and the WSGI endpoint exposes ``subfile`` as a named
-          parameter rather than scanning arbitrary keyword arguments for it. This matches the real NoCloud
-          datasource protocol: cloud-init itself builds these exact path-appended requests by concatenating the
-          seed URL (``ds=nocloud;s=...``) directly with ``user-data``/``meta-data``/etc., which is why Cobbler's
-          generated seed URL always ends in ``file/<template>/subfile/``.
+.. note:: Subfile selection only ever works through this URL path segment. A query string (e.g. ``?subfile=user-data``)
+          has no effect, by design -- the underlying request dispatcher parses the whole form from the URL path, not the
+          query string, and the WSGI endpoint exposes ``subfile`` as a named parameter rather than scanning arbitrary
+          keyword arguments for it. This matches the real NoCloud datasource protocol: cloud-init itself builds these
+          exact path-appended requests by concatenating the seed URL (``ds=nocloud;s=...``) directly with
+          ``user-data``/``meta-data``/etc., which is why Cobbler's generated seed URL always ends in
+          ``file/<template>/subfile/``.
 
 ks
 ==
 
-Autoinstallation files for either a profile or a system.
-This is used only for backward compatibility with Cobbler 2.6.6 and lower, please use autoinstall if possible.
+Autoinstallation files for either a profile or a system. This is used only for backward compatibility with Cobbler 2.6.6
+and lower, please use autoinstall if possible.
 
 Profile
 -------
@@ -441,11 +442,9 @@ Example Output:
 list
 ====
 
-Lists all instances of a specified type.
-Currently the valid options are:
-``systems, profiles, distros, images, repos, menus``
-If no option is selected the endpoint will default to ``systems``.
-If the selected option is not valid the endpoint will return ``?``.
+Lists all instances of a specified type. Currently the valid options are: ``systems, profiles, distros, images, repos,
+menus`` If no option is selected the endpoint will default to ``systems``. If the selected option is not valid the
+endpoint will return ``?``.
 
 Example Call:
 
@@ -511,8 +510,8 @@ Example Output:
 find ks
 =======
 
-Find the autoinstallation files for either a profile or a system.
-This is used only for backward compatibility with Cobbler 2.6.6 and lower, please use ``find autoinstall`` if possible.
+Find the autoinstallation files for either a profile or a system. This is used only for backward compatibility with
+Cobbler 2.6.6 and lower, please use ``find autoinstall`` if possible.
 
 Profile
 -------
@@ -561,16 +560,15 @@ Dynamic (no-copy) distro tree serving
 ######################################
 
 Everything documented above assumes the default ``managers.in_httpd`` module (see ``modules.httpd.module`` in
-:ref:`settings-ref`), under which ``cobbler import`` copies a distro's source tree into
-``webdir/distro_mirror/<name>`` so it can be served like any other file under ``webdir``.
+:ref:`settings-ref`), under which ``cobbler import`` copies a distro's source tree into ``webdir/distro_mirror/<name>``
+so it can be served like any other file under ``webdir``.
 
-Cobbler also ships a second module, ``managers.dynamic_httpd``, for when the import source is already a stable,
-local, Cobbler-readable directory (for example a permanently mounted ISO, rather than a remote mirror or removable
-media). When it is selected and that precondition holds, ``cobbler import`` skips the copy into ``distro_mirror``
-entirely, and instead records the original location on the distro's ``source_tree_path`` property. The precondition
-matters: if the source is later removed or becomes unreadable (e.g. the ISO gets unmounted), any install relying on
-that distro's tree content will fail, since no copy was ever made to fall back on. ``cobbler check`` warns about
-exactly this -- see below.
+Cobbler also ships a second module, ``managers.dynamic_httpd``, for when the import source is already a stable, local,
+Cobbler-readable directory (for example a permanently mounted ISO, rather than a remote mirror or removable media). When
+it is selected and that precondition holds, ``cobbler import`` skips the copy into ``distro_mirror`` entirely, and
+instead records the original location on the distro's ``source_tree_path`` property. The precondition matters: if the
+source is later removed or becomes unreadable (e.g. the ISO gets unmounted), any install relying on that distro's tree
+content will fail, since no copy was ever made to fall back on. ``cobbler check`` warns about exactly this -- see below.
 
 Tree content is then served from ``source_tree_path`` on demand, directly from disk, via a new endpoint:
 
@@ -578,25 +576,23 @@ Tree content is then served from ``source_tree_path`` on demand, directly from d
 
     http://<server>/cblr/svc/tree/<distro_name>/<relative_path>
 
-Unlike ``dynamic_tftp`` (which resolves every request by calling back into Cobbler's XML-RPC API), this endpoint
-reads file bytes straight from disk and never round-trips through XML-RPC per file. This is a deliberate
-difference in design: distro trees (``repodata/``, ``Packages/``, etc.) are typically much larger than TFTP
-payloads, so streaming every byte through XML-RPC would not scale the same way. XML-RPC is only used here for a
-single, briefly-cached lookup that resolves a distro name to its ``source_tree_path``. The endpoint supports HTTP
-``Range`` requests, so partial/resumable downloads work, and it returns a browsable directory listing when a
-requested path resolves to a directory.
+Unlike ``dynamic_tftp`` (which resolves every request by calling back into Cobbler's XML-RPC API), this endpoint reads
+file bytes straight from disk and never round-trips through XML-RPC per file. This is a deliberate difference in design:
+distro trees (``repodata/``, ``Packages/``, etc.) are typically much larger than TFTP payloads, so streaming every byte
+through XML-RPC would not scale the same way. XML-RPC is only used here for a single, briefly-cached lookup that
+resolves a distro name to its ``source_tree_path``. The endpoint supports HTTP ``Range`` requests, so partial/resumable
+downloads work, and it returns a browsable directory listing when a requested path resolves to a directory.
 
-.. note:: Like every other ``/cblr/svc/`` endpoint documented on this page (autoinstall, ipxe, etc.), this endpoint
-          is unauthenticated. Anyone who can reach ``/cblr/svc/`` can read any file under a distro's
-          ``source_tree_path``. This is a deliberate design choice consistent with the rest of this API, not an
-          oversight, but it is worth weighing before opting in.
+.. note:: Like every other ``/cblr/svc/`` endpoint documented on this page (autoinstall, ipxe, etc.), this endpoint is
+          unauthenticated. Anyone who can reach ``/cblr/svc/`` can read any file under a distro's ``source_tree_path``.
+          This is a deliberate design choice consistent with the rest of this API, not an oversight, but it is worth
+          weighing before opting in.
 
 tree
 ====
 
-Serves a distro's tree content directly from its ``source_tree_path`` on disk (see
-:ref:`dynamic-httpd`). Only available for distros that have a ``source_tree_path`` set; it does not serve repo
-mirrors or any other ``/cblr/svc/`` content.
+Serves a distro's tree content directly from its ``source_tree_path`` on disk (see :ref:`dynamic-httpd`). Only available
+for distros that have a ``source_tree_path`` set; it does not serve repo mirrors or any other ``/cblr/svc/`` content.
 
 File
 ----
@@ -636,13 +632,13 @@ Example Output:
     </body>
     </html>
 
-.. note:: A request for a directory path without a trailing slash (e.g. ``.../repodata``) returns a ``301``
-          redirect to the same path with a trailing slash appended, the same way ``Options Indexes`` behaves on a
-          traditional web server.
+.. note:: A request for a directory path without a trailing slash (e.g. ``.../repodata``) returns a ``301`` redirect to
+          the same path with a trailing slash appended, the same way ``Options Indexes`` behaves on a traditional web
+          server.
 
-.. note:: Unlike a typical Apache ``Options Indexes`` listing, generated directory listings hide dotfile entries
-          (names starting with ``.``, e.g. ``.treeinfo``/``.discinfo``). This is deliberate. Dotfiles remain
-          directly fetchable by their exact path regardless -- only the generated listing omits them.
+.. note:: Unlike a typical Apache ``Options Indexes`` listing, generated directory listings hide dotfile entries (names
+          starting with ``.``, e.g. ``.treeinfo``/``.discinfo``). This is deliberate. Dotfiles remain directly fetchable
+          by their exact path regardless -- only the generated listing omits them.
 
 Author
 ======

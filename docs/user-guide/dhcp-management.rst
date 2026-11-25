@@ -16,15 +16,15 @@ Set ``manage_dhcp_v4`` or ``manage_dhcp_v6`` to ``true`` for this setting to tak
 This allows DHCP to be managed via "cobbler system add" commands, when you specify the MAC address and IP address for
 systems you add into Cobbler.
 
-You must configure the templates for your networking environment. Read the file and understand how
-the particular app work before proceeding.
+You must configure the templates for your networking environment. Read the file and understand how the particular app
+work before proceeding.
 
-If you already have DHCP configuration data that you would like to preserve (such as DHCP that was manually configured earlier),
-insert the relevant portions of it into the template file, as running ``cobbler sync`` will overwrite your previous
-configuration.
+If you already have DHCP configuration data that you would like to preserve (such as DHCP that was manually configured
+earlier), insert the relevant portions of it into the template file, as running ``cobbler sync`` will overwrite your
+previous configuration.
 
-By default, Cobbler updates the DHCP configuration file each time you run ``cobbler sync``.
-Remember to use ``cobbler sync`` when you use this feature.
+By default, Cobbler updates the DHCP configuration file each time you run ``cobbler sync``. Remember to use ``cobbler
+sync`` when you use this feature.
 
 isc DHCP
 ########

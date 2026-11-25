@@ -3,8 +3,8 @@ Advanced networking
 
 First off, read the cobbler manpage for all the settings you can set on a system object.
 
-This page details some of the networking tips and tricks in more detail, regarding what you can set on system records
-to set up networking, without having to know a lot about kickstart/Anaconda.
+This page details some of the networking tips and tricks in more detail, regarding what you can set on system records to
+set up networking, without having to know a lot about kickstart/Anaconda.
 
 These features include:
 
@@ -35,8 +35,8 @@ the module ``drbd.ko`` would stop working. This is due to an "alias" line in ``/
 Name Servers
 ============
 
-For static systems, the ``--name-servers`` parameter can be used to
-specify a list of name servers to assign to the systems.
+For static systems, the ``--name-servers`` parameter can be used to specify a list of name servers to assign to the
+systems.
 
 .. code-block:: shell
 
@@ -45,7 +45,8 @@ specify a list of name servers to assign to the systems.
 DNS and DHCP Management
 -----------------------
 
-See [ManageDns](Dns Management) and [ManageDhcp](Dhcp Management) for how cobbler can help control your DHCP and DNS servers.
+See [ManageDns](Dns Management) and [ManageDhcp](Dhcp Management) for how cobbler can help control your DHCP and DNS
+servers.
 
 NIC bonding
 ===========
@@ -95,7 +96,8 @@ You have to install the vconfig package for this to work.
 Kickstart Notes
 ===============
 
-Three different networking [Kickstart Snippets](Kickstart Snippets) must be present in your kickstart files for this to work:
+Three different networking [Kickstart Snippets](Kickstart Snippets) must be present in your kickstart files for this to
+work:
 
 * ``pre_install_network_config``
 * ``network_config``

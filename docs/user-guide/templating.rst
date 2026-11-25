@@ -11,8 +11,8 @@ Cobbler is not using a single templating engine but has a small abstraction laye
 engines. The default template engine is set via the setting ``default_template_type`` and currently has the value
 ``cheetah`` for backwards compatibility.
 
-.. note:: While the default is Cheetah, new features will prefer Jinja 2 since the community and available resources
-    are bigger than Cheetah.
+.. note:: While the default is Cheetah, new features will prefer Jinja 2 since the community and available resources are
+    bigger than Cheetah.
 
 Cheetah
 =======
@@ -134,8 +134,8 @@ Intended Workflow
 #. Write a template to disk underneath ``autoinstall_templates_dir`` or inside an environment variable which is
    accessible to the Cobbler Daemon.
 #. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.new_template` to create a new template object.
-#. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.modify_template` to modify the ``name``, ``template_type``,
-   ``uri`` and ``tags`` of the object
+#. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.modify_template` to modify the ``name``, ``template_type``, ``uri``
+   and ``tags`` of the object
 #. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.save_template` to persist the changes and make it available for use.
 #. Optional: Set the UID/Name of the template as a value to ``autoinstall`` inside a Profile or System.
 #. Optional: Execute a sync to update the affected configuration.

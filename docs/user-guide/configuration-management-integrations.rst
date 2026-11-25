@@ -123,9 +123,9 @@ Setting up
 Cobbler's internal CMS is focused around packages and templated configuration files, and installing these on client
 systems.
 
-This all works using the same `Cheetah-powered <https://cheetahtemplate.org>`_ templating engine used in
-kickstart templating, so once you learn about the power of treating your distribution answer
-files as templates, you can use the same templating to drive your CMS configuration files.
+This all works using the same `Cheetah-powered <https://cheetahtemplate.org>`_ templating engine used in kickstart
+templating, so once you learn about the power of treating your distribution answer files as templates, you can use the
+same templating to drive your CMS configuration files.
 
 For example:
 
@@ -145,8 +145,8 @@ Template files
 ==============
 
 Because the template files will be parsed by the Cheetah parser, they must conform to the guidelines described in
-kickstart templating. This is particularly important when the file is generated outside a
-Cheetah environment. Look for, and act on, Cheetah 'ParseError' errors in the Cobbler logs.
+kickstart templating. This is particularly important when the file is generated outside a Cheetah environment. Look for,
+and act on, Cheetah 'ParseError' errors in the Cobbler logs.
 
 Template files follows general Cheetah syntax, so can include Cheetah variables. Any variables you define anywhere in
 the cobbler object hierarchy (distros, profiles, and systems) are available to your templates. To see all the variables
@@ -173,8 +173,8 @@ if the MAC address is registered.
 Further uses
 ============
 
-This Cobbler/Cheetah templating system can serve up templates via the magic URLs (see "Leveraging Mod Python" below).
-To do this ensure that the destination path given to any ``--template-files`` element is relative, not absolute; then
+This Cobbler/Cheetah templating system can serve up templates via the magic URLs (see "Leveraging Mod Python" below). To
+do this ensure that the destination path given to any ``--template-files`` element is relative, not absolute; then
 Cobbler and Koan won't download those files.
 
 For example, in:
@@ -252,8 +252,7 @@ then things could be simpler.
 Keeping Class Mappings In Cobbler
 =================================
 
-First, we assign management classes to distro, profile, or system
-objects.
+First, we assign management classes to distro, profile, or system objects.
 
 .. code-block:: shell
 
@@ -330,8 +329,8 @@ Alternate External Nodes Script
 
 Attached at ``puppet_node.py`` is an alternate external node script that fills in the nodes with items from a manifests
 repository (at ``/etc/puppet/manifests/``) and networking information from cobbler. It is configured like the above from
-the puppet side, and then looks for ``/etc/puppet/external_node.yaml`` for cobbler side configuration.
-The configuration is as follows.
+the puppet side, and then looks for ``/etc/puppet/external_node.yaml`` for cobbler side configuration. The configuration
+is as follows.
 
 .. code-block:: yaml
 
@@ -360,8 +359,8 @@ Chef support
 
 Documentation to be added.
 
-There is some integration information on bootstrapping chef clients with cobbler in
-`this blog article <https://web.archive.org/web/20140213051741/http://blog.milford.io/2012/03/getting-a-basic-cobbler-server-going-on-centos/>`_
+There is some integration information on bootstrapping chef clients with cobbler in `this blog article
+<https://web.archive.org/web/20140213051741/http://blog.milford.io/2012/03/getting-a-basic-cobbler-server-going-on-centos/>`_
 
 Conclusion
 ##########

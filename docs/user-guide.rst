@@ -111,8 +111,8 @@ If the association between a system (MAC address) and a profile is already known
 system, especially when provisioning is done at the same time as installing new physical machines.
 
 If this behavior is not desired, run ``cobbler system add --name=default --profile=plugh`` to default all PXE booting
-machines to get a new copy of the profile ``plugh``. To go back to the menu system, run
-``cobbler system remove --name=default`` and then ``cobbler sync`` to regenerate the menus.
+machines to get a new copy of the profile ``plugh``. To go back to the menu system, run ``cobbler system remove
+--name=default`` and then ``cobbler sync`` to regenerate the menus.
 
 When using PXE menu deployment exclusively, it is not necessary to make Cobbler system records, although the two can
 easily be mixed.
@@ -159,14 +159,13 @@ Containerization
 ################
 
 Cobbler can be run as a set of separate containers instead of a single traditional host install: a ``cobblerd``
-container (the daemon -- XML-RPC API, sync, templating, ...), an ``http-api`` container (Gunicorn serving
-``/cblr/svc``, ``/httpboot`` and ``/images``, sharing the *same* image as ``cobblerd`` via a different
-``command:`` override), and an optional ``web`` container running the separate, Angular-based Cobbler Web UI
-(unrelated to ``http-api`` despite the similarly web-facing role -- ``web`` was ``http-api``'s own name in an
-earlier revision of this stack, before being freed up for the real UI). A reference/example Compose stack is
-shipped at ``compose.yml`` (production, pulls published images) and ``compose.dev.yml`` (development, builds
-from source) in the repository root, both built around the single shared runtime image at
-``docker/images/cobblerd/Dockerfile``.
+container (the daemon -- XML-RPC API, sync, templating, ...), an ``http-api`` container (Gunicorn serving ``/cblr/svc``,
+``/httpboot`` and ``/images``, sharing the *same* image as ``cobblerd`` via a different ``command:`` override), and an
+optional ``web`` container running the separate, Angular-based Cobbler Web UI (unrelated to ``http-api`` despite the
+similarly web-facing role -- ``web`` was ``http-api``'s own name in an earlier revision of this stack, before being
+freed up for the real UI). A reference/example Compose stack is shipped at ``compose.yml`` (production, pulls published
+images) and ``compose.dev.yml`` (development, builds from source) in the repository root, both built around the single
+shared runtime image at ``docker/images/cobblerd/Dockerfile``.
 
 See :ref:`docker-deployment` for the full walkthrough, including required volumes, the settings that make the
 split-container setup work, the optional Docker-based sidecar restart mechanism for DHCP/DNS, and this deployment
@@ -177,5 +176,5 @@ Web-Interface
 
 The old Django-based UI was preventing needed change inside the internals of Cobbler and was removed. It has been
 replaced by `Cobbler Web <https://github.com/cobbler/cobbler-web>`_, a separate Angular-based project. See its
-`documentation <https://cobbler.github.io/cobbler-web/>`_ for usage, and :ref:`docker-deployment` for a walkthrough
-of deploying it alongside Cobbler.
+`documentation <https://cobbler.github.io/cobbler-web/>`_ for usage, and :ref:`docker-deployment` for a walkthrough of
+deploying it alongside Cobbler.

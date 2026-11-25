@@ -17,8 +17,8 @@ Starting with 3.3.3
 ###################
 
 - ``default_virt_file_size`` is now a float as intended.
-- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
-  ignore it if you don't run one of the two solutions or a derivative of it.
+- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can ignore it if you
+  don't run one of the two solutions or a derivative of it.
 
 Starting with 3.3.2
 ###################
@@ -41,8 +41,7 @@ Starting with 3.3.0
 
 - There is a new CLI tool called ``cobbler-settings`` which can be used to validate and migrate settings files from
   differente versions and to modify keys in the current settings file. Have a look at the migration matrix in the next
-  paragraph to see the supported migration paths.
-  Furthermore the auto migration feature can be enabled or disabled.
+  paragraph to see the supported migration paths. Furthermore the auto migration feature can be enabled or disabled.
 
 - A new settings auto migration feature was implemented which automatically updates the settings when installing a new
   version. A backup of the old settings file will be created in the same folder beforehand.
@@ -57,5 +56,5 @@ Starting with 3.2.1
   enforce our new way in a stricter manner. Automatic conversion is only done on a best-effort/available-resources
   basis.
 - We enforce the types of values to the keys. Additional unexpected keys will throw errors. If you have those used in
-  Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence
-  of the values. This gives us the freedom to write fewer access checks to the settings without losing stability.
+  Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence of
+  the values. This gives us the freedom to write fewer access checks to the settings without losing stability.

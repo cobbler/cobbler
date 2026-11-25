@@ -13,8 +13,8 @@ The main configuration file is ``settings.yaml``. It is located per default at `
 the `YAML <https://yaml.org/spec/1.2/spec.html>`_ specification.
 
 .. warning:: If you are using ``allow_dynamic_settings`` or ``auto_migrate_settings``, then the comments in the YAML
-             file will vanish after the first change due to the fact that PyYAML doesn't support comments
-             (`Source <https://github.com/yaml/pyyaml/issues/90>`_)
+             file will vanish after the first change due to the fact that PyYAML doesn't support comments (`Source
+             <https://github.com/yaml/pyyaml/issues/90>`_)
 
 Migration matrix
 ################
@@ -46,5 +46,5 @@ main       --       --      --      --      --      --      --      --      --  
 
 .. note::
    3.3.4 is schema-identical to 3.3.3, and 3.3.6 through 3.3.10 (including the 3.3.6-mila1 milestone) are
-   schema-identical to 3.3.5. These patch releases did not change the settings format, so they follow the same
-   migration behavior as the row/column they match above.
+   schema-identical to 3.3.5. These patch releases did not change the settings format, so they follow the same migration
+   behavior as the row/column they match above.

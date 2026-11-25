@@ -18,11 +18,11 @@ arguments you give us in a way that we add wrapping double quotes around them wh
 
 Kernel options are stored as a flat key/value mapping where each option name resolves to a single value, ``None`` or a
 list of values (when the option is provided multiple times). Nested dictionaries are not supported and will lead to
-unexpected behaviour later in the provisioning flow.
-Non-string scalar values such as integers or booleans are stringified when rendered onto the kernel command line.
+unexpected behaviour later in the provisioning flow. Non-string scalar values such as integers or booleans are
+stringified when rendered onto the kernel command line.
 
-The Linux Kernel describes its quoting at:
-`The kernel’s command-line parameters <https://www.kernel.org/doc/html/v5.15/admin-guide/kernel-parameters.html#the-kernel-s-command-line-parameters>`_
+The Linux Kernel describes its quoting at: `The kernel’s command-line parameters
+<https://www.kernel.org/doc/html/v5.15/admin-guide/kernel-parameters.html#the-kernel-s-command-line-parameters>`_
 
 Consult the documentation of your operating system for how it deals with this if it is not Linux.
 
@@ -33,12 +33,12 @@ Special Case: Uyuni/SUSE Multi Linux Manager
           context.
 
 .. note:: SUSE Multi Linux Manager was formerly named "SUSE Manager". The product was renamed; this page uses the
-          current name, but you may still encounter "SUSE Manager" in older documentation, settings key names
-          (e.g. ``uyuni_authentication_endpoint``), and third-party material.
+          current name, but you may still encounter "SUSE Manager" in older documentation, settings key names (e.g.
+          ``uyuni_authentication_endpoint``), and third-party material.
 
 Uyuni uses Cobbler for driving auto-installations. When using Cobbler in the context of Uyuni, you need to know that
-Cobbler is not seen as the source of truth by Uyuni. This means, in case you don't have any auto-installation
-configured in Uyuni, the content visible in Cobbler is deleted.
+Cobbler is not seen as the source of truth by Uyuni. This means, in case you don't have any auto-installation configured
+in Uyuni, the content visible in Cobbler is deleted.
 
 Because of the same reason, during the runtime of Cobbler you may see systems popping on and off as the content of
 Cobbler is managed by Uyuni (in particular, the taskomatic task ``kickstart_cleanup`` executes cleanup on the Cobbler
