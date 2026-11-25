@@ -5,7 +5,27 @@ Updates to the yaml-settings-file
 Starting with 4.0.0
 ###################
 
-- TBD
+- The deprecated ``settings.d`` directory and its ``include`` key (deprecated since 3.3.0) have been removed.
+- ``mgmt_classes``/``mgmt_parameters`` were removed, both as global settings and as per-item fields. The Management
+  Classes feature no longer exists.
+- ``manage_dhcp`` is no longer a ``settings.yaml`` key. It still exists as a read-only, computed property
+  (``manage_dhcp_v4 or manage_dhcp_v6``) for API consumers, but you can no longer set it directly; use
+  ``manage_dhcp_v4``/``manage_dhcp_v6`` instead.
+- ``jinja2_includedir``, ``iso_template_dir``, ``boot_loader_conf_template_dir``, ``autoinstall_snippets_dir`` and
+  ``windows_template_dir`` were removed. Their on-disk contents are migrated into the new ``Template`` item collection
+  (see :ref:`templating`).
+- The standalone ``/etc/cobbler/mongodb.conf`` and ``/etc/cobbler/modules.conf`` files are gone. Their settings now live
+  directly in ``settings.yaml`` under the new ``mongodb`` and ``modules`` keys; existing values are carried over
+  automatically and the old files are deleted during migration.
+- ``convert_server_to_ip`` changed from a plain boolean to an object: ``{enabled: bool, protocol: "ipv4"|"ipv6"}``. Old
+  boolean values migrate to ``{enabled: <old value>, protocol: "ipv4"}``.
+- ``nsupdate_tsig_algorithm``/``nsupdate_tsig_key`` were replaced by ``nsupdate_tsig``, a per-nameserver mapping of TSIG
+  keys. A new ``nsupdate_mgm_txt`` toggle was also added.
+- New optional settings were added: ``redhat_management_user``/``redhat_management_password`` (an alternate
+  Satellite/Spacewalk registration method), ``xmlrpc_bind_address_v4``/``xmlrpc_bind_address_v6``/``xmlrpc_host`` (for
+  split-container deployments, see :ref:`docker-deployment`), ``uyuni_authentication_endpoint``, ``autoinstall_scheme``,
+  ``autoinstall_templates_allow_new_files`` and ``memory_indexes``. None of these require changes to an existing
+  settings file, as they all have defaults.
 
 Starting with 3.3.5
 ###################

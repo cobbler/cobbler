@@ -108,6 +108,15 @@ this directory should not be required.
 
 default: ``/var/lib/cobbler/templates``
 
+autoinstall_templates_allow_new_files
+######################################
+
+If ``True``, pointing a ``Template`` item's ``file://`` URI at a path that does not exist yet is allowed -- the path is
+created on disk the first time the template's content is set, instead of requiring the file to already exist. This is
+opt-in because it lets any Template author create arbitrary new files under ``autoinstall_templates_dir``.
+
+default: ``False``
+
 bind_chroot_path
 ################
 
@@ -520,19 +529,11 @@ When using the Bind9 DNS server, you can enable or disable if the BMCs should re
 
 default: ``False``
 
-manage_dhcp
-###########
-
-Set to ``True`` to enable Cobbler's DHCP management features. The choice of DHCP management engine is under
-``modules.dhcp.module``.
-
-default: ``True``
-
 manage_dhcp_v4
 ##############
 
-Set to ``true`` to enable DHCP IPv6 address configuration generation. This currently only works with manager.isc DHCP
-module (isc dhcpd6 daemon). See ``modules.dhcp.module`` whether this isc module is chosen for dhcp generation.
+Set to ``true`` to enable DHCP IPv4 address configuration generation. This currently only works with manager.isc DHCP
+module (isc dhcpd4 daemon). See ``modules.dhcp.module`` whether this isc module is chosen for dhcp generation.
 
 default: ``False``
 
@@ -588,18 +589,27 @@ Set to ``True`` to enable Cobbler's TFTP management features. The choice of TFTP
 
 default: ``True``
 
-mgmt_*
-######
+memory_indexes
+##############
 
-Cobbler has a feature that allows for integration with config management systems such as Puppet. The following
-parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at
-:ref:`configuration-management`.
+Configures the in-memory lookup indexes collections use to speed up item searches, keyed first by collection type
+(``distro``, ``profile``, ``system``, ``repo``, ``image``, ``menu``, ``network_interface``, ``template``, and the
+``*_group`` collections), then by the attribute to index (e.g. ``name``, ``arch``, ``parent``). Each indexed attribute
+takes:
 
-.. code-block:: YAML
+``disabled``
+    If ``True``, no index is built for this attribute at all.
 
-   mgmt_classes: []
-   mgmt_parameters:
-       from_cobbler: true
+``nonunique``
+    Whether more than one item is allowed to share the same value for this attribute. The ``mac_address``,
+    ``ipv4.address``, ``ipv6.address`` and ``dns.name`` indexes on ``network_interface`` default this to the value of
+    ``allow_duplicate_macs``/``allow_duplicate_ips``/``allow_duplicate_hostnames`` respectively.
+
+``property``
+    Optional. Overrides which method is called to obtain the index key, for attributes that aren't a plain property
+    getter (e.g. ``get_parent`` for the ``*_group`` collections' ``parent`` index).
+
+default: Omitted for readability, please refer to the `settings.yaml` file in our GitHub repository.
 
 next_server_v4
 ##############
