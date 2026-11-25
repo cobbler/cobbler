@@ -107,8 +107,8 @@ def test_get_settings_file_version():
 
 def test_get_settings_file_version_prefers_newest_matching_version():
     """
-    Regression test: V3.3.5/V3.3.6/V3.3.7 share an identical schema, so a
-    settings dict valid for one validates against all three. This must resolve
+    Regression test: V3.3.5 through V3.3.10 share an identical schema, so a
+    settings dict valid for one validates against all of them. This must resolve
     to the highest (newest) matching version, not whichever happens to be
     first in VERSION_LIST's (unordered) iteration order.
     """
@@ -121,4 +121,4 @@ def test_get_settings_file_version_prefers_newest_matching_version():
     result = migrations.get_settings_file_version(old_settings_dict)
 
     # Assert
-    assert result == migrations.CobblerVersion(3, 3, 7)
+    assert result == migrations.CobblerVersion(3, 3, 10)
