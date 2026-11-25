@@ -52,7 +52,7 @@ class ModuleLoader:
         self,
     ) -> Tuple[Dict[str, ModuleType], Dict[str, Dict[str, ModuleType]]]:
         """
-        Load the modules from the path handed to the function into Cobbler.
+        Load modules from the module path configured on this loader (see the constructor) into Cobbler.
 
         :return: Two dictionary's with the dynamically loaded modules.
         """
@@ -127,9 +127,8 @@ class ModuleLoader:
         :param category: Field category in configuration file.
         :param field: Field in configuration file
         :param fallback_module_name: Default value used if category/field is not found in configuration file
-        :raises FileNotFoundError: If unable to find configuration file.
-        :raises ValueError: If the category does not exist or the field is empty.
-        :raises CX: If the field could not be read and no fallback_module_name was given.
+        :raises ValueError: If ``field`` consists solely of whitespace (a truly empty string does not raise).
+        :raises CX: If the module name could not be resolved from settings and no ``fallback_module_name`` was given.
         :returns: The name of the module.
         """
         # FIXME: We can't enabled this check since it is to strict atm.

@@ -359,9 +359,10 @@ class TFTPGen:
         :param menu_items: The list of labels that are used for displaying the menu entry.
         :param meta_blended: A pre-computed ``utils.blender(self.api, False, system)`` result to reuse
                               instead of recomputing it, for callers that already have one.
-        :return: The ``utils.blender(self.api, False, system)`` result used to generate these files
-                 (``None`` for S390/S390x systems, which use a separate code path that doesn't need it),
-                 so callers that also need it (e.g. for :meth:`write_templates`) can reuse it.
+        :return: The ``utils.blender(self.api, False, system)`` result used to generate these files, so callers that
+                 also need it (e.g. for :meth:`write_templates`) can reuse it. Returns ``None`` for S390/S390x
+                 systems (separate code path), and also for other systems when no interface required computing it
+                 (e.g. all interfaces were invalid, an unsupported arch, or management-unsupported).
         """
         system_parent: Optional[
             Union["Profile", "Image"]
@@ -1065,7 +1066,7 @@ class TFTPGen:
         arch: Optional[enums.Archs],
     ) -> None:
         """
-        Generates profiles metadata for pxe, ipxe and grub.
+        Generates images metadata for pxe, ipxe and grub.
 
         :param menu: The menu for which boot files are generated. (Optional)
         :param metadata: Pass additional parameters to the ones being collected during the method.
@@ -1577,22 +1578,10 @@ class TFTPGen:
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
-            # changing http_server's server component to its IP address was intruduced with
-            # https://github.com/cobbler/cobbler/commit/588756aa7aefc122310847d007becf3112647944
-            # to shorten the message length for S390 systems.
-            # On multi-homed cobbler servers, this can lead to serious problems when installing
-            # systems in a dedicated isolated installation subnet:
-            # - typically, $server is reachable by name (DNS resolution assumed) both during PXE
-            #   install and during production, but via different IP addresses
-            # - $http_server is explicitly constructed from $server
-            # - the IP address for $server may resolv differently between cobbler server (production)
-            #   and installing system
-            # - using IP($http_server) below may need to set $server in a way that matches the installation
-            #   network
-            # - using $server for later repository access then will fail, because the installation address
-            #   isn't reachable for production systems
-            #
-            # In order to make the revert less intrusive, it'll depend on a configuration setting
+            # Converting http_server's server component to its IP address shortens the kernel command line
+            # for S390 systems, but on multi-homed cobbler servers $server may resolve to different IPs for
+            # the installer vs. production, so forcing the installation-time IP can later break production
+            # access to $server. Controlled by the convert_server_to_ip setting so sites can opt out.
             convert_server_to_ip = (
                 self.settings.convert_server_to_ip if self.settings else {}
             )
@@ -2493,7 +2482,8 @@ class TFTPGen:
         :param path: Normalized absolute path to the file
         :param offset: Offset of the requested chunk in the file
         :param size: Size of the requested chunk in the file
-        :return: The requested chunk and the length of the whole file
+        :return: The requested chunk and the length of the whole file, or (despite the type hint) ``None`` if
+                 ``path`` does not match any known static, distro, image, or system/menu TFTP file.
         """
         static_file = self._get_static_tftp_file(path, offset, size)
         if static_file is not None:

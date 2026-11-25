@@ -418,7 +418,7 @@ class Settings:
         Return an easily serializable representation of the config.
 
         .. deprecated:: 3.2.1
-           Use ``obj.__dict__`` directly please. Will be removed with 3.3.0
+           Use ``obj.__dict__`` directly instead.
 
         :param resolved: Present for the compatibility with the Cobbler collections.
         :return: The dict with all user settings combined with settings which are left to the default.
@@ -428,13 +428,14 @@ class Settings:
 
     def from_dict(self, new_values: Dict[str, Any]) -> Optional["Settings"]:
         """
-        Modify this object to load values in dictionary. If the handed dict would lead to an invalid object it is
-        silently discarded.
+        Modify this object to load values in dictionary.
 
         .. warning:: If the dict from the args has not all settings included Cobbler may behave unexpectedly.
 
         :param new_values: The dictionary with settings to replace.
-        :return: Returns the settings instance this method was called from.
+        :raises ValueError: If applying ``new_values`` would make the settings invalid; this object's state is left
+                             unchanged.
+        :return: This settings instance, or ``None`` if ``new_values`` is ``None``.
         """
         if new_values is None:  # type: ignore[reportUnnecessaryComparison]
             logging.warning("Not loading empty settings dictionary!")
@@ -565,9 +566,9 @@ def read_settings_file(
 
     :param filepath: The path to the settings file.
     :param ignore_keys: The list of ignore keys to exclude from validation.
-    :raises SchemaMissingKeyError: In case keys are missing.
-    :raises SchemaWrongKeyError: In case keys are not listed in the schema.
-    :raises SchemaError: In case the schema is wrong.
+    :raises FileNotFoundError: In case the file does not exist or is a directory (propagated from
+                                ``read_yaml_file()``).
+    :raises yaml.YAMLError: In case the file is not valid YAML (propagated from ``read_yaml_file()``).
     :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
              will only contain a correct YAML representation.
     """
@@ -601,8 +602,8 @@ def update_settings_file(
 ) -> bool:
     """
     Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
-    It will only write valid settings. If you are trying to save invalid data this will raise a SchemaException
-    described in :py:meth:`cobbler.settings.validate`.
+    It will only write valid settings. If the given data is invalid, nothing is written and this returns False instead
+    of raising.
 
     :param data: The data to put into the settings file.
     :param filepath: This sets the path of the settingsfile to write.

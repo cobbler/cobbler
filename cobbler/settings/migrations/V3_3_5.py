@@ -264,7 +264,10 @@ def normalize(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Migration of the settings ``settings`` to version V3.3.5 settings
+    Migration of the settings ``settings`` to version V3.3.5 settings.
+
+    Adds the new ``cache_enabled`` and ``lazy_start`` (default ``False``) keys, both newly present in the
+    V3.3.5 schema. No keys are renamed or removed.
 
     :param settings: The settings dict to migrate
     :return: The migrated dict
@@ -272,9 +275,5 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
 
     if not V3_3_4.validate(settings):
         raise SchemaError("V3.3.4: Schema error while validating")
-
-    # rename keys and update their value
-    # add missing keys
-    # name - value pairs
 
     return normalize(settings)

@@ -218,7 +218,7 @@ class Repo(BootableItem):
         HTTP might come later.
 
         :getter: The mirror uri.
-        :setter: May raise a ``TypeError`` in case we run into
+        :setter: May raise a ``TypeError`` in case the value is not of type str.
         """
         return self._mirror
 
@@ -311,10 +311,10 @@ class Repo(BootableItem):
     @yumopts.setter
     def yumopts(self, options: Union[str, Dict[Any, Any]]) -> None:
         """
-        Kernel options are a space delimited list.
+        Yum options are a space delimited list or a dict.
 
         :param options: Something like ``a=b c=d e=f g h i=j`` or a dictionary.
-        :raises ValueError: In case the presented data could not be parsed into a dictionary.
+        :raises TypeError: In case the presented data could not be parsed into a dictionary.
         """
         try:
             self._yumopts = input_converters.input_string_or_dict_no_inherit(
@@ -339,7 +339,7 @@ class Repo(BootableItem):
         Setter for the ``rsyncopts`` property.
 
         :param options: Something like '-a -S -H -v'
-        :raises ValueError: In case the options provided can't be parsed.
+        :raises TypeError: In case the options provided can't be parsed.
         """
         try:
             self._rsyncopts = input_converters.input_string_or_dict_no_inherit(
@@ -364,7 +364,7 @@ class Repo(BootableItem):
         Setter for the ``environment`` property.
 
         :param options: These are environment variables which are set before each reposync.
-        :raises ValueError: In case the variables provided could not be parsed.
+        :raises TypeError: In case the variables provided could not be parsed.
         """
         try:
             self._environment = input_converters.input_string_or_dict_no_inherit(
@@ -465,9 +465,9 @@ class Repo(BootableItem):
         """
         Setter for the repository system breed.
 
-        :param breed: The new breed to set. If this argument evaluates to false then nothing will be done.
+        :param breed: The new breed to set.
         :raises TypeError: In case the value was not of the corresponding enum type.
-        :raises ValueError: In case a ``str`` with could not be converted to a valid breed.
+        :raises ValueError: In case the breed could not be converted.
         """
         self._breed = enums.RepoBreeds.to_enum(breed)
 
@@ -486,8 +486,8 @@ class Repo(BootableItem):
         r"""
         Setter for the operating system version.
 
-        :param os_version: The new operating system version. If this argument evaluates to false then nothing will be
-                           done.
+        :param os_version: The new operating system version. If this argument evaluates to false, the stored
+                           os_version is reset to an empty string.
         :raises CX: In case ``breed`` has not been set before.
         """
         if not os_version:

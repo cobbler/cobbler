@@ -41,8 +41,8 @@ class CobblerCheck:
         """
         The CLI usage is "cobbler check" before "cobbler sync".
 
-        :return: None if there are no errors, otherwise returns a list of things to correct prior to running application
-                 'for real'.
+        :return: An empty list if there are no errors, otherwise a list of things to correct prior to running the
+                 application "for real".
         """
         status: List[str] = []
         self.checked_family = utils.get_family()

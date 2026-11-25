@@ -90,11 +90,8 @@ def _strip_non_constructible_keys(data: Dict[str, Any]) -> Dict[str, Any]:
 
 class Replicate:
     """
-    This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
-
-    .. warning::
-       Only tested and supported between two Cobbler servers running the exact same version.
-       Mixed-version replication is untested at this time.
+    This class contains the magic to replicate a Cobbler instance to another Cobbler instance. See the module
+    docstring for version-compatibility caveats.
     """
 
     def __init__(self, api: "CobblerAPI") -> None:
@@ -210,10 +207,8 @@ class Replicate:
                     reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))
                     newobj = creator(**_strip_non_constructible_keys(reverted))
                     self.logger.info("adding %s %s", obj_type, rdata["name"])
-                    # add_item() returns None on success and raises on failure; it never
-                    # returns a truthy/falsy success indicator, so a prior "if not
-                    # add_item(...)" check here always evaluated to True and logged a
-                    # false "failed to add" error on every successful add.
+                    # add_item() returns None on success and raises on failure; it has no
+                    # truthy/falsy success indicator to check.
                     self.api.add_item(obj_type, newobj)
                 except Exception:
                     utils.log_exc()
@@ -245,9 +240,8 @@ class Replicate:
                         reverted = cast(Dict[str, Any], utils.revert_strip_none(rdata))
                         newobj = creator(**_strip_non_constructible_keys(reverted))
                         self.logger.info("updating %s %s", obj_type, rdata["name"])
-                        # See the matching comment in add_objects_not_on_local(): add_item()
-                        # never returns a truthy success indicator, so this check always
-                        # false-reported success as a failure.
+                        # add_item() returns None on success and raises on failure; see
+                        # add_objects_not_on_local() for the same pattern.
                         self.api.add_item(obj_type, newobj)
                     except Exception:
                         utils.log_exc()

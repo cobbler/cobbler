@@ -954,7 +954,7 @@ class CobblerXMLRPCInterface:
 
     def ping(self) -> bool:
         """
-        Deprecated method. Now does nothing.
+        Deprecated method retained for backward compatibility; always returns ``True``.
 
         :return: Always True
         """
@@ -3070,7 +3070,9 @@ class CobblerXMLRPCInterface:
         Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
         then finally ``save_*`` methods. The handle only exists in memory until saved.
 
-        :param what: specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, ``image`` or ``menu``.
+        :param what: specifies the type of object, e.g. ``distro``, ``profile``, ``system``, ``repo``, ``image``,
+                     ``menu``, ``network_interface``, ``template``, ``distro_group``, ``profile_group`` or
+                     ``system_group``.
         :param token: The API-token obtained via the login() method.
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: The object id for the newly created object.
@@ -3217,8 +3219,8 @@ class CobblerXMLRPCInterface:
         token: str,
     ) -> bool:
         """
-        Adjusts the value of a given field, specified by 'what' on a given object id. Allows modification of certain
-        attributes on newly created or existing distro object handle.
+        Adjusts the value of a given field, specified by ``attribute``, on the object identified by
+        ``what``/``object_id``.
 
         :param what: The type of object to modify.
         :param object_id: The id of the object which shall be modified.
@@ -3226,6 +3228,8 @@ class CobblerXMLRPCInterface:
         :param arg: The new value for the argument.
         :param token: The API-token obtained via the login() method.
         :return: True if the action was successful. Otherwise False.
+        :raises ValueError: If ``attribute`` targets an internal or computed field (``uid``, ``ctime``, ``depth``, or
+                             any name starting with ``_``).
         """
         self._log(
             f"modify_item({what})",
@@ -4071,10 +4075,10 @@ class CobblerXMLRPCInterface:
         self, item_uuid: str, formatted_output: bool = False, remove_dicts: bool = True
     ):
         """
-        This function dumps all variables related to an object. The difference to the above mentioned function is that
-        it accepts the item uid instead of the Python object itself.
+        Dumps all variables related to an object, identified by its item uid rather than a Python object reference.
 
-        .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.dump_vars`
+        .. seealso:: Logically identical to :func:`~cobbler.api.CobblerAPI.dump_vars`, which takes the object itself
+                     instead of a uid.
         """
         try:
             obj = cast(item.BootableItem, self.__get_object(item_uuid))
@@ -5245,8 +5249,9 @@ class CobblerXMLRPCInterface:
         :param resource: The resource for which access shall be checked.
         :param arg1: Arguments to hand to the authorization provider.
         :param arg2: Arguments to hand to the authorization provider.
-        :return: If the operation was successful return ``1``. If unsuccessful then return ``0``. Other codes may be
-                 returned if specified by the currently configured authorization module.
+        :return: If the operation was successful, returns ``1`` (or another truthy code from the configured
+                 authorization module).
+        :raises CX: If the authorization check fails (falsy return from the authorization module).
         """
         user = self.get_user_from_token(token)
         if user == "<DIRECT>":
@@ -5463,8 +5468,8 @@ class CobblerXMLRPCInterface:
         1. Checks for conflicting external modifications. If any object was modified
            outside the transaction (mtime mismatch), the commit fails and all changes
            are discarded.
-        2. Objects are removed in reverse dependency order (e.g. Profile - Distro)
-        3. Objects are added/modified in dependency order (e.g. Distro - Profile)
+        2. Objects are added/modified in dependency order (e.g. Distro - Profile)
+        3. Objects are removed in reverse dependency order (e.g. Profile - Distro)
         4. Rebuilds the PXE configuration once at the end
 
         :param token: The API-token obtained via the login() method.

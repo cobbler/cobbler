@@ -12,7 +12,7 @@ from schema import SchemaError  # type: ignore
 
 from cobbler.settings.migrations import V3_3_6
 
-# schema identical to V3_3_5
+# schema identical to V3_3_6
 schema = V3_3_6.schema
 
 
@@ -50,9 +50,5 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
 
     if not V3_3_6.validate(settings):
         raise SchemaError("V3.3.6: Schema error while validating")
-
-    # rename keys and update their value
-    # add missing keys
-    # name - value pairs
 
     return normalize(settings)

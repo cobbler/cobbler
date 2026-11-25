@@ -51,8 +51,4 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     if not V3_3_3.validate(settings):
         raise SchemaError("V3.3.3: Schema error while validating")
 
-    # rename keys and update their value
-    # add missing keys
-    # name - value pairs
-
     return normalize(settings)

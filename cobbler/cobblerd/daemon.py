@@ -141,8 +141,9 @@ def do_xmlrpc_rw(cobbler_api: CobblerAPI, port: int) -> None:
     """
     This tries to bring up the Cobbler xmlrpc_api and restart it if it fails.
 
-    This method serves requests in an endless loop (restarting the server whenever ``serve_forever()`` raises an
-    ``IOError``) and only returns if interrupted by a different exception.
+    This method serves requests in an endless loop, restarting after any ``IOError`` raised while dispatching
+    requests on the listener(s) (see :func:`_serve_xmlrpc_forever`), and only returns if interrupted by a different
+    exception.
 
     :param cobbler_api: The cobbler_api instance which is used for this method.
     :param port: The port where the xmlrpc api should run on.

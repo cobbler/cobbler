@@ -134,7 +134,7 @@ class _IscManager(DhcpManagerModule):
 
         :param system_obj: System to generate DHCP config for
         :param system_blend_data: utils.blender() data for the System
-        :param distro_object: Optional, is used to access distro-specific information like arch when present
+        :param distro_obj: Optional, is used to access distro-specific information like arch when present
         """
         dhcp_tags: Dict[str, Any] = {"default": {}}
         processed_system_master_interfaces: Set[str] = set()
@@ -266,7 +266,15 @@ class _IscManager(DhcpManagerModule):
         prefix: str,
         ip_version: str,
     ) -> str:
-        """Find the first interface with an IP address that begins with prefix."""
+        """
+        Find the first interface whose *name* starts with ``prefix + "."`` and return its ``ip_address``/
+        ``ipv6_address`` attribute for ``ip_version``, or an empty string if no interface matches or has that
+        attribute.
+
+        :param interfaces: The interfaces to search, keyed by name.
+        :param prefix: The interface-name prefix to match (e.g. a bonded/bridged master interface's name).
+        :param ip_version: Either ``"ipv4"`` or ``"ipv6"``.
+        """
 
         if ip_version.lower() == "ipv4":
             attr_name = "ip_address"
@@ -308,9 +316,7 @@ class _IscManager(DhcpManagerModule):
         template_file: str,
         settings_file: str,
     ) -> None:
-        """DHCP files are written when ``manage_dhcp_v4`` or ``manage_dhcp_v6``
-        is set in the settings for the respective version. DHCPv4 files are
-        written when ``manage_dhcp_v4`` is set in our settings.
+        """Render and write a single DHCP config file (v4 or v6) using the template tagged ``template_file``.
 
         :param config_data: DHCP data to write.
         :param template_file: The location of the DHCP template.
@@ -383,7 +389,8 @@ class _IscManager(DhcpManagerModule):
                          service name passed to the process management module has the version appended (e.g.
                          ``dhcpd6``).
         :return: ``0`` on success. ``-1`` if the ``service_name`` executable could not be found; any other non-zero
-                 value indicates a failed config test or service restart.
+                 value is the return code of the service restart itself. (A failed config test, ``-t -q``, is
+                 logged but does not prevent or get returned as the restart attempt's result.)
         """
         dhcpd_path = shutil.which(service_name)
         if dhcpd_path is None:

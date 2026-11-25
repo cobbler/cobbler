@@ -127,8 +127,7 @@ def __validate_module(name: ModuleType) -> bool:
         * module must have certain methods implemented
         * those methods must have a certain signature
 
-    :param name: The name of the module to validate.
-    :param version: The migration version as List.
+    :param name: The module to validate.
     :return: True if every criteria is met otherwise False.
     """
     module_methods = {
@@ -216,7 +215,8 @@ def get_installed_version() -> CobblerVersion:
     """
     Retrieve the current Cobbler version from cobbler._version.
 
-    :return: The installed CobblerVersion, or EMPTY_VERSION on failure.
+    :raises RuntimeError: If ``cobbler._version`` was not initialized (``__version__`` is ``None``).
+    :return: The installed CobblerVersion, or EMPTY_VERSION if the version string couldn't be parsed.
     """
     if __version__ is None:
         raise RuntimeError("Cobbler._version was not initialized during build!")
@@ -279,6 +279,8 @@ def auto_migrate(
     :param yaml_dict: The settings dict to migrate.
     :param ignore_keys: The list of ignore keys to exclude from auto migration.
     :param settings_path: The path of the settings dict.
+    :raises RuntimeError: If automigration is disabled in ``yaml_dict``, or if the settings version cannot be
+                           discovered.
     :return: The migrated dict.
     """
     if not ignore_keys:
@@ -323,7 +325,8 @@ def migrate(
     :param old: The version to migrate from, defaults to EMPTY_VERSION.
     :param new: The version to migrate to, defaults to EMPTY_VERSION.
     :param ignore_keys: The list of settings to be excluded from migration.
-    :raises ValueError: Raised if attempting to downgrade.
+    :raises ValueError: Raised if only one of ``old``/``new`` is given (both or neither must be specified), or if
+                         attempting a downgrade (``old`` > ``new``).
     :return: The migrated dict.
     """
     if not ignore_keys:

@@ -67,7 +67,7 @@ class ItemGroup(InheritableItem, ABC):
     def _resolve_enum(
         self, property_name: List[str], enum_type: Type[enums.ConvertableEnum]
     ) -> Any:
-        # The DistroGroup doesn't have any enum types that need resolving.
+        # Item groups don't have any enum types that need resolving.
         return None
 
     def _resolve_list(self, property_name: List[str]) -> List[Any]:

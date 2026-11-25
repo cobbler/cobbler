@@ -88,13 +88,10 @@ class _BindManager(DnsManagerModule):
 
     def regen_hosts(self) -> None:
         """
-        No-op for BIND.
-
-        ``DnsManagerModule`` declares this as an abstract method so ``cobbler sync`` can call it unconditionally
-        before ``write_configs()``, regardless of which DNS manager is active. BIND has no separate hosts-file
-        regeneration step, though: :meth:`write_configs` (via the private ``__write_zone_files``) renders the zone
-        files - which serve the same purpose for BIND as a hosts file does for dnsmasq/ndjbdns - directly from the
-        current system list on every sync, so there is nothing for this method to do.
+        No-op for BIND. ``DnsManagerModule`` requires this method so ``cobbler sync`` can call it unconditionally,
+        but BIND has no separate hosts-file step: :meth:`write_configs` already (re)renders the zone files - which
+        serve the same purpose here as a hosts file does for dnsmasq/ndjbdns - from the current system list on
+        every sync.
         """
 
     def __find_named_template(self, tag: str, error_message: str) -> "Template":
@@ -709,8 +706,7 @@ zone "{arpa}." {{
 
     def restart_service(self) -> int:
         """
-        This syncs the bind server with it's new config files.
-        Basically this restarts the service to apply the changes.
+        Restarts the ``named``/``bind`` service so it picks up the newly written config files.
         """
         named_service_name = utils.named_service_name()
         return self.api.get_process_management_module().restart_service(

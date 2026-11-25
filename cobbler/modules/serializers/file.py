@@ -1,6 +1,6 @@
 """
 Cobbler's file-based object serializer.
-As of 9/2014, this is Cobbler's default serializer and the most stable one.
+This is Cobbler's default serializer and the most stable one.
 It uses multiple JSON files in /var/lib/cobbler/collections/distros, profiles, etc
 """
 

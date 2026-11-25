@@ -443,6 +443,7 @@ class BootableItem(InheritableItem, ABC):
 
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the values set could not be parsed successfully.
+        :raises TypeError: In case ``options`` was neither a str nor a dict.
         """
         try:
             value = input_converters.input_string_or_dict(options, allow_multiples=True)
@@ -480,6 +481,7 @@ class BootableItem(InheritableItem, ABC):
 
         :param options: The new kernel options as a space delimited list.
         :raises ValueError: In case the options could not be split successfully.
+        :raises TypeError: In case ``options`` was neither a str nor a dict.
         """
         try:
             value = input_converters.input_string_or_dict(options, allow_multiples=True)
@@ -512,6 +514,7 @@ class BootableItem(InheritableItem, ABC):
 
         :param options: The new options for the automatic installation meta options.
         :raises ValueError: If splitting the value does not succeed.
+        :raises TypeError: In case ``options`` was a list, which is not supported.
         """
         value = input_converters.input_string_or_dict(options, allow_multiples=True)
         if value == enums.VALUE_INHERITED:
@@ -542,6 +545,7 @@ class BootableItem(InheritableItem, ABC):
 
         :param template_files: The new value for the template files which are used for the item.
         :raises ValueError: In case the conversion from non dict values was not successful.
+        :raises TypeError: In case ``template_files`` was neither a str nor a dict.
         """
         try:
             self._template_files = input_converters.input_string_or_dict_no_inherit(

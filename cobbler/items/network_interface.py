@@ -215,7 +215,7 @@ class NetworkInterface(BaseItem):
         return None
 
     def _resolve_list(self, property_name: List[str]) -> Any:
-        # The networkinterface doesn't have any enum types that need resolving
+        # The networkinterface doesn't have any list types that need resolving
         return None
 
     def __get_raw_value(self, obj: Any, property_name: List[str]) -> Any:
@@ -397,6 +397,9 @@ class NetworkInterface(BaseItem):
 
         :param address: MAC address
         :raises CX: In case there a random mac can't be computed
+        :raises TypeError: In case ``address`` is not a string.
+        :raises ValueError: In case ``address`` has an invalid format, or a duplicate MAC is found and duplicates are
+                             disallowed.
         """
         address = validate.mac_address(address)
         if self._mac_address == address:

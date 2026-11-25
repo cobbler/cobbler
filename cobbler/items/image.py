@@ -476,8 +476,6 @@ class Image(BootableItem):
         r"""
         The name of the virtual bridge used for networking.
 
-        .. warning:: The new validation for the setter is not working. Thus the inheritance from the settings is broken.
-
         :getter: The name of the bridge.
         :setter: The new name of the bridge. If set to an empty ``str``, it will be taken from the settings.
         """
@@ -533,7 +531,7 @@ class Image(BootableItem):
         """
         Setter for the display_name of the item.
 
-        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        :param display_name: The new display_name.
         """
         self._display_name = display_name
 
@@ -554,6 +552,8 @@ class Image(BootableItem):
     def boot_loaders(self) -> List[enums.BootLoader]:
         """
         Represents the boot loaders which are able to boot this image.
+
+        .. note:: This property can be set to ``<<inherit>>``.
 
         :getter: The bootloaders. May be an emtpy list.
         :setter: A list with the supported boot loaders for this image.

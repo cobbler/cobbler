@@ -60,7 +60,9 @@ class Repos(collection.Collection[repo.Repo]):
         :param with_triggers: In case the Cobbler Trigger mechanism should be executed.
         :param recursive: In case you want to delete all objects this repository references.
         :param rebuild_menu: unused
-        :raises CX: Raised in case you want to delete a none existing repository.
+        :raises CX: In case ``ref`` is ``None``, or in case any profile referencing this repository would be
+                    orphaned. If the option ``recursive`` is set then the orphaned profiles would be removed
+                    automatically.
         """
         super().remove(
             ref,

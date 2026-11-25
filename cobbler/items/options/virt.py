@@ -73,7 +73,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @auto_boot.setter
     def auto_boot(self, value: Union[bool, str]):
         """
-        Setter for the auto_boot of the System class.
+        Setter for the auto_boot of the owning item.
 
         :param value: Weather the VM should automatically boot or not.
         """
@@ -98,7 +98,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @cpus.setter
     def cpus(self, num: Union[int, str]):
         """
-        Setter for the cpus of the System class.
+        Setter for the cpus of the owning item.
 
         :param num: The new value for the number of CPU cores.
         """
@@ -122,7 +122,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @file_size.setter
     def file_size(self, num: float):
         """
-        Setter for the file_size of the System class.
+        Setter for the file_size of the owning item.
 
         :param num: The new file size in GB for the virtual disk.
         """
@@ -145,7 +145,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @disk_driver.setter
     def disk_driver(self, driver: Union[str, enums.VirtDiskDrivers]):
         """
-        Setter for the disk_driver of the System class.
+        Setter for the disk_driver of the owning item.
 
         :param driver: The new disk driver for the virtual disk.
         """
@@ -164,7 +164,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @pxe_boot.setter
     def pxe_boot(self, num: bool):
         """
-        Setter for the pxe_boot of the System class.
+        Setter for the pxe_boot of the owning item.
 
         :param num: Whether the VM should PXE boot instead of using a local boot loader.
         """
@@ -185,7 +185,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @ram.setter
     def ram(self, num: Union[int, str]):
         """
-        Setter for the ram of the System class.
+        Setter for the ram of the owning item.
 
         :param num: The new amount of RAM in MBs.
         """
@@ -206,7 +206,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @type.setter
     def type(self, vtype: Union[enums.VirtType, str]):
         """
-        Setter for the type of the System class.
+        Setter for the type of the owning item.
 
         :param vtype: The new virtual type.
         """
@@ -229,7 +229,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @uefi.setter
     def uefi(self, value: bool):
         """
-        Setter for the uefi of the System class.
+        Setter for the uefi of the owning item.
 
         :param value: Whether the VM should boot via UEFI firmware.
         """
@@ -252,7 +252,7 @@ class VirtOption(ItemOption[Union["Image", "Profile", "System"]]):
     @path.setter
     def path(self, path: str):
         """
-        Setter for the path of the System class.
+        Setter for the path of the owning item.
 
         :param path: The new path.
         """

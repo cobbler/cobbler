@@ -78,6 +78,7 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
 
         :raises OSError: Raised if the rendered config file could not be written.
         :raises ValueError: Raised if ``config_data`` is empty or no dnsmasq template could be found.
+        :raises TypeError: Raised if the template search result is not a list.
         """
         if not config_data:
             raise ValueError("No config to write.")
@@ -166,6 +167,7 @@ class _DnsmasqManager(DnsManagerModule, DhcpManagerModule):
         Generate dnsmasq config for a single system.
 
         :param system_obj: System to generate dnsmasq config for
+        :raises ValueError: Raised if the system's profile or the profile's distro cannot be resolved.
         """
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.

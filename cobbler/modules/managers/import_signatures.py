@@ -139,8 +139,7 @@ class _ImportSignatureManager(ManagerModule):
 
     def get_file_lines(self, filename: str) -> Union[List[str], List[bytes]]:
         """
-        Get lines from a file, which may or may not be compressed. If compressed then it will be uncompressed using
-        ``gzip`` as the algorithm.
+        Get lines from a file, handling plain text, gzip-compressed text, and WIM archives (read via ``wiminfo``).
 
         :param filename: The name of the file to be read.
         :return: An array with all the lines.
@@ -178,7 +177,8 @@ class _ImportSignatureManager(ManagerModule):
         """
         This calls file and asks for the version number.
 
-        :return: The major file version number.
+        :return: A ``(major, minor)`` tuple of the ``file`` utility's version number, or ``(0, 0)`` if it could not
+                 be determined.
         """
         cmd = "/usr/bin/file"
         if os.path.exists(cmd):
@@ -592,7 +592,8 @@ class _ImportSignatureManager(ManagerModule):
         add it back in so that it's part of the meaningful name ... so this code helps figure out the arch name.  This
         is important for producing predictable distro names (and profile names) from differing import sources.
 
-        :return: The guessed architecture from a distribution dvd.
+        :return: The list of guessed architecture(s) from a distribution DVD (may contain more than one; callers
+                 such as `add_entry()` explicitly handle the multiple-arch case).
         """
 
         result: Dict[str, int] = {}
@@ -897,7 +898,8 @@ class _ImportSignatureManager(ManagerModule):
         that might not yet be available via updates in yum. This code identifies those areas. Existing repodata will be
         used as-is, but repodate is created for earlier, non-yum based, installers.
 
-        :param comps_path: Not know what this is exactly for.
+        :param comps_path: The directory being scanned for repo data (contains the ``base``/``repodata``
+                           subdirectory and the comps.xml file).
         :param distribution: The distributions to check.
         """
 
@@ -966,7 +968,8 @@ class _ImportSignatureManager(ManagerModule):
 
             # NOTE: the following file is now a Cheetah template, so it can be remapped during sync, that's why we have
             # the @@http_server@@ left as templating magic.
-            # repo_url2 is actually no longer used. (?)
+            # repo_url2 (baseurl) is the real mirror directory, consumed by autoinstall generation as the
+            # `repo --baseurl=` target.
 
             with open(fname, "w", encoding="UTF-8") as config_file:
                 config_file.write(f"[core-{counter}]\n")
@@ -1087,7 +1090,8 @@ class _ImportSignatureManager(ManagerModule):
         This tries to determine the apt mirror/archive to use (when processing repos) if the host machine is Debian or
         Ubuntu.
 
-        :return: False if the try fails or otherwise the mirrors.
+        :return: ``False`` if obtaining the mirror list raised an exception; otherwise the first mirror URL marked
+                 as the primary entry (``mirror[2]`` truthy), or ``None`` if none qualify.
         """
         try:
             sources = sourceslist.SourcesList()  # type: ignore

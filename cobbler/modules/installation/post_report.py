@@ -39,7 +39,7 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
                  1: name of target or profile
                  2: ip or "?"
     :return: ``0`` or ``1``.
-    :raises ValueError: Raised if the name given in ``args`` matches more than one system/profile.
+    :raises ValueError: Raised if the named system/profile cannot be found, or if the name matches more than one.
     :raises CX: Raised if the blender result is empty.
     :raises TypeError: Raised if the search for the build-reporting email template returns something other than a
                         list.

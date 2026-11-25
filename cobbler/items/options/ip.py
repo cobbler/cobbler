@@ -63,6 +63,8 @@ class IPOption(ItemOption["NetworkInterface"]):
         Setter for the default_gateway of the NetworkInterface class.
 
         :param address: The new default gateway for the interface.
+        :raises TypeError: In case ``address`` is not of type str.
+        :raises AddressValueError: In case ``address`` is not a valid IP address.
         """
         if not isinstance(address, str):  # type: ignore
             raise TypeError(
@@ -153,6 +155,8 @@ class IPv4Option(IPOption):
 
         :param address: IP address
         :raises ValueError: In case the IP address is already existing inside Cobbler.
+        :raises TypeError: In case ``address`` is not a string.
+        :raises AddressValueError: In case ``address`` is not a valid IPv4 address.
         """
         if self._address == address:
             return
@@ -238,6 +242,8 @@ class IPv6Option(IPOption):
 
         :param address: IP address
         :raises ValueError: IN case the IP is duplicated
+        :raises TypeError: In case ``address`` is not a string.
+        :raises AddressValueError: In case ``address`` is not a valid IPv6 address.
         """
         if self._address == address:
             return

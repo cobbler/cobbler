@@ -34,8 +34,9 @@ class KickstartGenerator(AutoinstallBaseGenerator):
         autoinstaller_subfile: str = "",
     ) -> str:
         """
-        Renders the object's Kickstart file (``obj.autoinstall``), flattening the ``kernel_options`` and
-        ``kernel_options_post`` metavariables into a string before templating.
+        Renders the object's Kickstart file (``obj.autoinstall``). Injects the ``yum_repo_stanza``/
+        ``yum_config_stanza`` metavariables (see :meth:`generate_autoinstall_metadata`) and flattens the
+        ``kernel_options``/``kernel_options_post`` metavariables into a string before templating.
         """
         if obj.TYPE_NAME not in ("profile", "system"):  # type: ignore
             raise ValueError("obj must be either a system or profile!")

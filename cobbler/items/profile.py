@@ -365,7 +365,7 @@ class Profile(BootableItem):
     @LazyProperty
     def distro(self) -> Optional["Distro"]:
         """
-        The parent distro of a profile. This is not representing the Distro but the id of it.
+        The parent distro of a profile.
 
         This is a required property, if saved to the disk, with the exception if this is a subprofile.
 
@@ -383,7 +383,7 @@ class Profile(BootableItem):
         """
         Sets the distro. This must be the uid of an existing Distro object in the Distros collection.
 
-        :param distro_uid: The uid of the distro.
+        :param distro_uid: The uid of the distro, or a Distro object.
         """
         distro = None
         if isinstance(distro_uid, Distro):
@@ -776,6 +776,7 @@ class Profile(BootableItem):
 
         :param boot_loaders: The boot loaders for the profile.
         :raises ValueError: In case the supplied boot loaders were not a subset of the valid ones.
+        :raises TypeError: In case the boot loaders were not of type str, list or cobbler.enums.BootLoader.
         """
         boot_loaders_split: List[enums.BootLoader] = []
         if isinstance(boot_loaders, list):
@@ -873,7 +874,7 @@ class Profile(BootableItem):
         """
         Setter for the display_name of the item.
 
-        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        :param display_name: The new display_name.
         """
         self._display_name = display_name
 

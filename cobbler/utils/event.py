@@ -39,7 +39,8 @@ class CobblerEvent:
         """
         Lists the members with their current values.
 
-        :returns: This converts all members to scalar types that can be passed via XML-RPC.
+        :returns: The members (``statetime``, ``name``, ``state.value``, ``read_by_who``) as XML-RPC-compatible
+                  types -- note ``read_by_who`` is a list of strings, not a scalar.
         """
         return [self.statetime, self.name, self.state.value, self.read_by_who]
 
@@ -61,8 +62,8 @@ class CobblerEvent:
         """
         Generate an event id based on the current timestamp
 
-        :return: An id in the format: "<4 digit year>-<2 digit month>-<two digit day>_<2 digit hour><2 digit minute>
-                 <2 digit second>_<optional string>"
+        :return: An id in the format: "<4 digit year>-<2 digit month>-<2 digit day>_<2 digit hour><2 digit minute>
+                 <2 digit second>_<event name>_<32-character uuid4 hex>"
         """
         (
             year,

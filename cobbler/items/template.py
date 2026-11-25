@@ -143,7 +143,7 @@ class Template(BaseItem):
         return None
 
     def _resolve_list(self, property_name: List[str]) -> Any:
-        # The template doesn't have any enum types that need resolving
+        # The template doesn't have any list types that need resolving
         return None
 
     def __get_raw_value(self, obj: Any, property_name: List[str]) -> Any:
@@ -164,8 +164,8 @@ class Template(BaseItem):
 
     def refresh_content(self) -> bool:
         """
-        Reads the template from the currently set uri and caches it in-memory. In case a given URI is
-        unavailable, the old template content is kept and a message is written to the log.
+        Reads the template from the currently set uri and caches it in-memory. In case a given URI is unavailable,
+        the old template content is kept and ``False`` is returned.
 
         :returns: If reading the template was successful.
         """
@@ -256,7 +256,7 @@ class Template(BaseItem):
         """
         Property that represents if a template is built-in or not.
 
-        If a template is built-in it is not persisted to disk and none of it effectively becomes read-only.
+        If a template is built-in it is not persisted to disk and its content is effectively read-only.
 
         :getter: Returns True if the template is built-in.
         """

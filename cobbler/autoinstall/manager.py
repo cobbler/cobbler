@@ -217,8 +217,9 @@ class AutoInstallationManager:
         autoinstaller_subfile: str = "",
     ) -> str:
         """
-        This is an internal method for generating an auto-installation config/script. Please use the
-        ``generate_autoinstall_for_*`` methods.
+        This is an internal method for generating an auto-installation config/script; prefer calling it
+        through the public API (e.g. :meth:`CobblerAPI.generate_autoinstall`) rather than invoking the
+        manager directly.
 
         :param obj: The profile or system to use for generating the auto-installation config/script.
         :param autoinstall_template: The template to render. Its tags must identify one of the known

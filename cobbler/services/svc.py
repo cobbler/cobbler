@@ -1,5 +1,5 @@
 """
-Mod Python service functions for Cobbler's public interface (aka cool stuff that works with wget/curl)
+WSGI service functions for Cobbler's public interface (aka cool stuff that works with wget/curl)
 
 Changelog:
 
@@ -95,7 +95,7 @@ value and when 'None' is a valid entry in a dictionary.
 
 class CobblerSvc:
     """
-    Interesting mod python functions are all keyed off the parameter mode, which defaults to index. All options are
+    Interesting functions are all keyed off the parameter mode, which defaults to index. All options are
     passed as parameters into the function.
     """
 
@@ -122,7 +122,7 @@ class CobblerSvc:
         """
         Get the application configuration.
 
-        :return: Settings object.
+        :return: The application configuration serialized as a JSON string.
         """
         return json.dumps(self.remote.get_settings(), indent=4)
 
@@ -284,7 +284,8 @@ class CobblerSvc:
 
     def events(self, user: str = "", **kwargs: Any) -> str:
         """
-        If no user is given then all events are returned. Otherwise only event associated to a user are returned.
+        Returns events from the last 30 seconds. If no user is given, all such recent events are returned; otherwise
+        only recent events associated with the given user are returned.
 
         :param user: Filter the events for a given user.
         :param kwargs: This parameter is unused.
@@ -567,7 +568,7 @@ def application(
     environ: Dict[str, Any], start_response: Callable[[str, List[Any]], None]
 ) -> List[bytes]:
     """
-    UWSGI entrypoint for Gunicorn
+    WSGI entrypoint for Gunicorn
 
     :param environ: The WSGI environment dict for the incoming request, as provided by Gunicorn.
     :param start_response: The WSGI ``start_response`` callable used to begin the HTTP response.

@@ -1,5 +1,6 @@
 """
-Authentication module that uses /etc/cobbler/auth.conf
+Authentication module that authenticates against the system's Pluggable Authentication Modules (PAM) stack, using the
+PAM service name configured via `authn_pam_service` (default `login`).
 Choice of authentication module is in /etc/cobbler/modules.conf
 
 

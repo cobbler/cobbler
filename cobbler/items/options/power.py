@@ -64,6 +64,7 @@ class PowerOption(ItemOption["System"]):
 
         :param power_type: The new value for the ``power_type`` property.
         :raises TypeError: In case power_type is no string.
+        :raises CX: In case ``power_type`` is not a supported power management type.
         """
         if not isinstance(power_type, str):  # type: ignore
             raise TypeError("power_type must be of type str")

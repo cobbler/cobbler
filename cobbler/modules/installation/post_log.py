@@ -35,9 +35,10 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
         - 1: the name of the system or profile
         - 2: the ip or a "?"
 
-    :param api: This parameter is unused currently.
+    :param api: Used to look up the system/profile by name via `api.find_items()`.
     :param args: An array of three elements. Type (system/profile), name and ip. If no ip is present use a ``?``.
-    :return: Always 0
+    :return: ``0`` on success; ``1`` if `objtype` is invalid, the named item cannot be found, or the ip address is
+             neither `?` nor a valid IPv4/IPv6 address.
     """
     objtype = args[0]
     name = args[1]

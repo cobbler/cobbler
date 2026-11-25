@@ -274,6 +274,7 @@ class BaseItem(ABC):
         Setter for the modification time of the object.
 
         :param mtime: The new modification time.
+        :raises TypeError: In case ``mtime`` was not of type float.
         """
         if not isinstance(mtime, float):  # type: ignore
             raise TypeError("mtime needs to be of type float")
@@ -324,7 +325,7 @@ class BaseItem(ABC):
         """
         Setter for the comment of the item.
 
-        :param comment: The new comment. If ``None`` the comment will be set to an emtpy string.
+        :param comment: The new comment.
         """
         self._comment = comment
 
@@ -558,7 +559,7 @@ class BaseItem(ABC):
 
     def deserialize(self) -> None:
         """
-        Deserializes the object itself and, if necessary, recursively all the objects it depends on.
+        Deserializes the object itself.
         """
         if not self._has_initialized:
             return

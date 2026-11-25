@@ -188,7 +188,8 @@ class PowerManager:
                      COBBLER_POWER_USER and COBBLER_POWER_PASS will be used.
         :param password: power management password
         :return: bool/None if power operation is 'status', return if system is on; otherwise, return None
-        :raise CX: if there are errors
+        :raises ValueError: If the system has no power type set.
+        :raises CX: If the power command fails or returns unexpected output.
         """
 
         power_command = get_power_command(system.power.type)
@@ -261,7 +262,6 @@ class PowerManager:
         Powers up a system that has power management configured.
 
         :param system: Cobbler system
-        :type system: System
         :param user: power management user
         :param password: power management password
         """
@@ -278,7 +278,6 @@ class PowerManager:
         Powers down a system that has power management configured.
 
         :param system: Cobbler system
-        :type system: System
         :param user: power management user
         :param password: power management password
         """
@@ -295,7 +294,6 @@ class PowerManager:
         Reboot a system that has power management configured.
 
         :param system: Cobbler system
-        :type system: System
         :param user: power management user
         :param password: power management password
         """
@@ -314,7 +312,6 @@ class PowerManager:
         Get power status for a system that has power management configured.
 
         :param system: Cobbler system
-        :type system: System
         :param user: power management user
         :param password: power management password
         :return: if system is powered on

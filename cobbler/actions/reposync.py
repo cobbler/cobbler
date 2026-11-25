@@ -1,6 +1,5 @@
 """
-Builds out and synchronizes yum repo mirrors.
-Initial support for rsync, perhaps reposync coming later.
+Builds out and synchronizes repository mirrors (yum, apt, rsync, and wget) for 'cobbler reposync'.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -71,7 +70,7 @@ def repo_walker(
 
 class RepoSync:
     """
-    Handles conversion of internal state to the tftpboot tree layout.
+    Handles synchronizing (mirroring) configured repositories into the repo_mirror directory.
     """
 
     # ==================================================================================
@@ -430,9 +429,11 @@ class RepoSync:
     @staticmethod
     def reposync_cmd() -> List[str]:
         """
-        Determine reposync command
+        Determine reposync command.
 
-        :return: The path to the reposync command. If dnf exists it is used instead of reposync.
+        :return: ``/usr/bin/reposync`` if present, otherwise ``dnf reposync`` (DNF5 has no reposync subcommand,
+                 so this fallback path matters only for DNF4-based systems without yum-utils installed).
+        :raises CX: If neither is available, or if librepo is not installed.
         """
 
         if not HAS_LIBREPO:
