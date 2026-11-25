@@ -1,0 +1,1 @@
+Validates that a distro's kernel and initrd are either both local paths or both remote.

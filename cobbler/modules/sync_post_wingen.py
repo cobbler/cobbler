@@ -458,14 +458,12 @@ def run(api: "CobblerAPI", args: Any):
             )
 
         if "post_install_script" in meta:
-            # Previously written into distro_path/[sources/]$OEM$/$1 so Windows's own
-            # pre-first-logon $OEM$ copy mechanism would place it at C:\. That mechanism requires
-            # the file to live inside the distro's own source tree, which direct_source
-            # (managers.dynamic_httpd) imports serve read-only (e.g. a loop-mounted ISO) -- writing
-            # there always failed. The answerfile's FirstLogonCommands now downloads this file over
-            # HTTP instead of relying on $OEM$ to have copied it (see answerfile.template), so it can
-            # be written to the same already-writable location as every other sync-generated Windows
-            # file (distro_dir/web_dir), with no distro-tree write at all.
+            # The answerfile's FirstLogonCommands downloads this script over HTTP (see
+            # answerfile.template) rather than relying on Windows's own $OEM$ copy-to-target
+            # mechanism, which would require writing into the distro's own source tree -- a tree
+            # that a direct_source (managers.dynamic_httpd) import (e.g. a loop-mounted ISO) serves
+            # read-only. This lets the script be written to the same already-writable location as
+            # every other sync-generated Windows file (distro_dir/web_dir).
             data = templ.render(windows_post_inst_cmd_template.content, meta, None)
             post_install_script = os.path.join(distro_dir, meta["post_install_script"])
             logger.info("Build post install script: %s", post_install_script)

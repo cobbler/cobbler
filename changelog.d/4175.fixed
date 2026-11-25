@@ -1,0 +1,1 @@
+Fix MongoDB serializer compatibility with recent pymongo versions.

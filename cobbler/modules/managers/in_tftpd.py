@@ -185,7 +185,7 @@ class _InTftpdManager(TftpManagerModule):
 
     def sync(self) -> int:
         """
-        Write out all files to /tftpdboot
+        Write out all files to /tftpboot
         """
         self.logger.info("copying bootloaders")
         self.api.tftpgen.copy_bootloaders(self.bootloc)

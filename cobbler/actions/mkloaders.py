@@ -1,7 +1,8 @@
-"""Cobbler action to create bootable Grub2 images.
+"""Cobbler action to provision network bootloaders.
 
-This action calls grub2-mkimage for all bootloader formats configured in
-Cobbler's settings. See man(1) grub2-mkimage for available formats.
+Symlinks the shim, iPXE, and syslinux bootloaders from their system install locations, and builds GRUB2
+images via grub2-mkimage for all bootloader formats configured in Cobbler's settings. See man(1)
+grub2-mkimage for available formats.
 """
 
 import logging

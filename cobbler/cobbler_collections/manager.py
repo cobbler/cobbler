@@ -272,8 +272,8 @@ class CollectionManager:
         """
         Get a full collection of a single type.
 
-        Valid Values vor ``collection_type`` are: "distro", "profile", "repo", "image", "menu", "network_interface",
-        "template", "distro_group", "profile_group", "system_group" and "settings".
+        Valid values for ``collection_type`` are: "distro", "profile", "system", "repo", "image", "menu",
+        "network_interface", "template", "distro_group", "profile_group" and "system_group".
 
         :param collection_type: The type of collection to return.
         :return: The collection if ``collection_type`` is valid.

@@ -83,7 +83,7 @@ Performance Note
 
 If you have a very large number of systems, using the Cobbler API from scripts with old style (non-Python modules, just
 scripts in ``/var/lib/cobbler/triggers``) is a very very bad idea. The reason for this is that the Cobbler API brings
-the Cobbler engine up with it, and since it's a seperate process, you have to wait for that to load. If you invoke 3000
+the Cobbler engine up with it, and since it's a separate process, you have to wait for that to load. If you invoke 3000
 triggers editing 3000 objects, you can see where this would get slow pretty quickly. However, if you write a modular
 trigger (see above) this suffers no performance penalties -- it's crazy fast and you experience no problems.
 
@@ -96,12 +96,11 @@ For security reasons do not loosen these permissions.
 .. warning::
    Any standalone script (a script-based trigger below, or any other one-off script, e.g. for bulk imports or
    maintenance tasks) that instantiates its own ``CobblerAPI()`` runs as a separate OS process with its own,
-   independently-loaded copy of the collections -- it does **not** share memory with an already-running
-   ``cobblerd``. Changes it makes (adds/edits) are correctly written to the on-disk JSON files, but ``cobblerd``
-   has no way to detect out-of-band disk changes and will not pick them up until it is restarted; until then they
-   are invisible to the live XML-RPC API and to anything built on it (e.g. ``cobbler`` CLI reports). If a script
-   needs its changes to show up immediately, talk to ``cobblerd``'s own XML-RPC API instead, or restart
-   ``cobblerd`` afterward.
+   independently-loaded copy of the collections -- it does **not** share memory with an already-running ``cobblerd``.
+   Changes it makes (adds/edits) are correctly written to the on-disk JSON files, but ``cobblerd`` has no way to detect
+   out-of-band disk changes and will not pick them up until it is restarted; until then they are invisible to the live
+   XML-RPC API and to anything built on it (e.g. ``cobbler`` CLI reports). If a script needs its changes to show up
+   immediately, talk to ``cobblerd``'s own XML-RPC API instead, or restart ``cobblerd`` afterward.
 
 Example trigger for resetting Cfengine keys
 ===========================================
@@ -176,11 +175,11 @@ Python Files and the configuration
 ==================================
 
 To create a module, add a Python file in ``/usr/lib/python$version/site-packages/cobbler/modules``. Then, in the
-appropriate part of the configuration, reference the name of your module so Cobbler knows that you want to
-activate the module.
+appropriate part of the configuration, reference the name of your module so Cobbler knows that you want to activate the
+module.
 
-(:ref:`triggers` that are Python modules, as well as CLI Python modules don't need to be listed in this file, they
-are auto-loaded)
+(:ref:`triggers` that are Python modules, as well as CLI Python modules don't need to be listed in this file, they are
+auto-loaded)
 
 An example from the serializers is:
 
@@ -190,8 +189,8 @@ An example from the serializers is:
       serializers:
         module: "serializer.file"
 
-Each module, regardless of it's nature, must have the following function that returns the type of module (as a string)
-on an acceptable load (when the module can be loaded) or raises an exception otherwise.
+Each module, regardless of its nature, must have the following function that returns the type of module (as a string) on
+an acceptable load (when the module can be loaded) or raises an exception otherwise.
 
 The trivial case for a cli module is:
 

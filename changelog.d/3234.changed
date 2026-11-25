@@ -1,0 +1,1 @@
+Switches Cobbler's web service from uWSGI to Gunicorn.

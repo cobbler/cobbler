@@ -38,8 +38,8 @@ def run(api: "CobblerAPI", args: List[str]) -> int:
     :param api: The api to resolve all information with.
     :param args: This is an array with two items. The first must be ``system``, if the value is different we do an
                  early and the second is the name of this system or profile.
-    :return: ``0`` or nothing.
-    :raises ValueError: Raised if the name given in ``args`` matches more than one system.
+    :return: Always ``0``.
+    :raises ValueError: Raised if the named system cannot be found, or if the name matches more than one system.
     """
     objtype = args[0]
     name = args[1]

@@ -359,9 +359,7 @@ class System(BootableItem):
         r"""
         Represents all interfaces owned by the system.
 
-        :getter: The interfaces present. Has at least the ``default`` one.
-        :setter: Accepts not only the correct type but also a dict with dicts which will then be converted by the
-                 setter.
+        :getter: The interfaces currently attached to this system. May be empty.
         """
         search_result = self.api.find_network_interface(
             return_list=True, system_uid=self.uid
@@ -475,6 +473,7 @@ class System(BootableItem):
 
         :param boot_loaders: The boot loaders for the system.
         :raises CX: This is risen in case the bootloaders set are not valid ones.
+        :raises TypeError: In case the boot loaders were not of type str, list or cobbler.enums.BootLoader.
         """
         boot_loaders_split: List[enums.BootLoader] = []
         if isinstance(boot_loaders, list):
@@ -801,7 +800,8 @@ class System(BootableItem):
         Set a gateway IPv4 address.
 
         :param gateway: IP address
-        :returns: True or CX
+        :raises TypeError: In case ``gateway`` is not a string.
+        :raises AddressValueError: In case ``gateway`` is not a valid IPv4 address.
         """
         self._gateway = validate.ipv4_address(gateway)
 
@@ -1047,7 +1047,7 @@ class System(BootableItem):
         Setter for the repos_enabled of the System class.
 
         :param repos_enabled: The new value for the ``repos_enabled`` property.
-        :raises TypeError: In case is no string.
+        :raises TypeError: In case the value could not be converted to bool.
         """
         repos_enabled = input_converters.input_boolean(repos_enabled)
         if not isinstance(repos_enabled, bool):  # type: ignore
@@ -1154,7 +1154,7 @@ class System(BootableItem):
         """
         Setter for the display_name of the item.
 
-        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        :param display_name: The new display_name.
         """
         self._display_name = display_name
 

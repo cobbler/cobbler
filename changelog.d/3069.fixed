@@ -1,0 +1,1 @@
+Add regex matching for ESXi kernel and initrd filenames during import.

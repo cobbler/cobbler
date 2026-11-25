@@ -635,8 +635,9 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
 
 def migrate_cobbler_collections(collections_dir: str) -> None:
     """
-    Manipulate the main Cobbler stored collections and migrate deprecated settings
-    to work with newer Cobbler versions.
+    Reshape per-item JSON fields that changed shape in V4.0.0: normalize an empty "interface_type" to "NA",
+    drop the removed "fetchable_files" field, and merge "boot_files" into "template_files" (unless
+    "boot_files" is the inherited sentinel "<<inherit>>").
 
     :param collections_dir: The directory of Cobbler where the collections files are.
     """

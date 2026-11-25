@@ -7,8 +7,8 @@ Cobbler - a provisioning and update server
 Preamble
 ########
 
-We will refer to `cobblerd` here as "cobbler" because `cobblerd` is short for cobbler-daemon which is basically the server.
-The CLI will be referred to as Cobbler-CLI and Koan as Koan.
+We will refer to `cobblerd` here as "cobbler" because `cobblerd` is short for cobbler-daemon which is basically the
+server. The CLI will be referred to as Cobbler-CLI and Koan as Koan.
 
 Description
 ###########
@@ -31,8 +31,8 @@ Images are a catch-all concept for things that do not play nicely in the "distri
 need these records initially and these are described later in the document.
 
 The main advantage of cobbler is that it glues together many disjoint technologies and concepts and abstracts the user
-from the need to understand them. It allows the systems administrator to concentrate on what he needs to do, and not
-how it is done.
+from the need to understand them. It allows the systems administrator to concentrate on what he needs to do, and not how
+it is done.
 
 This manpage will focus on the cobbler command line tool for use in configuring cobbler. There is also mention of the
 Cobbler WebUI which is usable for day-to-day operation of Cobbler once installed/configured. Docs on the API and XML-RPC
@@ -47,7 +47,7 @@ Setup
 #####
 
 After installing, run ``cobbler check`` to verify that cobbler's ecosystem is configured correctly. Cobbler check will
-direct you on how to modify it's config files using a text editor.
+direct you on how to modify its config files using a text editor.
 
 Any problems detected should be corrected, with the potential exception of DHCP related warnings where you will need to
 use your judgement as to whether they apply to your environment. Run ``cobbler sync`` after making any changes to the

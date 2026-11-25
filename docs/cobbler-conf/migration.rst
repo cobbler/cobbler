@@ -5,14 +5,40 @@ Updates to the yaml-settings-file
 Starting with 4.0.0
 ###################
 
-- TBD
+- The deprecated ``settings.d`` directory and its ``include`` key (deprecated since 3.3.0) have been removed.
+- ``mgmt_classes``/``mgmt_parameters`` were removed, both as global settings and as per-item fields. The Management
+  Classes feature no longer exists.
+- ``manage_dhcp`` is no longer a ``settings.yaml`` key. It still exists as a read-only, computed property
+  (``manage_dhcp_v4 or manage_dhcp_v6``) for API consumers, but you can no longer set it directly; use
+  ``manage_dhcp_v4``/``manage_dhcp_v6`` instead.
+- ``jinja2_includedir``, ``iso_template_dir``, ``boot_loader_conf_template_dir``, ``autoinstall_snippets_dir`` and
+  ``windows_template_dir`` were removed. Their on-disk contents are migrated into the new ``Template`` item collection
+  (see :ref:`templating`).
+- The standalone ``/etc/cobbler/mongodb.conf`` and ``/etc/cobbler/modules.conf`` files are gone. Their settings now live
+  directly in ``settings.yaml`` under the new ``mongodb`` and ``modules`` keys; existing values are carried over
+  automatically and the old files are deleted during migration.
+- ``convert_server_to_ip`` changed from a plain boolean to an object: ``{enabled: bool, protocol: "ipv4"|"ipv6"}``. Old
+  boolean values migrate to ``{enabled: <old value>, protocol: "ipv4"}``.
+- ``nsupdate_tsig_algorithm``/``nsupdate_tsig_key`` were replaced by ``nsupdate_tsig``, a per-nameserver mapping of TSIG
+  keys. A new ``nsupdate_mgm_txt`` toggle was also added.
+- New optional settings were added: ``redhat_management_user``/``redhat_management_password`` (an alternate
+  Satellite/Spacewalk registration method), ``xmlrpc_bind_address_v4``/``xmlrpc_bind_address_v6``/``xmlrpc_host`` (for
+  split-container deployments, see :ref:`docker-deployment`), ``uyuni_authentication_endpoint``, ``autoinstall_scheme``,
+  ``autoinstall_templates_allow_new_files`` and ``memory_indexes``. None of these require changes to an existing
+  settings file, as they all have defaults.
+
+Starting with 3.3.5
+###################
+
+- Two new settings were added: ``cache_enabled`` and ``lazy_start``. Both are optional booleans, so existing settings
+  files migrate without needing any changes.
 
 Starting with 3.3.3
 ###################
 
 - ``default_virt_file_size`` is now a float as intended.
-- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can
-  ignore it if you don't run one of the two solutions or a derivative of it.
+- We added the ``proxies`` key for first-level Uyuni & SUSE Manager support. It is optional, so you can ignore it if you
+  don't run one of the two solutions or a derivative of it.
 
 Starting with 3.3.2
 ###################
@@ -35,8 +61,7 @@ Starting with 3.3.0
 
 - There is a new CLI tool called ``cobbler-settings`` which can be used to validate and migrate settings files from
   differente versions and to modify keys in the current settings file. Have a look at the migration matrix in the next
-  paragraph to see the supported migration paths.
-  Furthermore the auto migration feature can be enabled or disabled.
+  paragraph to see the supported migration paths. Furthermore the auto migration feature can be enabled or disabled.
 
 - A new settings auto migration feature was implemented which automatically updates the settings when installing a new
   version. A backup of the old settings file will be created in the same folder beforehand.
@@ -51,5 +76,5 @@ Starting with 3.2.1
   enforce our new way in a stricter manner. Automatic conversion is only done on a best-effort/available-resources
   basis.
 - We enforce the types of values to the keys. Additional unexpected keys will throw errors. If you have those used in
-  Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence
-  of the values. This gives us the freedom to write fewer access checks to the settings without losing stability.
+  Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence of
+  the values. This gives us the freedom to write fewer access checks to the settings without losing stability.

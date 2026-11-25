@@ -7,14 +7,15 @@ The TFTP Directory
 For booting machines in a PXE and/or HTTP-Boot environment the TFTP directory is the most important directory. This
 folder contains all static files required for booting a system.
 
-The folder of this is dependant on your distro and can be changed in the Cobbler settings. The default should be
+The folder of this is dependent on your distro and can be changed in the Cobbler settings. The default should be
 correctly set during the package build of your Linux distro or during the installation process (if you are use the
 source installation).
 
 Behaviour
 #########
 
-A good explanation of ``cobbler sync`` can be found here: :ref:`cli-cobbler-sync`
+A good explanation of ``cobbler sync`` can be found in the `Cobbler CLI documentation
+<https://cobbler-cli.readthedocs.io/en/latest/>`_.
 
 In the following we will examine the behaviour for the TFTP directory more in details.
 
@@ -73,8 +74,8 @@ from. Those files should not be touched by Cobbler and should survive even a ``c
   If available this directory will also contain the ``shim.efi`` file.
 * ``tftpboot/grub/system``: Normally contains the GRUB config for the MAC in the filename.
 
-.. note:: In case Cobbler is not able to find a MAC for the interface it tries to generate an entry for, it applies
-          a fallback strategy. First it tries the IP address. If that was not successful, it finally uses the name if no
+.. note:: In case Cobbler is not able to find a MAC for the interface it tries to generate an entry for, it applies a
+          fallback strategy. First it tries the IP address. If that was not successful, it finally uses the name if no
           IP address is known to Cobbler.
 
 * ``tftpboot/grub.cfg``: Rescue config file which serves as a pointer on the client side because the error message shows
@@ -84,8 +85,8 @@ from. Those files should not be touched by Cobbler and should survive even a ``c
   ``kernel`` and ``initrd`` attributes in a Cobbler distro item.
 * ``tftpboot/ipxe/default.ipxe``: Cobbler will generate the iPXE menu for you. This is the file where all menu entries
   will be stored. It will be overwritten regularly by either a change in a distro or by the command ``cobbler sync``.
-* ``tftpboot/pxelinux.0``: The binary for executing the pxelinux bootloader. This is taken from your system at
-  ``cobbler sync`` time.
+* ``tftpboot/pxelinux.0``: The binary for executing the pxelinux bootloader. This is taken from your system at ``cobbler
+  sync`` time.
 * ``tftpboot/pxelinux.cfg``: Normally this directory contains two types of files
     #. The configuration for each system where the file name is the MAC of the system.
     #. The file named ``default`` which is used for all PXE Clients not known by MAC address.
@@ -96,23 +97,23 @@ from. Those files should not be touched by Cobbler and should survive even a ``c
 Dynamic (no-copy) TFTP serving
 ###############################
 
-Everything described above is the behaviour of the default ``managers.in_tftpd`` module (see ``modules.tftpd.module``
-in :ref:`settings-ref`), which materializes the TFTP directory on disk so that a normal ``tftpd``/``in.tftpd``
-process can serve it statically.
+Everything described above is the behaviour of the default ``managers.in_tftpd`` module (see ``modules.tftpd.module`` in
+:ref:`settings-ref`), which materializes the TFTP directory on disk so that a normal ``tftpd``/``in.tftpd`` process can
+serve it statically.
 
 Cobbler also ships a second module, ``managers.dynamic_tftp``, for use with a separate, stateless TFTP server such as
-`cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_. Instead of materializing files on disk, that server calls
-back into Cobbler's XML-RPC API (``get_tftp_file``) for every request, and Cobbler resolves the requested path on the
-fly -- reading bootloaders/kernels/initrds/images straight from where they already live, and rendering PXE/GRUB/menu
-configuration in memory.
+`cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_ (`documentation <https://cobbler-tftp.rtfd.io/en/latest/>`_).
+Instead of materializing files on disk, that server calls back into Cobbler's XML-RPC API (``get_tftp_file``) for every
+request, and Cobbler resolves the requested path on the fly -- reading bootloaders/kernels/initrds/images straight from
+where they already live, and rendering PXE/GRUB/menu configuration in memory.
 
 When ``managers.dynamic_tftp`` is selected:
 
-* None of the "Behaviour" steps above happen. ``cobbler sync`` becomes a no-op with respect to the TFTP directory --
-  no directories are created, no bootloaders/kernels/initrds/images are copied, and no PXE/GRUB configuration files
-  are written to disk.
-* The default ``tftpboot/grub.cfg``/``tftpboot/grub/*`` content is served directly from Cobbler's bundled package
-  data instead of being copied anywhere. To override it with your own default GRUB configuration, drop the replacement
+* None of the "Behaviour" steps above happen. ``cobbler sync`` becomes a no-op with respect to the TFTP directory -- no
+  directories are created, no bootloaders/kernels/initrds/images are copied, and no PXE/GRUB configuration files are
+  written to disk.
+* The default ``tftpboot/grub.cfg``/``tftpboot/grub/*`` content is served directly from Cobbler's bundled package data
+  instead of being copied anywhere. To override it with your own default GRUB configuration, drop the replacement
   file(s) into ``grubconfig_dir`` (``/var/lib/cobbler/grub_config`` by default) -- this directory is always checked
   before the bundled default, for both the classic and the dynamic module.
 * ``manage_tftpd`` must be set to ``False``. It only controls whether Cobbler manages a local ``in.tftpd``-style

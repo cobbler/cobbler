@@ -56,8 +56,8 @@ Import an ESXi distro
     mount -t iso9660 /srv/VMware-VMvisor-Installer-7.0U3d-19482537.x86_64.iso /mnt
     cobbler import --name=esxiv70U3d --path=/mnt --arch=x86_64
 
-Import will detect the breed as ``vmware`` and os-version as ``esxi70``; it will create a distro named ``esxiv70U3d-x86_64``
-and a profile with the same ``esxiv70U3d-x86_64`` name.
+Import will detect the breed as ``vmware`` and os-version as ``esxi70``; it will create a distro named
+``esxiv70U3d-x86_64`` and a profile with the same ``esxiv70U3d-x86_64`` name.
 
 Add a system
 ============
@@ -97,12 +97,12 @@ You should now be able to pxe boot your system (BIOS or UEFI firmware) and insta
 Providing Cobbler the ESXi bootloaders
 ######################################
 
-ESXi own bootloader is available on `github <https://github.com/vmware/esx-boot>`_; this guides uses the ESXi install ISO as an
-easier way to provide cobbler with the ESXi bootloaders, instead of compiling from source.
+ESXi own bootloader is available on `github <https://github.com/vmware/esx-boot>`_; this guides uses the ESXi install
+ISO as an easier way to provide cobbler with the ESXi bootloaders, instead of compiling from source.
 
 .. note::
-    ESXi **does not support GRUB**; you can find the details on this
-    `VMware community thread <https://communities.vmware.com/t5/ESXi-Discussions/Has-anyone-been-able-to-invoke-the-VMware-BOOTX64-efi-from-a/td-p/2194918>`_;
+    ESXi **does not support GRUB**; you can find the details on this `VMware community thread
+    <https://communities.vmware.com/t5/ESXi-Discussions/Has-anyone-been-able-to-invoke-the-VMware-BOOTX64-efi-from-a/td-p/2194918>`_;
     (useful comments from the esx-boot author TimMann).
 
 ESXi provides network bootloaders for:
@@ -124,23 +124,23 @@ A cobbler setup with all the ESXi bootloaders would look like:
     -rw-r--r-- 1 root root 185K Jul 14 13:54 snponly.efi
     -rw-r--r-- 1 root root  72K Jul 18 07:26 undionly.pxe
 
-Note that ``mboot.c32``, the esxi network bootloader for BIOS firmware, is not listed as it will be downloaded from the images/distro
-directory in the tftp boot location.
+Note that ``mboot.c32``, the esxi network bootloader for BIOS firmware, is not listed as it will be downloaded from the
+images/distro directory in the tftp boot location.
 
 Booting from BIOS firmware
 ==========================
 
 .. note::
-    As stated on VMware docs, *The ESXi boot loader for BIOS systems, mboot.c32, runs as a SYSLINUX plugin. VMware builds
-    the mboot.c32 plugin to work with SYSLINUX version 3.86 and tests PXE booting only with that version. Other versions
-    might be incompatible.*
+    As stated on VMware docs, *The ESXi boot loader for BIOS systems, mboot.c32, runs as a SYSLINUX plugin. VMware
+    builds the mboot.c32 plugin to work with SYSLINUX version 3.86 and tests PXE booting only with that version. Other
+    versions might be incompatible.*
 
 SYSLINUX packages (all versions) can be found at `<https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/>`_.
 While syslinux 4.x still worked for ESXi (as for example syslinux 4.05 on rhel7), latest syslinux 6.x is not compatible
 with the ``mboot.c32`` plugin (as for example syslinux 6.04 on rhel8).
 
-Providing cobbler with ``pxelinux.0`` from syslinux 3.86 is therefore needed to pxe boot the ESXi installer.
-To avoid overwriting other ``pxelinux.0`` such as the provided via ``cobbler mkloaders`` command, version 3.86 should be placed
+Providing cobbler with ``pxelinux.0`` from syslinux 3.86 is therefore needed to pxe boot the ESXi installer. To avoid
+overwriting other ``pxelinux.0`` such as the provided via ``cobbler mkloaders`` command, version 3.86 should be placed
 on the esxi directory of the `bootloaders_dir`.
 
 The following code snippet shows how to provide cobbler with ``pxelinux.0`` from syslinux version 3.86:
@@ -159,12 +159,12 @@ The following code snippet shows how to provide cobbler with ``pxelinux.0`` from
 
 During the network boot process:
 
-* the DHCP server will provide the booting host with the IP address of the TFTP server
-  and the location of filename ``esxi/pxelinux.0``.
+* the DHCP server will provide the booting host with the IP address of the TFTP server and the location of filename
+  ``esxi/pxelinux.0``.
 * On the booting host (with MAC address ``01:23:45:67:89:ab``) , PXELINUX will request the file
   ``esxi/pxelinux.cfg/01-01-23-45-67-89-ab``
-* that file will provide the kernel tftp path to ``mboot.c32`` (from the distro images link),
-  and append the ``boot.cfg`` file for the host:
+* that file will provide the kernel tftp path to ``mboot.c32`` (from the distro images link), and append the
+  ``boot.cfg`` file for the host:
 
 .. code-block:: console
 
@@ -183,14 +183,14 @@ During the network boot process:
 Booting from UEFI firmware
 ==========================
 
-The ESXi UEFI bootloader can be found in the ESXi installation iso at ``efi/boot/bootx64.efi``. You will need to provide the
-``bootx64.efi`` bootloader to cobbler, renamed as ``mboot.efi``, on the esxi directory of the `bootloaders_dir`.
+The ESXi UEFI bootloader can be found in the ESXi installation iso at ``efi/boot/bootx64.efi``. You will need to provide
+the ``bootx64.efi`` bootloader to cobbler, renamed as ``mboot.efi``, on the esxi directory of the `bootloaders_dir`.
 
 .. note::
-    As stated on VMware docs, *try to provide cobbler with the latest ESXi UEFI bootloader:
-    Newer versions of mboot.efi can generally boot older versions of ESXi, but older versions of mboot.efi might be unable to boot
-    newer versions of ESXi. If you plan to configure different hosts to boot different versions of the ESXi installer, use the
-    mboot.efi from the newest version.*
+    As stated on VMware docs, *try to provide cobbler with the latest ESXi UEFI bootloader: Newer versions of mboot.efi
+    can generally boot older versions of ESXi, but older versions of mboot.efi might be unable to boot newer versions of
+    ESXi. If you plan to configure different hosts to boot different versions of the ESXi installer, use the mboot.efi
+    from the newest version.*
 
 The following code snippet shows how to provide cobbler with the ``mboot.efi`` bootloader:
 
@@ -207,26 +207,29 @@ The following code snippet shows how to provide cobbler with the ``mboot.efi`` b
     umount /mnt
     cobbler sync
 
-* During the network process, for a system with MAC address ``01:23:45:67:89:ab``, the DHCP server will provide the booting host
-  with the IP address of the TFTP server and the location of filename ``esxi/system/01-01-23-45-67-89-ab/mboot.efi``.
-* Then ``mboot.efi`` will try to download the ``boot.cfg`` file from the same location: ``esxi/system/01-01-23-45-67-89-ab/boot.cfg``
+* During the network process, for a system with MAC address ``01:23:45:67:89:ab``, the DHCP server will provide the
+  booting host with the IP address of the TFTP server and the location of filename
+  ``esxi/system/01-01-23-45-67-89-ab/mboot.efi``.
+* Then ``mboot.efi`` will try to download the ``boot.cfg`` file from the same location:
+  ``esxi/system/01-01-23-45-67-89-ab/boot.cfg``
 
 Booting from iPXE
 =================
 
 iPXE can be used to boot the ESXi installer:
 
-* For BIOS firmware, iPXE works chainloading the syslinux ``pxelinux.0`` (from version 3.86). We need to provide cobbbler the
-  iPXE ``undionly.kpxe`` driver renamed as ``undionly.pxe`` for consistency with the naming in cobbler.
-* For UEFI firmware, iPXE works chainloading the ESXi UEFI bootloader (``mboot.efi``). We need to provide cobbler the iPXE
-  ``snponly.efi``. driver.
+* For BIOS firmware, iPXE works chainloading the syslinux ``pxelinux.0`` (from version 3.86). We need to provide
+  cobbbler the iPXE ``undionly.kpxe`` driver renamed as ``undionly.pxe`` for consistency with the naming in cobbler.
+* For UEFI firmware, iPXE works chainloading the ESXi UEFI bootloader (``mboot.efi``). We need to provide cobbler the
+  iPXE ``snponly.efi``. driver.
 
 .. note::
-    As iPXE will chainload ``pxelinux.0`` (syslinux version 3.86) for BIOS and ``mboot.efi`` for UEFI,
-    you already need to have provided cobbler previously with both.
+    As iPXE will chainload ``pxelinux.0`` (syslinux version 3.86) for BIOS and ``mboot.efi`` for UEFI, you already need
+    to have provided cobbler previously with both.
 
 
-Some distros already provide a compiled binary of undionly.kpxe and snponly.efi files. This snippet is valid for rhel8 and derivates:
+Some distros already provide a compiled binary of undionly.kpxe and snponly.efi files. This snippet is valid for rhel8
+and derivates:
 
 .. code-block:: console
 
@@ -394,13 +397,16 @@ The directory contains:
 * Bootloaders and helper files (``pxelinux.0``, ``mboot.efi``, ``undionly.pxe``, ``snponly.efi``)
 * Symlink from ``esxi/images`` to ``images``
 * Symlink from ``esxi/pxelinux.cfg`` to ``pxelinux.cfg``
-* Directory ``system``, with a subdirectory per system mac address. On each system/mac directory, the ``boot.cfg`` file and a
-  symlink to ``mboot.efi``.
+* Directory ``system``, with a subdirectory per system mac address. On each system/mac directory, the ``boot.cfg`` file
+  and a symlink to ``mboot.efi``.
 
 
 Useful links
 ############
 
-* `VMware ESXi 7 Network Boot Install <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.install.doc/GUID-44535B01-38CF-4E6D-862A-95EF5ACA3F03.html>`_
-* `boot.cfg file description <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.upgrade.doc/GUID-1DE4EC58-8665-4F14-9AB4-1C62297D866B.html>`_
-* `ESXi boot options <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.upgrade.doc/GUID-9040F0B2-31B5-406C-9000-B02E8DA785D4.html>`_
+* `VMware ESXi 7 Network Boot Install
+  <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.install.doc/GUID-44535B01-38CF-4E6D-862A-95EF5ACA3F03.html>`_
+* `boot.cfg file description
+  <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.upgrade.doc/GUID-1DE4EC58-8665-4F14-9AB4-1C62297D866B.html>`_
+* `ESXi boot options
+  <https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.esxi.upgrade.doc/GUID-9040F0B2-31B5-406C-9000-B02E8DA785D4.html>`_

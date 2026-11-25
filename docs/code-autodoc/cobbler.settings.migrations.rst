@@ -84,6 +84,14 @@ cobbler.settings.migrations.V3\_3\_1 module
    :show-inheritance:
    :undoc-members:
 
+cobbler.settings.migrations.V3\_3\_10 module
+--------------------------------------------
+
+.. automodule:: cobbler.settings.migrations.V3_3_10
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.settings.migrations.V3\_3\_2 module
 -------------------------------------------
 
@@ -128,6 +136,22 @@ cobbler.settings.migrations.V3\_3\_7 module
 -------------------------------------------
 
 .. automodule:: cobbler.settings.migrations.V3_3_7
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+cobbler.settings.migrations.V3\_3\_8 module
+-------------------------------------------
+
+.. automodule:: cobbler.settings.migrations.V3_3_8
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+cobbler.settings.migrations.V3\_3\_9 module
+-------------------------------------------
+
+.. automodule:: cobbler.settings.migrations.V3_3_9
    :members:
    :show-inheritance:
    :undoc-members:

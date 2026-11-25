@@ -1,0 +1,1 @@
+Keep boot menu files with a local-boot entry instead of deleting them when no profiles/systems exist.

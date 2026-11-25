@@ -40,9 +40,8 @@ a large number of ancillary packages, which we do not document here. The package
 these packages in and install them along with Cobbler, however it is always best to verify these requirements have been
 met prior to installing Cobbler or any of its components.
 
-First and foremost, Cobbler requires Python 3. When installing from distribution
-packages, the dependency solver pulls the required libraries automatically. The
-lists below document the packages so you can validate a manual or source based
+First and foremost, Cobbler requires Python 3. When installing from distribution packages, the dependency solver pulls
+the required libraries automatically. The lists below document the packages so you can validate a manual or source based
 installation. Package names reflect the native repositories of each platform.
 
 DNF based distributions (Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux)
@@ -105,8 +104,7 @@ APT based distributions (Debian, Ubuntu)
 - ``logrotate``
 - ``python3-librepo``
 
-For mirror detection on apt based systems installing the ``python3-aptsources``
-module is strongly recommended.
+For mirror detection on apt based systems installing the ``python3-aptsources`` module is strongly recommended.
 
 ZYpp based distributions (openSUSE Leap, openSUSE Tumbleweed, SLES)
 -------------------------------------------------------------------
@@ -133,17 +131,14 @@ ZYpp based distributions (openSUSE Leap, openSUSE Tumbleweed, SLES)
 - ``python311-PyYAML``
 
 .. note::
-   On a fresh SLES installation, two of the required packages above are not
-   available from the base product repositories and need an extra repository
-   enabled first:
+   On a fresh SLES installation, two of the required packages above are not available from the base product repositories
+   and need an extra repository enabled first:
 
-   - ``fence-agents`` ships as part of the SUSE Linux Enterprise High
-     Availability Extension, not base SLES. Register the system against that
-     extension (e.g. via ``SUSEConnect -p sle-ha/<version>/<arch>``) to make
-     the package available.
-   - ``python3-Cheetah3`` (``python311-Cheetah3`` on newer SLES) ships via
-     SUSE Package Hub rather than the base product. Enable Package Hub for
-     your SLES version/architecture before installing Cobbler.
+   - ``fence-agents`` ships as part of the SUSE Linux Enterprise High Availability Extension, not base SLES. Register
+     the system against that extension (e.g. via ``SUSEConnect -p sle-ha/<version>/<arch>``) to make the package
+     available.
+   - ``python3-Cheetah3`` (``python311-Cheetah3`` on newer SLES) ships via SUSE Package Hub rather than the base
+     product. Enable Package Hub for your SLES version/architecture before installing Cobbler.
 
 **Recommended packages**
 
@@ -158,18 +153,16 @@ Feature specific dependencies
 
 The following packages are only needed when enabling the respective feature:
 
-- ``python3-ldap`` (LDAP authentication; package name ``python311-ldap`` on
-  openSUSE/SLES)
+- ``python3-ldap`` (LDAP authentication; package name ``python311-ldap`` on openSUSE/SLES)
 - ``python3-hivex`` and ``python3-pefile`` (Windows auto-installation support)
 - ``wget`` or ``curl`` for fetching external resources
 - ``koan`` when performing re-installs from existing systems
 
 .. note::
-   Not installing all required dependencies will lead to stacktraces in your
-   Cobbler installation.
+   Not installing all required dependencies will lead to stacktraces in your Cobbler installation.
 
-Koan can be installed apart from Cobbler. Please visit the
-`Koan documentation <https://koan.readthedocs.io/en/latest/>`_ for details.
+Koan can be installed apart from Cobbler. Please visit the `Koan documentation
+<https://koan.readthedocs.io/en/latest/>`_ for details.
 
 Source
 ======
@@ -205,12 +198,9 @@ We leave packaging to downstream; this means you have to check the repositories 
 However we provide docker files for
 
 - Fedora 43
-- openSUSE Leap 15.6
+- openSUSE Leap 16.1
 - openSUSE Tumbleweed
-- Rocky Linux 9
 - Rocky Linux 10
-- Debian 11 Bullseye
-- Debian 12 Bookworm
 - Debian 13 Trixie
 
 which will give you packages which will work better then building from source yourself.
@@ -222,9 +212,9 @@ which will give you packages which will work better then building from source yo
 
 To build the packages you to need to execute the following in the root folder of the cloned repository:
 
-- openSUSE Leap 16.1: ``./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile``
+- openSUSE Leap 16.1: ``./docker/rpms/build-and-install-rpms.sh opensuse-leap
+  docker/rpms/opensuse_leap/openSUSE_Leap16.dockerfile``
 - Fedora 43: ``./docker/rpms/build-and-install-rpms.sh fc43 docker/rpms/Fedora_43/Fedora43.dockerfile``
-- Rocky Linux 9: ``./docker/rpms/build-and-install-rpms.sh rl9 docker/rpms/Rocky_Linux_9/Rocky_Linux_9.dockerfile``
 - Rocky Linux 10: ``./docker/rpms/build-and-install-rpms.sh rl10 docker/rpms/Rocky_Linux_10/Rocky_Linux_10.dockerfile``
 - Debian 13: ``./docker/debs/build-and-install-debs.sh deb13 docker/debs/Debian_13/Debian13.dockerfile``
 
@@ -244,19 +234,20 @@ RPM
 
     $ make rpms
     ... (lots of output) ...
-    Wrote: /path/to/cobbler/rpm-build/cobbler-3.0.0-1.fc20.src.rpm
-    Wrote: /path/to/cobbler/rpm-build/cobbler-3.0.0-1.fc20.noarch.rpm
-    Wrote: /path/to/cobbler/rpm-build/koan-3.0.0-1.fc20.noarch.rpm
-    Wrote: /path/to/cobbler/rpm-build/cobbler-web-3.0.0-1.fc20.noarch.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.0-1.fc43.src.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.0-1.fc43.noarch.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-apache2-4.0.0-1.fc43.noarch.rpm
 
-As you can see, an RPM is output for each component of Cobbler, as well as a source RPM. This command was run on a
-system running Fedora 20, hence the fc20 in the RPM name - this will be different based on the distribution you're
-running.
+As you can see, an RPM is output for the main package, its subpackages (``apache2``/``nginx``/``tests``/
+``tests-containers``, depending on your build configuration), as well as a source RPM. This command was run on a system
+running Fedora 43, hence the fc43 in the RPM name - this will be different based on the distribution you're running.
+Note that Koan and Cobbler Web are no longer built from this repository; they are maintained as separate projects.
 
 DEB
 ###
 
-To install Cobbler from source on a Debian-Based system, the following steps need to be made (tested on Debian Buster):
+To install Cobbler from source on a Debian-Based system, the following steps need to be made (tested on Debian 13
+Trixie):
 
 .. code-block:: shell
 
@@ -269,8 +260,7 @@ To install Cobbler from source on a Debian-Based system, the following steps nee
     $ systemctl restart apache2
     $ make debs
 
-Change all ``/var/www/cobbler`` in ``/etc/apache2/conf.d/cobbler.conf`` to ``/usr/share/cobbler/webroot/``
-Init script:
+Change all ``/var/www/cobbler`` in ``/etc/apache2/conf.d/cobbler.conf`` to ``/usr/share/cobbler/webroot/`` Init script:
 
 - add Required-Stop line
 - path needs to be ``/usr/local/...`` or fix the install location
@@ -401,20 +391,20 @@ Dynamic HTTP/TFTP Serving and Web Server Configuration
 ######################################################
 
 The Apache and Nginx configuration files shipped in ``cobbler/data/config/apache/cobbler.conf`` and
-``cobbler/data/config/nginx/cobbler.conf`` serve ``/httpboot`` and ``/images`` as static file aliases pointing
-directly at ``@@tftproot@@/grub`` and ``@@tftproot@@/grub/images`` on disk. This is the right setup for the
-default ``managers.in_tftpd`` module (see ``modules.tftpd.module`` in :ref:`settings-ref`), which materializes
-boot files under ``tftpboot_location`` so a plain static Alias can serve them straight off the filesystem.
+``cobbler/data/config/nginx/cobbler.conf`` serve ``/httpboot`` and ``/images`` as static file aliases pointing directly
+at ``@@tftproot@@/grub`` and ``@@tftproot@@/grub/images`` on disk. This is the right setup for the default
+``managers.in_tftpd`` module (see ``modules.tftpd.module`` in :ref:`settings-ref`), which materializes boot files under
+``tftpboot_location`` so a plain static Alias can serve them straight off the filesystem.
 
 If ``modules.httpd.module``/``modules.tftpd.module`` are instead set to ``managers.dynamic_httpd``/
-``managers.dynamic_tftp`` (see :ref:`dynamic-httpd` and :ref:`tftp-directory` for background on the dynamic
-TFTP module), nothing copies boot files into ``tftpboot_location`` any more -- Cobbler's own Gunicorn-backed
-``web`` application answers ``/httpboot`` and ``/images`` directly instead. Nothing in this codebase detects
-that choice automatically and rewrites the web server configuration for you: the ``@@webroot@@``/``@@tftproot@@``
-substitution in these files is a single, fixed templating pass performed once at install time, not
-settings-aware templating. The static ``Alias``/``alias`` directives are kept as the shipped default -- they are
-marginally faster and match today's common, non-dynamic case -- but if you select the dynamic managers you must
-manually replace them with a reverse proxy to Gunicorn, using the same pattern already used for ``/cblr/svc/``.
+``managers.dynamic_tftp`` (see :ref:`dynamic-httpd` and :ref:`tftp-directory` for background on the dynamic TFTP
+module), nothing copies boot files into ``tftpboot_location`` any more -- Cobbler's own Gunicorn-backed ``web``
+application answers ``/httpboot`` and ``/images`` directly instead. Nothing in this codebase detects that choice
+automatically and rewrites the web server configuration for you: the ``@@webroot@@``/``@@tftproot@@`` substitution in
+these files is a single, fixed templating pass performed once at install time, not settings-aware templating. The static
+``Alias``/``alias`` directives are kept as the shipped default -- they are marginally faster and match today's common,
+non-dynamic case -- but if you select the dynamic managers you must manually replace them with a reverse proxy to
+Gunicorn, using the same pattern already used for ``/cblr/svc/``.
 
 For Apache, replace:
 
@@ -449,8 +439,8 @@ with:
     location /httpboot { proxy_pass http://127.0.0.1:8000/httpboot; }
     location /images { proxy_pass http://127.0.0.1:8000/images; }
 
-Forgetting this swap when running the dynamic managers means requests for ``/httpboot``/``/images`` will 404, or
-serve stale content, once nothing is populating the on-disk ``tftpboot_location`` tree any more.
+Forgetting this swap when running the dynamic managers means requests for ``/httpboot``/``/images`` will 404, or serve
+stale content, once nothing is populating the on-disk ``tftpboot_location`` tree any more.
 
 .. _relocating-your-installation:
 

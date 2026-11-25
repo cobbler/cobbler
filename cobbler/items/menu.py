@@ -100,6 +100,6 @@ class Menu(BootableItem):
         """
         Setter for the display_name of the item.
 
-        :param display_name: The new display_name. If ``None`` the display_name will be set to an emtpy string.
+        :param display_name: The new display_name.
         """
         self._display_name = display_name

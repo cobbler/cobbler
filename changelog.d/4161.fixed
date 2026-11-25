@@ -1,0 +1,1 @@
+Avoids creating duplicate settings files when automigration is disabled.

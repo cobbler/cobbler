@@ -1,0 +1,1 @@
+Delay reading collections from disk until first needed, speeding up cobblerd startup.

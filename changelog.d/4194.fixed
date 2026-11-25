@@ -1,0 +1,1 @@
+Fixes a crash in `find_items` when sorting items that share identical names.

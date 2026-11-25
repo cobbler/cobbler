@@ -109,7 +109,9 @@ class OwnershipAuthorizationModule(AuthorizationModule):
         arg2: Any = None,
     ) -> int:
         """
-        Validate a user against a resource. All users in the file are permitted by this module.
+        Validate a user against a resource, restricting modify-style operations (save/copy/rename/remove/modify/
+        edit/power_system/background) to the object's owners or members of the admins group; read-only and
+        non-modify operations are allowed to any user listed in users.conf.
 
         :param user: The user to authorize to the resource.
         :param resource: The resource the user is asking for access. This is something abstract like a remove
@@ -119,6 +121,9 @@ class OwnershipAuthorizationModule(AuthorizationModule):
                      its name. ``None`` for resources with no specific object (e.g. ``modify_setting``).
         :param arg2: This parameter is pointless currently. Reserved for future code.
         :return: ``1`` if okay, otherwise ``0``.
+        :raises ValueError: Raised if a modify operation's target object cannot be resolved, or if a brand-new
+                             object's ownership cannot be auto-assigned because the creating user belongs to more
+                             than one non-admin group.
         """
         if user == "<DIRECT>":
             # CLI should always be permitted

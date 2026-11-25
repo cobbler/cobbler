@@ -53,8 +53,9 @@ Installation Quickstart guide
 
     cobbler import --name=win11 --path=/mnt
 
-This command will determine the version and architecture of the Windows distribution, extract the files ``pxeboot.n12``, ``bootmgr.exe``, ``winpe.wim``
-from the distro into the ``/var/www/cobbler/distro_mirror/win11/boot`` and create a distro and profile named ``win11-x86_64``.
+This command will determine the version and architecture of the Windows distribution, extract the files ``pxeboot.n12``,
+``bootmgr.exe``, ``winpe.wim`` from the distro into the ``/var/www/cobbler/distro_mirror/win11/boot`` and create a
+distro and profile named ``win11-x86_64``.
 
 Customization winpe.wim
 =======================
@@ -80,13 +81,15 @@ If necessary, add drivers to the image:
     dism /image:mount /add-driver /driver:D:\viostor\w11\amd64
     dism /unmount-wim /mountdir:mount /commit
 
-Copy the resulting WinPE image from Windows to the ``/var/www/cobbler/distro_mirror/win11/boot`` directory of the distro.
+Copy the resulting WinPE image from Windows to the ``/var/www/cobbler/distro_mirror/win11/boot`` directory of the
+distro.
 
 UEFI Secure Boot (SB)
 #####################
 
-For SB you can use ``ipxe-shimx64.efi`` (unsigned), ``ipxe.efi`` (unsigned) and ``wimboot`` (signed with a Microsoft key).
-Therefore, in this case, we will need our own keys in order to sign ``ipxe-shimx64.efi``, ``ipxe.efi`` and computer fimware with them.
+For SB you can use ``ipxe-shimx64.efi`` (unsigned), ``ipxe.efi`` (unsigned) and ``wimboot`` (signed with a Microsoft
+key). Therefore, in this case, we will need our own keys in order to sign ``ipxe-shimx64.efi``, ``ipxe.efi`` and
+computer fimware with them.
 
 Creating Secure Boot Keys
 =========================
@@ -223,7 +226,8 @@ Import distro
 
     cobbler import --name=win10 --path=/mnt
 
-By default, an EFI partition is created for the profile ``win10-x86_64`` in the answerfile, and for BIOS boot we can create a profile with ``uefi=False`` in the metadata:
+By default, an EFI partition is created for the profile ``win10-x86_64`` in the answerfile, and for BIOS boot we can
+create a profile with ``uefi=False`` in the metadata:
 
 .. code:: shell
 
@@ -233,7 +237,8 @@ By default, an EFI partition is created for the profile ``win10-x86_64`` in the 
         --autoinstall-meta="kernel=http://@@http_server@@/cobbler/images/win10-x86_64/wimboot bootmgr=bootmg2.exe bcd=bc2 winpe=winp2.wim answerfile=autounattende2.xml uefi=False"
     cobbler sync
 
-If you do not want to use the HTTP protocol, you can either change an existing profile or create a new one with ``kernel=wimboot`` in the metadata:
+If you do not want to use the HTTP protocol, you can either change an existing profile or create a new one with
+``kernel=wimboot`` in the metadata:
 
 .. code:: shell
 
@@ -257,8 +262,8 @@ If you do not want to use the HTTP protocol, you can either change an existing p
 Booting from BIOS PXE (via syslinux pxelinux.0, linux.c32 and wimboot tftp/http)
 =================================================================================
 
-The ``win10-bios-pxe-wimboot-http-x86_64`` and ``win10-bios-ipxe-wimboot-tftp-x86_64`` profiles created earlier are suitable for this boot method.
-You just need to change ``dhcpd.conf`` to boot via ``pxelinux.0``.
+The ``win10-bios-pxe-wimboot-http-x86_64`` and ``win10-bios-ipxe-wimboot-tftp-x86_64`` profiles created earlier are
+suitable for this boot method. You just need to change ``dhcpd.conf`` to boot via ``pxelinux.0``.
 
 .. code-block:: text
 
@@ -289,8 +294,8 @@ You just need to change ``dhcpd.conf`` to boot via ``pxelinux.0``.
 Booting from BIOS PXE (via grub2 grub.0 and wimboot tftp/http)
 ==============================================================
 
-The ``win10-bios-pxe-wimboot-http-x86_64`` and ``win10-bios-ipxe-wimboot-tftp-x86_64`` profiles created earlier also suitable for this boot method.
-You just need to change ``dhcpd.conf`` to boot via ``grub/grub.0``.
+The ``win10-bios-pxe-wimboot-http-x86_64`` and ``win10-bios-ipxe-wimboot-tftp-x86_64`` profiles created earlier also
+suitable for this boot method. You just need to change ``dhcpd.conf`` to boot via ``grub/grub.0``.
 
 .. code-block:: text
 
@@ -326,8 +331,8 @@ You just need to change ``dhcpd.conf`` to boot via ``grub/grub.0``.
 Booting from  BIOS PXE install (via windows pxeboot.n12)
 ========================================================
 
-This is the only boot method that does not require ``wimboot``.
-Booting can be done via syslinux (pxelinux.0) or ipxe (undionly.kpxe).
+This is the only boot method that does not require ``wimboot``. Booting can be done via syslinux (pxelinux.0) or ipxe
+(undionly.kpxe).
 
 Create a file ``/etc/tftpd.rules``:
 
@@ -389,8 +394,8 @@ Additional Windows metadata
 Additional metadata for preparing Windows boot files can be passed through the ``--autoinstall-meta`` option for distro,
 profile or system. The source files for Windows boot files should be located in the
 ``/var/www/cobbler/distro_mirror/<distro_name>/Boot`` directory. The trigger copies them to
-``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and and changes their contents.
-The resulting files will be available via tftp and http.
+``/var/lib/tftpboot/images/<distro_name>`` with the new names specified in the metadata and changes their contents. The
+resulting files will be available via tftp and http.
 
 The ``sync_post_wingen`` trigger uses the following set of metadata:
 
@@ -404,8 +409,8 @@ The ``sync_post_wingen`` trigger uses the following set of metadata:
       Microsoft ADK.
     - ``NTLDR`` substring in it with the value passed through the ``bootmgr`` metadata key in case of using Legacy RIS.
 
-    Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file.
-    If ``--kernel=/path_to_kernel/wimboot`` is in distro, then ``kernel`` key is not used in ``autoinstall-meta``.
+    Value of the ``kernel`` key in ``autoinstall-meta`` will be the actual first boot file. If
+    ``--kernel=/path_to_kernel/wimboot`` is in distro, then ``kernel`` key is not used in ``autoinstall-meta``.
 
 * bootmgr
 
@@ -458,7 +463,8 @@ Legacy Windows XP and Windows 2003 Server
 - WinPE 3.0 and wimboot can be used to install legacy versions of Windows. The template ``built-in-startnet`` contains
   the code for starting such an installation via ``winnt32.exe``.
 
-  - copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
+  - copy ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the
+    ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 
 .. code-block:: shell
 
@@ -486,7 +492,8 @@ Legacy Windows XP and Windows 2003 Server
 
 - WinPE 3.0 without ``wimboot`` also can be used to install legacy versions of Windows.
 
-  - copy ``pxeboot.n12``, ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
+  - copy ``pxeboot.n12``, ``bootmgr.exe``, ``bcd``, ``boot.sdi`` from Windows 7 and ``winpe.wim`` from WAIK to the
+    ``/var/www/cobbler/distro_mirror/WinXp_EN-i386/boot``
 
 .. code-block:: shell
 
@@ -560,7 +567,8 @@ Preparing boot files for RIS and legacy Windows XP and Windows 2003 Server
     cp i386/ntdetect.com /var/lib/tftpboot
     cabextract -dboot i386/setupldr.ex_
 
-If you need to install Windows 2003 Server in addition to Windows XP, then to avoid a conflict, you can rename the ``ntdetect.com`` file:
+If you need to install Windows 2003 Server in addition to Windows XP, then to avoid a conflict, you can rename the
+``ntdetect.com`` file:
 
 .. code-block:: shell
 
@@ -602,4 +610,5 @@ Copy the required drivers to the ``i386``
 Useful links
 ############
 
- `Managing EFI Boot Loaders for Linux: Controlling Secure Boot <https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html>`_
+ `Managing EFI Boot Loaders for Linux: Controlling Secure Boot
+ <https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html>`_

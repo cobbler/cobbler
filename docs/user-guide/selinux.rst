@@ -54,9 +54,8 @@ Other policy issues
 SELinux denials can be caused by policies or labelling not applied (requiring admin action) or by improper default
 policy (requiring developer action). You can create custom policy modules, if needed:
 
-    yum install policycoreutils-python checkpolicy
-    grep cobbler /var/log/audit/audit.log | audit2why
-    # Read over the denials, check for booleans, labelling problems etc
+    yum install policycoreutils-python checkpolicy grep cobbler /var/log/audit/audit.log | audit2why # Read over the
+    denials, check for booleans, labelling problems etc
 
 Create a policy module for a specific denial:
 
@@ -68,11 +67,11 @@ Create a policy module for a specific denial:
 Custom Policy Best Practices
 ============================
 
-Applying custom modules atomically ensures appropriate restrictions and helps to identify individual policy or
-labelling issues. Some denials are caused by booleans or labelling that are not yet applied (requiring admin action);
-some denials are caused by the default policy not matching the behaviour of the code (requiring developer action). By
-providing feedback to both SELinux policy maintainers and application developers in bug reports, you can help make
-secure use of cobbler (and other services) easier for everyone.
+Applying custom modules atomically ensures appropriate restrictions and helps to identify individual policy or labelling
+issues. Some denials are caused by booleans or labelling that are not yet applied (requiring admin action); some denials
+are caused by the default policy not matching the behaviour of the code (requiring developer action). By providing
+feedback to both SELinux policy maintainers and application developers in bug reports, you can help make secure use of
+cobbler (and other services) easier for everyone.
 
 
 Fedora 16 / RHEL6 / CentOS6 - Python MemoryError
@@ -81,20 +80,16 @@ Fedora 16 / RHEL6 / CentOS6 - Python MemoryError
 Obscure error message for which a solution is unknown. The workaround is to disable SELinux or build a custom SELinux
 module to run cobbler unconfined. See also https://bugzilla.redhat.com/show_bug.cgi?id=816309
 
-     Starting cobbler daemon: Traceback (most recent call last):
-     File "/usr/bin/cobblerd", line 76, in main
-     api = cobbler_api.BootAPI(is_cobblerd=True)
-     File "/usr/lib/python2.6/site-packages/cobbler/api.py", line 127, in init
-     module_loader.load_modules()
-     File "/usr/lib/python2.6/site-packages/cobbler/module_loader.py", line 62, in load_modules
-     blip = import("modules.%s" % ( modname), globals(), locals(), [modname])
-     File "/usr/lib/python2.6/site-packages/cobbler/modules/authn_pam.py", line 53, in
-     from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
-     File "/usr/lib64/python2.6/ctypes/init.py", line 546, in
-     CFUNCTYPE(c_int)(lambda: None)
-     MemoryError
+     Starting cobbler daemon: Traceback (most recent call last): File "/usr/bin/cobblerd", line 76, in main api =
+     cobbler_api.BootAPI(is_cobblerd=True) File "/usr/lib/python2.6/site-packages/cobbler/api.py", line 127, in init
+     module_loader.load_modules() File "/usr/lib/python2.6/site-packages/cobbler/module_loader.py", line 62, in
+     load_modules blip = import("modules.%s" % ( modname), globals(), locals(), [modname]) File
+     "/usr/lib/python2.6/site-packages/cobbler/modules/authn_pam.py", line 53, in from ctypes import CDLL, POINTER,
+     Structure, CFUNCTYPE, cast, pointer, sizeof File "/usr/lib64/python2.6/ctypes/init.py", line 546, in
+     CFUNCTYPE(c_int)(lambda: None) MemoryError
 
-To run cobbler unconfined, build the following SELinux module using the instructions http://www.city-fan.org/tips/BuildSeLinuxPolicyModules
+To run cobbler unconfined, build the following SELinux module using the instructions
+http://www.city-fan.org/tips/BuildSeLinuxPolicyModules
 
 .. code-block:: shell
 
@@ -112,8 +107,8 @@ To run cobbler unconfined, build the following SELinux module using the instruct
 Fedora 14
 #########
 
-While many users with SELinux distributions opt to turn SELinux off, you may wish to keep it on. For Fedora 14 you
-might want to amend the SELinux policy settings:
+While many users with SELinux distributions opt to turn SELinux off, you may wish to keep it on. For Fedora 14 you might
+want to amend the SELinux policy settings:
 
 .. code-block:: shell
 

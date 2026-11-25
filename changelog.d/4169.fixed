@@ -1,0 +1,1 @@
+Fix `autoinstall_meta` being empty after distro import.

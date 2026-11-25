@@ -1,6 +1,6 @@
 """
-Builds out filesystem trees/data based on the object tree.
-This is the code behind 'cobbler sync'.
+Generates yum repository configuration blobs for profiles and systems, served on demand via the HTTP API (e.g.
+``cobbler.services.svc``'s ``yum`` endpoint).
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

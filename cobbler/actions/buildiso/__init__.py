@@ -94,8 +94,12 @@ class BuildIso:
     """
 
     def __init__(self, api: "CobblerAPI") -> None:
-        """Constructor which initializes things here. The collection manager pulls all other dependencies in.
+        """Constructor. Looks up and caches the active (or default) ISO/isolinux/GRUB/bootinfo templates needed to
+        build an ISO.
+
         :param api: The API instance which holds all information about objects in Cobbler.
+        :raises TypeError: If a template search result is not a list.
+        :raises ValueError: If none of the required templates can be found.
         """
         self.api = api
         self.distmap: Dict[str, str] = {}
@@ -292,8 +296,6 @@ class BuildIso:
         """
         This method copies the required and optional files from syslinux into the directories we use for building the
         ISO.
-        :param iso_distro: The distro (and thus architecture) to build the ISO for.
-        :param buildisodir: The directory where the ISO is being built in.
         """
         self.logger.info("copying syslinux files")
 
@@ -607,9 +609,12 @@ class BuildIso:
     ):
         """
         Build the final xorrisofs command which is then executed on the disk.
+
         :param xorrisofs_opts: The additional options for xorrisofs.
         :param iso: The name of the output iso.
         :param buildisodir: The directory in which we build the ISO.
+        :param esp_path: Unused here; accepted only so this has the same signature as :meth:`_xorriso_x86_64`.
+        :raises CX: If xorrisofs exits with a non-zero return code.
         """
         del esp_path  # just accepted for polymorphism
 
@@ -647,10 +652,12 @@ class BuildIso:
     ):
         """
         Build the final xorrisofs command which is then executed on the disk.
+
         :param xorrisofs_opts: The additional options for xorrisofs.
         :param iso: The name of the output iso.
         :param buildisodir: The directory in which we build the ISO.
         :param esp_path: The absolute path to the EFI system partition.
+        :raises CX: If xorrisofs exits with a non-zero return code.
         """
 
         running_on, _ = utils.os_release()

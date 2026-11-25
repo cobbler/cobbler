@@ -270,10 +270,6 @@ def migrate(settings: Dict[str, Any]) -> Dict[str, Any]:
     :return: The migrated dict
     """
 
-    # rename keys and update their value
-    # add missing keys
-    # name - value pairs
-
     settings["default_virt_file_size"] = float(
         settings.get("default_virt_file_size", 5.0)
     )

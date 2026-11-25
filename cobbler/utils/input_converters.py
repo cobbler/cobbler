@@ -33,7 +33,8 @@ def input_string_or_list(
     options: Optional[Union[str, List[Any]]],
 ) -> Union[List[Any], str]:
     """
-    Accepts a delimited list of stuff or a list, but always returns a list.
+    Accepts a delimited list of stuff or a list. Returns the inherit sentinel (``<<inherit>>``) unchanged if that is
+    what was passed; otherwise delegates to :func:`input_string_or_list_no_inherit` to return a list.
 
     :param options: The object to split into a list.
     :return: str when this functions get's passed ``<<inherit>>``. if option is delete then an empty list is returned.

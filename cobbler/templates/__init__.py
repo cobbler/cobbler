@@ -172,10 +172,11 @@ class BaseTemplateProvider:
 
     def __generate_template_tags(self, entry: "Traversable") -> Set[str]:
         """
-        This method loads all templates in a given importlib Traversable and adds them to the application as built-in.
-        The method will call itself recursively in case it encounters another folder.
+        Compute the set of template tags for a single template file entry, based on its filename and the
+        ``TEMPLATE_TAG_MAPPING``/cloud-init special cases.
 
-        :param folder: The Traversable object to use as a base folder. The folder may contain templates and folders.
+        :param entry: The Traversable for the template file to compute tags for.
+        :return: The set of tag values applicable to this template.
         """
         template_tags = {enums.TemplateTag.DEFAULT.value}
         if entry.name in TEMPLATE_TAG_MAPPING:
@@ -250,7 +251,7 @@ class BaseTemplateProvider:
         Render data_input back into a file.
 
         :param raw_data: Is the template code which is not rendered into the result.
-        :param search_table: is a dict of metadata keys and values (though results are always returned)
+        :param search_table: is a dict of metadata keys and values.
         :return: The rendered Template.
         """
         raise NotImplementedError(

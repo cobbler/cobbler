@@ -1,0 +1,1 @@
+Prevent `cobbler buildiso` from processing image-based systems.

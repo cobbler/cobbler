@@ -1,0 +1,1 @@
+Fixes a Debian/Ubuntu packaging defect and an item-editing issue when not inside a transaction.

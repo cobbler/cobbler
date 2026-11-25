@@ -1,0 +1,1 @@
+Item-group member lists are now validated to reference existing item UIDs.

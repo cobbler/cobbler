@@ -81,7 +81,7 @@ class Collection(Generic[ITEM]):
 
     def __iter__(self) -> Iterator[ITEM]:
         """
-        Iterator for the collection. Allows list comprehensions, etc.
+        Iterate over the collection's items.
         """
         for obj in list(self.listing.values()):
             yield obj
@@ -155,7 +155,7 @@ class Collection(Generic[ITEM]):
     @abstractmethod
     def factory_produce(self, api: "CobblerAPI", seed_data: Dict[str, Any]) -> ITEM:
         """
-        Must override in subclass. Factory_produce returns an Item object from dict.
+        Build and return an Item object from ``seed_data``.
 
         :param api: The API to resolve all information with.
         :param seed_data: Unused Parameter in the base collection.
@@ -171,7 +171,7 @@ class Collection(Generic[ITEM]):
         rebuild_menu: bool = True,
     ) -> None:
         """
-        Remove an item from collection. This method must be overridden in any subclass.
+        Remove an item from collection.
 
         :param ref: The item to remove
         :param with_delete: sync and run triggers
@@ -296,7 +296,7 @@ class Collection(Generic[ITEM]):
         if len(kwargs) == 0:
             raise ValueError("calling find with no arguments")
 
-        # performance: if the only key is name we can skip the whole loop
+        # performance: if the only key is uid we can skip the whole loop
         if len(kwargs) == 1 and "uid" in kwargs and not return_list:
             return self.listing.get(kwargs["uid"], None)  # type: ignore
 
@@ -567,12 +567,9 @@ class Collection(Generic[ITEM]):
 
         :param ref: The reference to the object.
         :param save: If this is true then the object is persisted on the disk.
-        :param with_copy: Is a bit of a misnomer, but lots of internal add operations can run with "with_copy" as False.
-                          True means a real final commit, as if entered from the command line (or basically, by a user).
-                          With with_copy as False, the particular add call might just be being run during
-                          deserialization, in which case extra semantics around the add don't really apply. So, in that
-                          case, don't run any triggers and don't deal with any actual files.
-        :param with_sync: If a sync should be triggered when the object is renamed.
+        :param with_copy: Legacy alias for ``save``: if ``True``, forces ``save`` to ``True`` as well. Used for
+                          user-driven adds (e.g. from the CLI), as opposed to internal adds during deserialization.
+        :param with_sync: If a sync should be triggered when the object is added.
         :param with_triggers: If triggers should be run when the object is added.
         :param quick_pxe_update: This decides if there should be run a quick or full update after the add was done.
         :param check_for_duplicate_names: If the name of an object should be unique or not.
@@ -583,9 +580,12 @@ class Collection(Generic[ITEM]):
                               the same transaction, or ``ref.uid`` itself when this is an in-place modification
                               of an already-persisted item. Only consulted when ``check_for_duplicate_names``
                               is true.
-        :raises TypError: Raised in case ``ref`` is None.
-        :raises ValueError: Raised in case the name of ``ref`` is empty, or in case ``expected_mtime`` no longer
-                             matches the item currently stored under ``ref.uid``.
+        :raises TypeError: Raised in case ``ref`` is None, or in case ``ref``'s collection type does not match this
+                           collection.
+        :raises CX: Raised (via ``check_if_valid()``) in case the name of ``ref`` is empty, or in case
+                    ``check_for_duplicate_names`` is set and an item with that name already exists.
+        :raises ValueError: Raised in case ``expected_mtime`` is set and no longer matches the item currently
+                             stored under ``ref.uid``.
         """
         if ref is None:  # type: ignore
             raise TypeError("Unable to add a None object")
@@ -598,7 +598,7 @@ class Collection(Generic[ITEM]):
                 ref.ctime = now
             ref.mtime = now
 
-        # migration path for old API parameter that I've renamed.
+        # Backward-compatible alias: with_copy=True also implies save=True.
         if with_copy and not save:
             save = with_copy
 
@@ -607,7 +607,6 @@ class Collection(Generic[ITEM]):
             with_triggers = False
             with_sync = False
 
-        # Avoid adding objects to the collection with the same name
         if check_for_duplicate_names:
             self.check_for_duplicate_names(ref, exclude_uids=exclude_uids)
 
@@ -948,7 +947,8 @@ class Collection(Generic[ITEM]):
         new_value: Any,
     ) -> None:
         """
-        Update index keys for the object.
+        Update index keys for the object. No-op if ``ref`` is currently part of an open transaction; its indexes
+        are updated when the transaction commits instead.
 
         :param ref: The reference to the object whose index keys are updated.
         """
@@ -972,9 +972,10 @@ class Collection(Generic[ITEM]):
 
     def find_by_indexes(self, kwargs: Dict[str, Any]) -> Optional[List[ITEM]]:
         """
-        Searching for items in the collection by indexes.
+        Searching for items in the collection by indexes. Keys that were resolved via an index are popped from
+        ``kwargs`` in place.
 
-        :param kwargs: The dict to match for the items.
+        :param kwargs: The dict to match for the items; mutated by removing any keys this method resolved.
         """
 
         def add_result(key: str, value: str, results: List[ITEM]) -> None:

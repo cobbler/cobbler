@@ -92,7 +92,7 @@ class DNSOption(ItemOption[Union["Profile", "System"]]):
         Set the DNS search paths.
 
         :param data: string or list of search domains
-        :returns: True or CX
+        :raises TypeError: In case ``data`` could not be converted into a list.
         """
         self._name_servers_search = validate.name_servers_search(data)
 

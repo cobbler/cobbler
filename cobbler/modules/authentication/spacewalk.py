@@ -1,6 +1,6 @@
 """
 Authentication module that uses Spacewalk's auth system.
-Any org_admin or kickstart_admin can get in.
+Any org_admin or config_admin can get in.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -32,7 +32,7 @@ def __looks_like_a_token(password: str) -> bool:
     /likely/ a token, and we should try to treat it as a token first, if not, we should treat it as a password.  All of
     this code is there to avoid extra XMLRPC calls, which are slow.
 
-    A password gets detected as a token if it is lowercase and under 45 characters.
+    A password is detected as a token if it is all-lowercase and longer than 45 characters.
 
     :param password: The password which is possibly a token.
     :return: True if it is possibly a token or False otherwise.
@@ -51,7 +51,7 @@ def __check_auth_token(
     :param api_handle: The api instance to retrieve settings of.
     :param username: The username to try.
     :param password: The password to try.
-    :return: In any error case this will return 0. Otherwise, the return value of the API which should be 1.
+    :return: ``False`` in any error case. Otherwise, the return value of the API which should be 1.
     """
     # If the token is not a token this will raise an exception rather than return an integer.
     try:

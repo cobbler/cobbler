@@ -1,0 +1,1 @@
+Fixes settings migrations leaving unresolved templated variables.

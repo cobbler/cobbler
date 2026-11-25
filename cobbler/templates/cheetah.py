@@ -1,9 +1,10 @@
 """
-Cobbler provides builtin methods for use in Cheetah templates. $SNIPPET is one
-such function and is now used to implement Cobbler's SNIPPET:: syntax.
+Cobbler provides builtin methods for use in Cheetah templates. ``$SNIPPET`` implements Cobbler's ``SNIPPET::``
+syntax.
 
-The CobblerCheetahTemplate class is defined using the Cheetah language. Using the 'compile' function we can compile the
-source directly into a Python class. This class will allow us to define the cheetah builtins.
+``CobblerCheetahTemplate.compile()`` preprocesses ``SNIPPET::`` syntax and compiles the resulting source into a
+Python class via Cheetah, making the builtin methods defined on this class available to every Cheetah template
+Cobbler renders.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -52,9 +53,9 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
     - SNIPPET syntax:
     - SNIPPET::my_snippet
 
-    This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
-    then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
-    substituted.
+    This follows all of the rules of snippets and advanced snippets: it looks up the general snippet, then
+    overrides it with the most specific per-system, per-profile, or per-distro snippet available (checked in that
+    order). If no snippet at all is found, a comment explaining the error is substituted.
     """
 
     # FIXME: Replace Snippet Mechanism with one that can load templates by name from the API, don't reuse the name since
@@ -92,10 +93,9 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
         and inclusion of Cobbler builtin methods. Please be aware that you cannot use the ``baseclass`` attribute of
         Cheetah anymore due to the fact that we are using it in our implementation to enable the Cheetah Macros.
 
-        This function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
-        is probably a kludge, but it add a baseclass argument to the standard compile (see Cheetah's compile docstring)
-        and returns the resulting class. This argument, of course, points to this class. Now any methods entered here
-        (or in the base class above) will be accessible to all cheetah templates compiled by Cobbler.
+        Called directly (see :meth:`CheetahTemplateProvider.render`) with ``baseclass=CobblerCheetahTemplate``, so
+        Cheetah mixes this class's methods into every compiled template. This override's only job is injecting the
+        ``SNIPPET::`` preprocessor before delegating to Cheetah's standard ``compile``.
 
         :param args: These just get passed right to Cheetah.
         :param kwargs: We just execute our own preprocessors and remove them and let afterwards handle Cheetah the rest.
@@ -228,8 +228,8 @@ class CobblerCheetahTemplate(CheetahTemplate):  # type: ignore
         # Now do our dirty work: locate the new include, and append its searchList to ours. We have to compute the full
         # path again? Eww.
 
-        # This weird method is getting even weirder, the cheetah includes keys are no longer filenames but actual
-        # contents of snippets. Regardless this seems to work and hopefully it will be ok.
+        # Cheetah's include-cache (``_CHEETAH__cheetahIncludes``) is keyed by the snippet's content, not by its
+        # filename, so look up the child entry using ``snippet_contents`` as the key.
 
         snippet_contents = self.read_snippet(file)
         if snippet_contents:

@@ -12,7 +12,9 @@ from cobbler.items.options import base
 
 class LazyProperty(property):
     """
-    This property is supposed to provide a way to override the lazy-read value getter.
+    A property descriptor whose getter triggers deserialization of the owning item (or an
+    ``ItemOption``'s parent item) if it has not yet been loaded into memory, before returning
+    the underlying value.
     """
 
     def __get__(self, obj: Any, objtype: Optional[type] = None) -> Any:

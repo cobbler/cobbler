@@ -258,6 +258,8 @@ class InheritableItem(BaseItem, ABC):
         Set the parent object for this object.
 
         :param parent: The new parent object. This needs to be a descendant in the logical inheritance chain.
+        :raises TypeError: In case ``parent`` is neither a str nor an InheritableItem.
+        :raises CX: In case ``parent`` equals this item's own uid, or references an item that does not exist.
         """
         if not isinstance(parent, str) and not isinstance(parent, InheritableItem):  # type: ignore
             raise TypeError('Property "parent" must be of type InheritableItem or str!')

@@ -696,9 +696,6 @@ class CobblerAPI:
         """
         This method helps non Python API consumers to retrieve the final data of a field with inheritance.
 
-        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
-        queried via their UUID.
-
         :param item_uuid: The UUID of the item that should be retrieved.
         :param attribute_path: The attribute that should be retrieved.
         :raises ValueError: In case a value given was either malformed or the desired item did not exist.
@@ -717,9 +714,6 @@ class CobblerAPI:
         """
         This method helps non Python API consumers to use the Python property setters without having access to the raw
         data of the object. In case you pass a dictionary the method tries to deduplicate it.
-
-        This does not help with network interfaces because they don't have a UUID at the moment and thus can't be
-        queried via their UUID.
 
         .. warning:: This function may throw any exception that is thrown by a setter of a Python property defined in
                      Cobbler.
@@ -1544,8 +1538,8 @@ class CobblerAPI:
         on-disk serialization) in a half-applied state.
 
         1. Checks for external modifications using mtime
-        2. Processes deletions first (deepest dependencies first)
-        3. Processes additions and modifications
+        2. Processes additions and modifications
+        3. Processes deletions (deepest dependencies first)
         4. Rebuilds the PXE configuration (only once every change above has succeeded)
 
         Note: rolling back an add/remove undoes its effect on the collection (in-memory listing,
@@ -3411,7 +3405,8 @@ class CobblerAPI:
         :param power_operation: power operation. Valid values: on, off, reboot, status
         :param user: power management user
         :param password: power management password
-        :return: bool if operation was successful
+        :return: The power state (``True``/``False``) when ``power_operation`` is ``status``; ``None`` for
+                 ``on``/``off``/``reboot``.
         """
         power_mgr = power_manager.PowerManager(self)
         if power_operation == "on":

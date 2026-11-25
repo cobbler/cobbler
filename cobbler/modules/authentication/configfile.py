@@ -1,5 +1,5 @@
 """
-Authentication module that uses /etc/cobbler/auth.conf
+Authentication module that uses /etc/cobbler/users.digest
 Choice of authentication module is in /etc/cobbler/modules.conf
 """
 

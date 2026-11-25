@@ -11,8 +11,8 @@ Cobbler is not using a single templating engine but has a small abstraction laye
 engines. The default template engine is set via the setting ``default_template_type`` and currently has the value
 ``cheetah`` for backwards compatibility.
 
-.. note:: While the default is Cheetah, new features will prefer Jinja 2 since the community and available resources
-    are bigger than Cheetah.
+.. note:: While the default is Cheetah, new features will prefer Jinja 2 since the community and available resources are
+    bigger than Cheetah.
 
 Cheetah
 =======
@@ -114,7 +114,6 @@ For detailed information, please check the docstrings of the linked XML-RPC API 
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.get_template_file_for_profile`
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.get_template_file_for_system`
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.get_templates_since`
-* :meth:`cobbler.remote.CobblerXMLRPCInterface.get_template_as_rendered`
 * :meth:`cobbler.remote.CobblerXMLRPCInterface.templates_refresh_content`
 
 Changes for version 4.0.0
@@ -135,8 +134,8 @@ Intended Workflow
 #. Write a template to disk underneath ``autoinstall_templates_dir`` or inside an environment variable which is
    accessible to the Cobbler Daemon.
 #. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.new_template` to create a new template object.
-#. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.modify_template` to modify the ``name``, ``template_type``,
-   ``uri`` and ``tags`` of the object
+#. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.modify_template` to modify the ``name``, ``template_type``, ``uri``
+   and ``tags`` of the object
 #. Use :meth:`cobbler.remote.CobblerXMLRPCInterface.save_template` to persist the changes and make it available for use.
 #. Optional: Set the UID/Name of the template as a value to ``autoinstall`` inside a Profile or System.
 #. Optional: Execute a sync to update the affected configuration.
@@ -178,7 +177,7 @@ disk. The result of the script is that the built-in template is not used anymore
             "name": "custom-dhcp",
             "template_type": "cheetah",  # or "jinja" if using Jinja syntax
             "uri": "/var/lib/cobbler/templates/dhcp.template",
-            "tags": ["dhcp", "active"],
+            "tags": ["dhcpv4", "active"],
         },
         token,
     )
@@ -189,8 +188,8 @@ disk. The result of the script is that the built-in template is not used anymore
     # 7. Refresh templates cache
     server.background_templates_refresh_content({}, token)
 
-Limitations and Suprises
-########################
+Limitations and Surprises
+#########################
 
 Before templates are passed to Jinja or Cheetah, there is a pre-processing of templates happening. During pre-processing
 Cobbler replaces variables like ``@@my_key@@`` in the template. Those keys are currently limited by the regex of ``\S``,

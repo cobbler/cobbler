@@ -21,10 +21,10 @@ class ConvertableEnum(enum.Enum):
         """
         This method converts the chosen str to the corresponding enum type.
 
-        :param value: str which contains the to be converted value.
+        :param value: The str to convert, or an already-converted enum member of this class (returned unchanged).
         :returns: The enum value.
-        :raises TypeError: In case value was not of type str.
-        :raises ValueError: In case value was not in the range of valid values.
+        :raises TypeError: If ``value`` is neither a ``str`` nor a member of this enum class.
+        :raises ValueError: If ``value`` is a ``str`` that does not match any member of this enum class.
         """
         # mypy cannot handle the MRO in case we make this a real abstract class
         # Thus since we use this like an abstract class we will just add the three ignores here since we

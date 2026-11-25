@@ -3,7 +3,8 @@ Terraform Provider for Cobbler
 
 First have a brief look at `Introduction to Terraform <https://www.terraform.io/intro/index.html>`__.
 
-Next check out the `Cobbler Provider <https://registry.terraform.io/providers/cobbler/cobbler/latest/docs>`__\  official documentation.
+Next check out the `Cobbler Provider <https://registry.terraform.io/providers/cobbler/cobbler/latest/docs>`__\  official
+documentation.
 
 - On GitHub: https://github.com/cobbler/terraform-provider-cobbler
 
@@ -15,19 +16,15 @@ Why Terraform for Cobbler
 
 .. note::
 
-  This document is written with Cobbler 3.2 and higher in mind, so the examples used here
-  can not be used for Cobbler 2.x and ``terraform-provider-cobbler`` version
-  1.1.0 (and older).
+  This document is written with Cobbler 3.2 and higher in mind, so the examples used here can not be used for Cobbler
+  2.x and ``terraform-provider-cobbler`` version 1.1.0 (and older).
 
-There are multiple ways to add new systems, profiles, distro’s into
-Cobbler, eg. through the web-interface or using shell-scripts on the
-Cobbler-host itself.
+There are multiple ways to add new systems, profiles, distro’s into Cobbler, eg. through the web-interface or using
+shell-scripts on the Cobbler-host itself.
 
-One of the main advantages of using the Terraform Provider for Cobbler is
-speed: you do not have to login into the web-interface or SSH to the host
-itself and adapt shell-scripts.
-When Terraform is installed on a VM or your local computer, it adds new assets
-through the Cobbler API.
+One of the main advantages of using the Terraform Provider for Cobbler is speed: you do not have to login into the
+web-interface or SSH to the host itself and adapt shell-scripts. When Terraform is installed on a VM or your local
+computer, it adds new assets through the Cobbler API.
 
 Configure Cobbler
 -----------------
@@ -39,13 +36,11 @@ In file ``/etc/cobbler/settings``, set ``cache_enabled: 0``.
 Install Terraform
 -----------------
 
-Terraform comes as a single binary, written in Go.
-Download an OS-specific package to install on your local system via the
-`Terraform downloads <https://www.terraform.io/downloads.html>`__.
-Unpack the ZIP-file and move the binary-file into ``/usr/local/bin``.
+Terraform comes as a single binary, written in Go. Download an OS-specific package to install on your local system via
+the `Terraform downloads <https://www.terraform.io/downloads.html>`__. Unpack the ZIP-file and move the binary-file into
+``/usr/local/bin``.
 
-Make sure you’re using at least **Terraform v0.14 or higher**.
-Check with ``terraform version``:
+Make sure you’re using at least **Terraform v0.14 or higher**. Check with ``terraform version``:
 
 .. code-block:: text
 
@@ -55,12 +50,11 @@ Check with ``terraform version``:
 Install terraform-provider-cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since Terraform version 0.13, you can use the Cobbler provider via the
-`Terraform provider registry <https://registry.terraform.io/providers/cobbler/cobbler/latest>`__.
+Since Terraform version 0.13, you can use the Cobbler provider via the `Terraform provider registry
+<https://registry.terraform.io/providers/cobbler/cobbler/latest>`__.
 
-After setting up a Cobbler Terraform repository for the first time, run
-``terraform init`` in the **basedir**, so the Cobbler provider
-gets installed automatically in ``tf_cobbler/.terraform/providers``.
+After setting up a Cobbler Terraform repository for the first time, run ``terraform init`` in the **basedir**, so the
+Cobbler provider gets installed automatically in ``tf_cobbler/.terraform/providers``.
 
 .. code-block:: text
 
@@ -91,20 +85,19 @@ gets installed automatically in ``tf_cobbler/.terraform/providers``.
     rerun this command to reinitialize your working directory. If you forget, other
     commands will detect it and remind you to do so if necessary.
 
-If you ever run into this error:
-``Error: Could not load plugin``, re-run ``terraform init``
-in the **basedir** to reinstall / upgrade the Cobbler provider.
+If you ever run into this error: ``Error: Could not load plugin``, re-run ``terraform init`` in the **basedir** to
+reinstall / upgrade the Cobbler provider.
 
-When you initialize a Terraform configuration for the first time with Terraform 0.14 or later,
-Terraform will generate a new ``.terraform.lock.hcl`` file in the current working directory.
-You should include the lock file in your version control repository to ensure that Terraform
-uses the same provider versions across your team and in ephemeral remote execution environments.
+When you initialize a Terraform configuration for the first time with Terraform 0.14 or later, Terraform will generate a
+new ``.terraform.lock.hcl`` file in the current working directory. You should include the lock file in your version
+control repository to ensure that Terraform uses the same provider versions across your team and in ephemeral remote
+execution environments.
 
 Repository setup & configurations
 ---------------------------------
 
-Create a git repository (for example ``tf_cobbler``) and use a phased approach
-of software testing and deployment in the `DTAP <https://en.wikipedia.org/wiki/Development,_testing,_acceptance_and_production>`__-style:
+Create a git repository (for example ``tf_cobbler``) and use a phased approach of software testing and deployment in the
+`DTAP <https://en.wikipedia.org/wiki/Development,_testing,_acceptance_and_production>`__-style:
 
 -  **development** - holds development systems
 -  **test** - holds test systems
@@ -156,10 +149,8 @@ The directory-tree would look something like this:
    ├── variables.tf
    └── versions.tf
 
-Each host-subdirectory consists of a Terraform-file named ``main.tf``,
-one **symlinked** directory ``.terraform`` and files **symlinked**
-from the root: ``versions.tf``, ``variables.tf``. ``.terraform.lock.hcl``
-and ``terraform.tfvars``:
+Each host-subdirectory consists of a Terraform-file named ``main.tf``, one **symlinked** directory ``.terraform`` and
+files **symlinked** from the root: ``versions.tf``, ``variables.tf``. ``.terraform.lock.hcl`` and ``terraform.tfvars``:
 
 .. code-block:: text
 
@@ -174,8 +165,7 @@ and ``terraform.tfvars``:
    ├── variables.tf -> ../../variables.tf
    └── versions.tf -> ../../versions.tf
 
-The files ``terraform.tfstate`` and ``terraform.tfstate.backup`` are the state files once Terraform
-has run succesfully.
+The files ``terraform.tfstate`` and ``terraform.tfstate.backup`` are the state files once Terraform has run succesfully.
 
 File ``versions.tf``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -197,9 +187,8 @@ The block in this file specifies the required provider version and required Terr
 Credentials
 ~~~~~~~~~~~
 
-You must add the ``cobbler_username``, ``cobbler_password`` and the
-``cobbler_url`` to the Cobbler API into a new file named ``terraform.tfvars``
-in the basedir of your repo.
+You must add the ``cobbler_username``, ``cobbler_password`` and the ``cobbler_url`` to the Cobbler API into a new file
+named ``terraform.tfvars`` in the basedir of your repo.
 
 File ``terraform.tfvars``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -210,20 +199,17 @@ File ``terraform.tfvars``
    cobbler_password = "<the Cobbler-password>"
    cobbler_url      = "https://cobbler.example.com/cobbler_api"
 
-Terraform automatically loads ``.tfvars``-files to populate variables defined
-in ``variables.tf``.
+Terraform automatically loads ``.tfvars``-files to populate variables defined in ``variables.tf``.
 
 .. warning::
-   When using a git repo, do not (force) push the file ``terraform.tfvars``,
-   since it contains login credentials!
+   When using a git repo, do not (force) push the file ``terraform.tfvars``, since it contains login credentials!
 
 File ``variables.tf``
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. tip::
-   We recommend you always add variable descriptions. You never know who’ll be using your code,
-   and it’ll make their (and your) life a lot easier if every variable has a clear description.
-   Comments are fun too.
+   We recommend you always add variable descriptions. You never know who’ll be using your code, and it’ll make their
+   (and your) life a lot easier if every variable has a clear description. Comments are fun too.
 
    Excerpt from: James Turnbull, "The Terraform Book."
 
@@ -253,11 +239,10 @@ File ``variables.tf``
 Example configuration - system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the ``main.tf`` for system ``webserver``, written in so called
-`HCL <https://github.com/hashicorp/hcl>`__\  (HashiCorp Configuration
-Language).
-It has been cleaned up with the
-`terraform fmt <https://www.terraform.io/docs/commands/fmt.html>`__\  command, to rewrite Terraform configuration files to a canonical format and style:
+This is the ``main.tf`` for system ``webserver``, written in so called `HCL <https://github.com/hashicorp/hcl>`__\
+(HashiCorp Configuration Language). It has been cleaned up with the `terraform fmt
+<https://www.terraform.io/docs/commands/fmt.html>`__\  command, to rewrite Terraform configuration files to a canonical
+format and style:
 
 .. important::
    Make sure there is only **ONE** gateway defined on **ONE** interface!
@@ -316,8 +301,7 @@ This is the ``main.tf`` for a snippet:
     body = file("partitioning-VMware.file")
   }
 
-In the same folder a file named ``partitioning-VMware.file`` holds the actual
-snippet.
+In the same folder a file named ``partitioning-VMware.file`` holds the actual snippet.
 
 Example configuration - repo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -366,8 +350,8 @@ Example configuration - profile
 Example configuration - combined
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is also possible to combine multiple resources into one file.
-For example, this will combine an Ubuntu Bionic distro, a profile and a system:
+It is also possible to combine multiple resources into one file. For example, this will combine an Ubuntu Bionic distro,
+a profile and a system:
 
 .. code-block:: terraform
 
@@ -410,8 +394,7 @@ For example, this will combine an Ubuntu Bionic distro, a profile and a system:
 File ``set_links.sh``
 ~~~~~~~~~~~~~~~~~~~~~
 
-The file ``set_links.sh`` is used to symlink to the default variables.
-We need these in every subdirectory.
+The file ``set_links.sh`` is used to symlink to the default variables. We need these in every subdirectory.
 
 .. code-block:: shell
 
@@ -446,6 +429,5 @@ Adding a new system
    terraform apply     <-- Apply changes, eg. add this system to the (remote) Cobbler.
 
 
-When ``terraform apply`` gives errors it is safe to run
-``rm terraform.tfstate*`` in the “hostname” directory and run ``terraform apply``
-again.
+When ``terraform apply`` gives errors it is safe to run ``rm terraform.tfstate*`` in the “hostname” directory and run
+``terraform apply`` again.

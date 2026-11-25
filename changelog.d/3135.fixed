@@ -1,0 +1,1 @@
+Uses float consistently for `virt_file_size` to avoid type errors.

@@ -158,7 +158,7 @@ class CobblerSync:
     def run(self) -> None:
         """
         Syncs the current configuration file with the config tree.
-        Using the ``Check().run_`` functions previously is recommended
+        Running :meth:`cobbler.actions.check.CobblerCheck.run` beforehand is recommended.
         """
         self.bootstrap_dirs()
         self.__common_run()
@@ -459,7 +459,8 @@ class CobblerSync:
 
         :param profile: The profile to add.
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
-        :return: ``True`` if this succeeded.
+        :return: ``None`` if ``profile`` is ``None``/a list (e.g. a stale reference to an already-removed
+                 subprofile), otherwise ``True``.
         """
         if profile is None or isinstance(profile, list):  # type: ignore
             # Most likely a subprofile's kid has been removed already, though the object tree has not been reloaded and

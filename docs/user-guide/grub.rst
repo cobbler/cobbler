@@ -122,8 +122,8 @@ This is needed in ``postun`` ``cobbler.spec`` section to remove things again. Th
 - 32 bit PXE (x86 legacy) GRUB executable.
 - ``grub2-mkimage`` generated.
 - This can/should be used instead of ``pxelinux.0``. You then get the full grub boot process.
-- The bootloader is named ``grub.0``, because ``pxelinux.0`` can chain boot this grub executable via network. But it
-  (or specific versions?) wants bootloaders with a filename ending on ``.0``.
+- The bootloader is named ``grub.0``, because ``pxelinux.0`` can chain boot this grub executable via network. But it (or
+  specific versions?) wants bootloaders with a filename ending on ``.0``.
 
 ``grub/{grubaa64.efi,grub.ppc64le,grubx64.efi}``
 ++++++++++++++++++++++++++++++++++++++++++++++++
@@ -161,7 +161,8 @@ E.g. using the ``grub.cfg`` command: hello, will end up in downloading ``hello.m
   previous ``pxelinux.0`` style, e.g.: ``52:54:00:42:56:58`` -> ``01-52-54-00-42-56-58`` does not work. But this is
   overhead anyway, so we now use the plain mac address as filenames for system specific grub configuration.
 
-Use the ``use_secure_boot_grub`` property to use a pre-built secure boot grub bootloader for a bootloader format, for example:
+Use the ``use_secure_boot_grub`` property to use a pre-built secure boot grub bootloader for a bootloader format, for
+example:
 
 .. code-block:: yaml
 

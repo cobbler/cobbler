@@ -7,8 +7,8 @@
 auto_migrate_settings
 #####################
 
-If ``True`` Cobbler will auto migrate the settings file after upgrading from older versions. The current settings
-are backed up in the same folder before the upgrade.
+If ``True`` Cobbler will auto migrate the settings file after upgrading from older versions. The current settings are
+backed up in the same folder before the upgrade.
 
 default: ``True``
 
@@ -108,6 +108,15 @@ this directory should not be required.
 
 default: ``/var/lib/cobbler/templates``
 
+autoinstall_templates_allow_new_files
+######################################
+
+If ``True``, pointing a ``Template`` item's ``file://`` URI at a path that does not exist yet is allowed -- the path is
+created on disk the first time the template's content is set, instead of requiring the file to already exist. This is
+opt-in because it lets any Template author create arbitrary new files under ``autoinstall_templates_dir``.
+
+default: ``False``
+
 bind_chroot_path
 ################
 
@@ -132,8 +141,8 @@ default: ``"@@bind_zonefiles@@"``
 bootloaders_dir
 ###############
 
-A directory that "cobbler mkloaders" copies the built bootloaders into. "cobbler sync" searches for
-bootloaders in this directory.
+A directory that "cobbler mkloaders" copies the built bootloaders into. "cobbler sync" searches for bootloaders in this
+directory.
 
 default: ``/var/lib/cobbler/loaders``
 
@@ -153,9 +162,9 @@ default: Depending on your distro. See values below.
 bootloaders_shim_file
 #####################
 
-This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ responsible for finding a single
-match in all files found by the Python Glob in ``bootloaders_shim_folder``. If more or fewer files are found a message
-will be logged.
+This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ responsible for finding a single match in all
+files found by the Python Glob in ``bootloaders_shim_folder``. If more or fewer files are found a message will be
+logged.
 
 default: Depending on your distro. See values below.
 
@@ -166,8 +175,8 @@ default: Depending on your distro. See values below.
 secure_boot_grub_folder
 =======================
 
-This `Python Glob <https://docs.python.org/3/library/glob.html>`_ is responsible for finding the installed secure
-boot bootloader folders. If the Glob is not precise enough a message will be logged and the link will also be skipped.
+This `Python Glob <https://docs.python.org/3/library/glob.html>`_ is responsible for finding the installed secure boot
+bootloader folders. If the Glob is not precise enough a message will be logged and the link will also be skipped.
 
 This glob is only used for grub formats that use the ``use_secure_boot_grub`` property.
 
@@ -180,8 +189,8 @@ default: Depending on your distro. See values below.
 secure_boot_grub_file
 =====================
 
-This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ responsible to finding a single
-match for the secure boot grub bootloader in all files found by the ``secure_boot_grub_folder`` glob.
+This is a `Python Regex <https://docs.python.org/3/library/re.html>`_ responsible to finding a single match for the
+secure boot grub bootloader in all files found by the ``secure_boot_grub_folder`` glob.
 
 This regex is only used for grub formats that use the ``use_secure_boot_grub`` property.
 
@@ -216,8 +225,8 @@ default: Depends on your distribution. See values below.
 bootloaders_modules
 ###################
 
-A list of all modules "cobbler mkloaders" includes when building grub loaders.
-Typically, a grub loader uses the modules for PXE or HTTP Boot.
+A list of all modules "cobbler mkloaders" includes when building grub loaders. Typically, a grub loader uses the modules
+for PXE or HTTP Boot.
 
 default: Omited for readablity, please refer to the `settings.yaml` file in our GitHub repository.
 
@@ -375,9 +384,9 @@ default: ``"$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."``
 default_template_type
 #####################
 
-The default template type to use in the absence of any other detected template. If you do not specify the template
-with ``#template=<template_type>`` on the first line of your templates/snippets, Cobbler will assume try to use the
-following template engine to parse the templates.
+The default template type to use in the absence of any other detected template. If you do not specify the template with
+``#template=<template_type>`` on the first line of your templates/snippets, Cobbler will assume try to use the following
+template engine to parse the templates.
 
 .. note:: Over time we will try to deprecate and remove Cheetah3 as a template engine. It is hard to package and there
           are fewer guides then with Jinja2. Making the templating independent of the engine is a task which complicates
@@ -406,8 +415,9 @@ default: ``raw``
 dnsmasq_ethers_file
 ###################
 
-The path to the ethers file used by the dnsmasq manager module. Note that if you change this path, you might have to reconfigure
-external systems that also use the file. See ``man 5 ethers`` for more information about the file and its uses.
+The path to the ethers file used by the dnsmasq manager module. Note that if you change this path, you might have to
+reconfigure external systems that also use the file. See ``man 5 ethers`` for more information about the file and its
+uses.
 
 default: ``/etc/ethers``
 
@@ -467,8 +477,8 @@ enable_menu
 
 Controls whether Cobbler will add each new profile entry to the default PXE boot menu. This can be over-ridden on a
 per-profile basis when adding/editing profiles with ``--enable-menu=False/True``. Users should ordinarily leave this
-setting enabled unless they are concerned with accidental reinstall from users who select an entry at the PXE boot
-menu. Adding a password to the boot menus templates may also be a good solution to prevent unwanted reinstallations.
+setting enabled unless they are concerned with accidental reinstall from users who select an entry at the PXE boot menu.
+Adding a password to the boot menus templates may also be a good solution to prevent unwanted reinstallations.
 
 default: ``True``
 
@@ -490,8 +500,8 @@ default: ``{}``
 
 ldap_*
 ######
-Configuration options if using the authn_ldap module. See the Wiki for details. This can be ignored if you are not
-using LDAP for WebUI/XML-RPC authentication.
+Configuration options if using the authn_ldap module. See the Wiki for details. This can be ignored if you are not using
+LDAP for WebUI/XML-RPC authentication.
 
 defaults:
 
@@ -519,19 +529,11 @@ When using the Bind9 DNS server, you can enable or disable if the BMCs should re
 
 default: ``False``
 
-manage_dhcp
-###########
-
-Set to ``True`` to enable Cobbler's DHCP management features. The choice of DHCP management engine is under
-``modules.dhcp.module``.
-
-default: ``True``
-
 manage_dhcp_v4
 ##############
 
-Set to ``true`` to enable DHCP IPv6 address configuration generation. This currently only works with manager.isc DHCP
-module (isc dhcpd6 daemon). See ``modules.dhcp.module`` whether this isc module is chosen for dhcp generation.
+Set to ``true`` to enable DHCP IPv4 address configuration generation. This currently only works with manager.isc DHCP
+module (isc dhcpd4 daemon). See ``modules.dhcp.module`` whether this isc module is chosen for dhcp generation.
 
 default: ``False``
 
@@ -554,8 +556,8 @@ default: ``False``
 manage_*_zones
 ##############
 
-If using BIND (named) for DNS management in ``modules.dns.module`` and ``manage_dns`` is enabled (above), this
-lists which zones are managed. See :ref:`dns-management` for more information.
+If using BIND (named) for DNS management in ``modules.dns.module`` and ``manage_dns`` is enabled (above), this lists
+which zones are managed. See :ref:`dns-management` for more information.
 
 defaults:
 
@@ -567,8 +569,8 @@ defaults:
 manage_genders
 ##############
 
-Whether or not to manage the genders file. For more information on that visit:
-`github.com/chaos/genders <https://github.com/chaos/genders>`_
+Whether or not to manage the genders file. For more information on that visit: `github.com/chaos/genders
+<https://github.com/chaos/genders>`_
 
 default: ``False``
 
@@ -587,32 +589,41 @@ Set to ``True`` to enable Cobbler's TFTP management features. The choice of TFTP
 
 default: ``True``
 
-mgmt_*
-######
+memory_indexes
+##############
 
-Cobbler has a feature that allows for integration with config management systems such as Puppet. The following
-parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at
-:ref:`configuration-management`.
+Configures the in-memory lookup indexes collections use to speed up item searches, keyed first by collection type
+(``distro``, ``profile``, ``system``, ``repo``, ``image``, ``menu``, ``network_interface``, ``template``, and the
+``*_group`` collections), then by the attribute to index (e.g. ``name``, ``arch``, ``parent``). Each indexed attribute
+takes:
 
-.. code-block:: YAML
+``disabled``
+    If ``True``, no index is built for this attribute at all.
 
-   mgmt_classes: []
-   mgmt_parameters:
-       from_cobbler: true
+``nonunique``
+    Whether more than one item is allowed to share the same value for this attribute. The ``mac_address``,
+    ``ipv4.address``, ``ipv6.address`` and ``dns.name`` indexes on ``network_interface`` default this to the value of
+    ``allow_duplicate_macs``/``allow_duplicate_ips``/``allow_duplicate_hostnames`` respectively.
+
+``property``
+    Optional. Overrides which method is called to obtain the index key, for attributes that aren't a plain property
+    getter (e.g. ``get_parent`` for the ``*_group`` collections' ``parent`` index).
+
+default: Omitted for readability, please refer to the `settings.yaml` file in our GitHub repository.
 
 next_server_v4
 ##############
 
-If using Cobbler with ``manage_dhcp_v4``, put the IP address of the Cobbler server here so that PXE booting guests can find
-it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
+If using Cobbler with ``manage_dhcp_v4``, put the IP address of the Cobbler server here so that PXE booting guests can
+find it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
 
 default: ``127.0.0.1``
 
 next_server_v6
 ##############
 
-If using Cobbler with ``manage_dhcp_v6``, put the IP address of the Cobbler server here so that PXE booting guests can find
-it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
+If using Cobbler with ``manage_dhcp_v6``, put the IP address of the Cobbler server here so that PXE booting guests can
+find it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
 
 default: ``::1``
 
@@ -622,8 +633,8 @@ nsupdate_enabled
 This enables or disables the replacement (or removal) of records in the DNS zone for systems created (or removed) by
 Cobbler.
 
-.. note:: There are additional settings needed when enabling this. Due to the limited number of resources, this won't
-          be done until 3.3.0. Thus please expect to run into troubles when enabling this setting.
+.. note:: There are additional settings needed when enabling this. Due to the limited number of resources, this won't be
+          done until 3.3.0. Thus please expect to run into troubles when enabling this setting.
 
 default: ``False``
 
@@ -638,10 +649,10 @@ Set to ``False`` if you want to disable the extra TXT records Cobbler adds along
 nsupdate_tsig
 #############
 
-A per-nameserver mapping of TSIG keys, keyed by the FQDN of the zone's SOA master nameserver (as discovered at
-update time via a DNS lookup, not something you can look up in advance). Updates are only sent to nameservers that
-have a key configured here; unlisted nameservers are skipped. Please generate your own key per server, e.g. via
-``tsig-keygen -a hmac-sha512 cobbler_update_key``, rather than reusing the shipped example key.
+A per-nameserver mapping of TSIG keys, keyed by the FQDN of the zone's SOA master nameserver (as discovered at update
+time via a DNS lookup, not something you can look up in advance). Updates are only sent to nameservers that have a key
+configured here; unlisted nameservers are skipped. Please generate your own key per server, e.g. via ``tsig-keygen -a
+hmac-sha512 cobbler_update_key``, rather than reusing the shipped example key.
 
 .. note:: The functionality this settings is related to is currently not tested due to tech-debt. Please use it with
           caution. This note will be removed once we were able to look deeper into this functionality of Cobbler.
@@ -675,10 +686,11 @@ default: ``ipmilanplus``
 proxies
 #######
 
-This key is used by Uyuni (or one of its derivatives) for the Proxy scenario. More information can be found
-`here <https://www.uyuni-project.org/uyuni-docs/en/uyuni/installation-and-upgrade/uyuni-proxy-setup.html>`_
+This key is used by Uyuni (or one of its derivatives) for the Proxy scenario. More information can be found `here
+<https://www.uyuni-project.org/uyuni-docs/en/uyuni/installation-and-upgrade/uyuni-proxy-setup.html>`_
 
-Cobbler only evaluates this if the key has a list of strings as value. An empty list means you don't have any proxies configured in your Uyuni setup.
+Cobbler only evaluates this if the key has a list of strings as value. An empty list means you don't have any proxies
+configured in your Uyuni setup.
 
 default: ``[]``
 
@@ -764,26 +776,27 @@ redhat_management_permissive
 If using ``modules.authentication.module: "authentication.spacewalk"`` in the settings to let Cobbler authenticate
 against Satellite/Spacewalk's auth system, by default it will not allow per user access into Cobbler Web and Cobbler
 XML-RPC. In order to permit this, the following setting must be enabled HOWEVER doing so will permit all
-Spacewalk/Satellite users of certain types to edit all of Cobbler's configuration. these roles are: ``config_admin``
-and ``org_admin``. Users should turn this on only if they want this behavior and do not have a cross-multi-org
-separation concern. If you have a single org in your satellite, it's probably safe to turn this on and then you can use
-CobblerWeb alongside a Satellite install.
+Spacewalk/Satellite users of certain types to edit all of Cobbler's configuration. these roles are: ``config_admin`` and
+``org_admin``. Users should turn this on only if they want this behavior and do not have a cross-multi-org separation
+concern. If you have a single org in your satellite, it's probably safe to turn this on and then you can use CobblerWeb
+alongside a Satellite install.
 
 default: ``False``
 
 redhat_management_server
 ########################
 
-This setting is only used by the code that supports using Uyuni/SUSE Manager/Spacewalk/Satellite authentication within Cobbler Web and
-Cobbler XML-RPC.
+This setting is only used by the code that supports using Uyuni/SUSE Manager/Spacewalk/Satellite authentication within
+Cobbler Web and Cobbler XML-RPC.
 
 default: ``"xmlrpc.rhn.redhat.com"``
 
 uyuni_authentication_endpoint
 #################################
 
-This setting is only used by the code that supports using uyuni/SUSE Manager authentication within Cobbler Web and Cobbler XMLRPC.
-This is the endpoint for uyuni/SUSE Manager authentication: if empty redhat_management_server will be used.
+This setting is only used by the code that supports using uyuni/SUSE Manager authentication within Cobbler Web and
+Cobbler XMLRPC. This is the endpoint for uyuni/SUSE Manager authentication: if empty redhat_management_server will be
+used.
 
 e.g.: ``uyuni_authentication_endpoint: http://localhost``
 
@@ -801,25 +814,23 @@ default: ``""``
 redhat_management_org
 #####################
 
-Specify the default Red Hat organization ID to use to register system.  Used in combination with
-redhat_management_key above.
+Specify the default Red Hat organization ID to use to register system.  Used in combination with redhat_management_key
+above.
 
 default: ``""``
 
 redhat_management_user
 ######################
 
-Specify the default Red Hat user to use to register system. If left blank, no registration will be
-attempted. Similarly you can set the ``--redhat-management-user`` to blank on any system to keep it from trying to
-register.
+Specify the default Red Hat user to use to register system. If left blank, no registration will be attempted. Similarly
+you can set the ``--redhat-management-user`` to blank on any system to keep it from trying to register.
 
 default: ``""``
 
 redhat_management_password
 ##########################
 
-Specify the default Red Hat password to use to register system.  Used in combination with
-redhat_management_user above.
+Specify the default Red Hat password to use to register system.  Used in combination with redhat_management_user above.
 
 default: ``""``
 
@@ -973,8 +984,8 @@ default: ``true``
 webdir
 ######
 
-Cobbler's web directory.  Don't change this setting -- see the Wiki on "relocating your Cobbler install" if your /var partition
-is not large enough.
+Cobbler's web directory.  Don't change this setting -- see the Wiki on "relocating your Cobbler install" if your /var
+partition is not large enough.
 
 default: ``@@webroot@@/cobbler``
 
@@ -1026,18 +1037,18 @@ xmlrpc_bind_address_v4
 
 The address ``cobblerd``'s XML-RPC server binds to. Change this only if you need the XML-RPC server reachable from
 outside of localhost -- for example when ``cobblerd`` runs in its own container, separate from whatever serves
-``/cblr/svc``, ``/httpboot`` and ``/images`` (see :ref:`docker-deployment`), and needs to accept connections from
-that other container. Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V4`` environment variable.
+``/cblr/svc``, ``/httpboot`` and ``/images`` (see :ref:`docker-deployment`), and needs to accept connections from that
+other container. Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V4`` environment variable.
 
 default: ``"127.0.0.1"``
 
 xmlrpc_bind_address_v6
 ######################
 
-The IPv6 address ``cobblerd``'s XML-RPC server additionally binds to, alongside
-``xmlrpc_bind_address_v4``, so clients that resolve ``localhost`` to ``::1`` first can still reach it.
-Set to ``""`` to disable the IPv6 listener entirely (e.g. on a minimal image with IPv6 disabled in
-the kernel). Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V6`` environment variable.
+The IPv6 address ``cobblerd``'s XML-RPC server additionally binds to, alongside ``xmlrpc_bind_address_v4``, so clients
+that resolve ``localhost`` to ``::1`` first can still reach it. Set to ``""`` to disable the IPv6 listener entirely
+(e.g. on a minimal image with IPv6 disabled in the kernel). Overridable via the ``COBBLER_XMLRPC_BIND_ADDRESS_V6``
+environment variable.
 
 default: ``"::1"``
 
@@ -1047,8 +1058,7 @@ xmlrpc_host
 The host/address used to reach ``cobblerd``'s XML-RPC server from ``cobbler/services/svc.py`` and
 ``cobbler/services/files.py``. The Python-level default only ever means "this same host/container"; set this to
 ``cobblerd``'s actual address (or, in a container deployment, its Compose/Kubernetes service name) when the web
-application and the daemon run in separate containers. Overridable via the ``COBBLER_XMLRPC_HOST`` environment
-variable.
+application and the daemon run in separate containers. Overridable via the ``COBBLER_XMLRPC_HOST`` environment variable.
 
 default: ``"127.0.0.1"``
 
@@ -1072,12 +1082,12 @@ yum_post_install_mirror
 #######################
 
 ``cobbler repo add`` commands set Cobbler up with repository information that can be used during autoinstall and is
-automatically set up in the Cobbler autoinstall templates. By default, these are only available at install time. To
-make these repositories usable on installed systems (since Cobbler makes a very convenient mirror) set this to ``True``.
-Most users can safely set this to ``True``. Users who have a dual homed Cobbler server, or are installing laptops that
-will not always have access to the Cobbler server may wish to leave this as ``False``. In that case, the Cobbler
-mirrored yum repos are still accessible at ``http://cobbler.example.org/cblr/repo_mirror`` and YUM configuration can
-still be done manually. This is just a shortcut.
+automatically set up in the Cobbler autoinstall templates. By default, these are only available at install time. To make
+these repositories usable on installed systems (since Cobbler makes a very convenient mirror) set this to ``True``. Most
+users can safely set this to ``True``. Users who have a dual homed Cobbler server, or are installing laptops that will
+not always have access to the Cobbler server may wish to leave this as ``False``. In that case, the Cobbler mirrored yum
+repos are still accessible at ``http://cobbler.example.org/cblr/repo_mirror`` and YUM configuration can still be done
+manually. This is just a shortcut.
 
 default: ``True``
 
@@ -1118,8 +1128,8 @@ default: ``authentication.configfile``
 hash_algorithm
 --------------
 
-This parameter has currently only a meaning when the option ``authentication.configfile`` is used.
-The parameter decides what hashfunction algorithm is used for checking the passwords.
+This parameter has currently only a meaning when the option ``authentication.configfile`` is used. The parameter decides
+what hashfunction algorithm is used for checking the passwords.
 
 Choices:
 
@@ -1201,16 +1211,16 @@ tftpd
 module
 ------
 
-Chooses the TFTP management engine. For ``managers.in_tftpd`` this only takes effect if ``manage_tftpd`` is enabled
-in ``/etc/cobbler/settings.yaml``, which is **on** by default.
+Chooses the TFTP management engine. For ``managers.in_tftpd`` this only takes effect if ``manage_tftpd`` is enabled in
+``/etc/cobbler/settings.yaml``, which is **on** by default.
 
 Choices:
 
 - managers.in_tftpd -- default, uses the system's TFTP server
-- managers.dynamic_tftp -- serves all TFTP content on demand instead of copying it into the TFTP root, for use with
-  a separate dynamic TFTP server (e.g. `cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_) that calls back
-  into Cobbler's XML-RPC API for every request. Requires ``manage_tftpd`` to be **disabled**, since that separate
-  server manages its own service. See :ref:`the TFTP user guide <tftp-directory>` for details.
+- managers.dynamic_tftp -- serves all TFTP content on demand instead of copying it into the TFTP root, for use with a
+  separate dynamic TFTP server (e.g. `cobbler-tftp <https://github.com/cobbler/cobbler-tftp>`_) that calls back into
+  Cobbler's XML-RPC API for every request. Requires ``manage_tftpd`` to be **disabled**, since that separate server
+  manages its own service. See :ref:`the TFTP user guide <tftp-directory>` for details.
 
 default: ``managers.in_tftpd``
 
@@ -1224,12 +1234,11 @@ Chooses the mechanism used to serve a distro's source tree, at ``cobbler import`
 
 Choices:
 
-- managers.in_httpd -- default, ``cobbler import`` copies the source tree into ``webdir/distro_mirror/<name>`` as
-  it always has.
-- managers.dynamic_httpd -- when the import source is already a stable, local directory, skips that copy and
-  serves the tree on demand directly from its original location instead, via a new
-  ``/cblr/svc/tree/<name>/`` endpoint. See :ref:`the dynamic distro tree serving user guide <dynamic-httpd>` for
-  details.
+- managers.in_httpd -- default, ``cobbler import`` copies the source tree into ``webdir/distro_mirror/<name>`` as it
+  always has.
+- managers.dynamic_httpd -- when the import source is already a stable, local directory, skips that copy and serves the
+  tree on demand directly from its original location instead, via a new ``/cblr/svc/tree/<name>/`` endpoint. See
+  :ref:`the dynamic distro tree serving user guide <dynamic-httpd>` for details.
 
 default: ``managers.in_httpd``
 
@@ -1245,40 +1254,40 @@ Choices:
 
 - auto -- default, auto-detects whether ``cobblerd`` is running inside a container and resolves to
   process_management.docker if so, or process_management.service otherwise. Outside a container this reproduces
-  process_management.service's detection identically, so this is behavior-preserving for every existing
-  non-container install.
+  process_management.service's detection identically, so this is behavior-preserving for every existing non-container
+  install.
 - process_management.service -- restarts a local systemd/supervisord-managed process, unchanged from Cobbler's
   traditional single-host behavior. Auto-detects between systemd, supervisord and SysV ``service``, delegating to
   process_management.systemd/process_management.supervisor for the first two. An explicit setting here is never
   overridden by container detection.
 - process_management.systemd -- always restarts via ``systemctl restart``, with no auto-detection. Select this
   explicitly when you already know the host uses systemd.
-- process_management.supervisor -- always restarts through supervisord's XML-RPC API, with no auto-detection.
-  Select this explicitly when you already know the host manages services via supervisord.
-- process_management.docker -- restarts a DHCP/DNS sidecar **container**, chosen by Docker label, instead of a
-  local process. Requires the optional ``docker`` Python extra (``pip install cobbler[docker]``) and mounting the
-  host's Docker Engine API socket into the ``cobblerd`` container. See :ref:`docker-deployment` for the full
-  picture, including the security trade-offs of mounting the Docker socket. An explicit setting here is never
-  overridden by container detection.
+- process_management.supervisor -- always restarts through supervisord's XML-RPC API, with no auto-detection. Select
+  this explicitly when you already know the host manages services via supervisord.
+- process_management.docker -- restarts a DHCP/DNS sidecar **container**, chosen by Docker label, instead of a local
+  process. Requires the optional ``docker`` Python extra (``pip install cobbler[docker]``) and mounting the host's
+  Docker Engine API socket into the ``cobblerd`` container. See :ref:`docker-deployment` for the full picture, including
+  the security trade-offs of mounting the Docker socket. An explicit setting here is never overridden by container
+  detection.
 
 default: ``auto``
 
 docker_socket_path
 -------------------
 
-Only used when ``module`` above is ``process_management.docker``. The path, inside the ``cobblerd`` container, of
-the Docker Engine API Unix socket to connect to. This is always a local Unix socket -- this module never connects
-to a remote or TLS-secured Docker host.
+Only used when ``module`` above is ``process_management.docker``. The path, inside the ``cobblerd`` container, of the
+Docker Engine API Unix socket to connect to. This is always a local Unix socket -- this module never connects to a
+remote or TLS-secured Docker host.
 
 default: ``"/var/run/docker.sock"``
 
 docker_service_labels
 -----------------------
 
-Only used when ``module`` above is ``process_management.docker``. Maps Cobbler's internal service names
-(``dhcpd``, ``dhcpd4``, ``dhcpd6``, ``named``, ``dnsmasq``) to the ``cobbler.io/managed-service=<value>`` label
-value Cobbler looks for on sidecar containers. Exactly one running container must carry the matching label for a
-given restart request; zero or more than one is a hard error, never a silent no-op or a guess.
+Only used when ``module`` above is ``process_management.docker``. Maps Cobbler's internal service names (``dhcpd``,
+``dhcpd4``, ``dhcpd6``, ``named``, ``dnsmasq``) to the ``cobbler.io/managed-service=<value>`` label value Cobbler looks
+for on sidecar containers. Exactly one running container must carry the matching label for a given restart request; zero
+or more than one is a hard error, never a silent no-op or a guess.
 
 default:
 
@@ -1333,12 +1342,12 @@ default: ``False``
 lazy_start
 ##########
 
-Set to ``True`` to speed up the start of the Cobbler. When storing collections as files, the directory with the names
-of the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
-collections in the database, a projection query is made that includes only the names of the collection elements.
-The first time an attribute of an element other than a name is accessed, a full read of all other attributes will be
+Set to ``True`` to speed up the start of the Cobbler. When storing collections as files, the directory with the names of
+the collection elements will be scanned without reading and parsing the files themselves. In the case of storing
+collections in the database, a projection query is made that includes only the names of the collection elements. The
+first time an attribute of an element other than a name is accessed, a full read of all other attributes will be
 performed, and a recursive full read of all elements on which this element depends. At startup, a background task is
-also launched, which, when idle, fills in all the properties of the elements of the collections.
-Suitable for configurations with a large number of elements placed on a slow device (HDD, network).
+also launched, which, when idle, fills in all the properties of the elements of the collections. Suitable for
+configurations with a large number of elements placed on a slow device (HDD, network).
 
 default: ``False``

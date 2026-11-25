@@ -300,10 +300,10 @@ class AppendLineBuilder:
 
     def _generate_append_suse(self, scheme: str = "http") -> None:
         """
-        Special adjustments for generating the append line for suse.
+        Special adjustments for generating the append line for suse. Mutates ``self.append_line`` in place;
+        does nothing if ``self.dist`` is not set.
 
         :param scheme: This can be either ``http`` or ``https``.
-        :return: The updated append line. If the distribution is not SUSE, then nothing is changed.
         """
         if self.dist is None:
             return
@@ -411,9 +411,9 @@ class AppendLineBuilder:
 
     def add_remaining_kopts(self, kopts: Dict[str, Union[str, List[str]]]) -> None:
         """
-        Add remaining kernel_options to append_line
+        Add remaining kernel_options to append_line.
+
         :param kopts: The kernel options which are not present in append_line.
-        :return: A single line with all kernel options from the dictionary in the string. Starts with a space.
         """
         for option, args in kopts.items():
             if args is None:  # type: ignore

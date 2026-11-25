@@ -3,10 +3,10 @@ This is some of the code behind 'cobbler sync' for the dynamic HTTP-serving mode
 served on demand (e.g. straight from its original location) instead of being copied into the webroot.
 
 Unlike ``dynamic_tftp.py``, which changes behavior itself by turning all its methods into no-ops, this module does
-**not** change any sync-time behavior on its own. It is inert; it only exists to be *selectable*, so a later task's
-``cobbler import`` logic can check
+**not** change any sync-time behavior on its own; this is inert; it only exists to be *selectable*, so
+``cobbler import`` can check
 ``api.get_module_name_from_file("httpd", "module", "managers.in_httpd") == "managers.dynamic_httpd"`` and decide to
-skip copying the distro tree, and so ``cobbler check`` can warn about stale source paths.
+skip copying the distro tree.
 """
 
 # SPDX-License-Identifier: GPL-2.0-or-later

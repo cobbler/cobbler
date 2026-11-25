@@ -1,0 +1,1 @@
+Fix `cobbler status` handling of gzipped install log files.

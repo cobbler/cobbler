@@ -1499,7 +1499,7 @@ def filelock(lock_file: str):
 def merge_dicts_recursive(
     base_dict: Dict[str, Any], updating_dict: Dict[str, Any], str_append: bool = False
 ) -> Dict[str, Any]:
-    """Merge updating_dict into base_config recursively.
+    """Merge ``updating_dict`` into ``base_dict`` recursively.
 
     :param base_dict: Base dictionary.
     :param updating_dict: Updating dict, overrides base_dict.

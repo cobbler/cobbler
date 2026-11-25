@@ -91,9 +91,11 @@ class CloudInitGenerator(AutoinstallBaseGenerator):
         self, obj: "BootableItem", requested_file: "Template", meta: Dict[str, Any]
     ) -> str:
         """
-        Generate the user-data file for cloud-init
+        Renders the user-data file for cloud-init. For systems with ``pxe_just_once`` enabled, also injects
+        (or replaces) a ``nopxe`` entry in ``cloud_init_ubuntu_autoinstall``'s ``late-commands`` list so
+        PXE/netboot is disabled once Subiquity reaches the post-storage-setup stage.
 
-        :returns: The string with the user-data content.
+        :returns: The rendered cloud-init ``user-data`` content as a string.
         """
         # Disable network/PXE boot for this system once Subiquity's installer reaches the post-storage-setup
         # stage, mirroring the "pxe_just_once" behavior of the Preseed built-in (cobbler/data/templates/cheetah/
