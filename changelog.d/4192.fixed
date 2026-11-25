@@ -1,0 +1,1 @@
+Fixes `get_item_resolved_value()` raising an XML-RPC type error when resolving system power/DNS/TFTP/virt options.

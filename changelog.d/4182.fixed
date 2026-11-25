@@ -1,0 +1,1 @@
+Fixes the keep_files snippet so keys for all configured services are restored, not just the last.

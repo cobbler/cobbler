@@ -1,0 +1,1 @@
+Cleans up stale TFTP boot artifacts automatically when boot loaders change.

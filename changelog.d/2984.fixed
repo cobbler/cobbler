@@ -1,0 +1,1 @@
+Fixes a call to a non-existent method in DNS/DHCP managers.

@@ -1,0 +1,1 @@
+Fixes a KeyError on `signatures` in the import manager.

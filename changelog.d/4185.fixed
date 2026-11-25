@@ -1,0 +1,1 @@
+Fixes several server-side bugs: network interface IPv6 init, template URI comparison, template deletion, power management option handling, and XML-RPC return values.

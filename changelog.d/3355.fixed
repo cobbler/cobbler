@@ -1,0 +1,1 @@
+Fix tftpgen GRUB menu filename casing by using the enum value instead of its name.

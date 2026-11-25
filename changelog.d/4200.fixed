@@ -1,0 +1,1 @@
+Enforces duplicate-item-name checks when committing XML-RPC transactions, preventing silently created duplicate-named items.

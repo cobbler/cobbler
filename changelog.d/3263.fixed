@@ -1,0 +1,1 @@
+Fix thread logs not terminating after thread completion.

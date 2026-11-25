@@ -1,0 +1,1 @@
+Buildiso now requires a distro and emits clearer help/error messages.

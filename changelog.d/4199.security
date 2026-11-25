@@ -1,0 +1,1 @@
+Requires Python 3.11+, bumps libcobblersignatures to 0.5.1, blocks modifying item ctime/depth via `modify_item`, and closes an XML-RPC transaction authorization-bypass/timeout gap.
