@@ -1,1 +1,0 @@
-Change `--bootproto=none` to `--no-activate` for unconfigured static interfaces

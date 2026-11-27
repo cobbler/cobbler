@@ -1,1 +1,0 @@
-RPM/DEB packages now correctly own their triggers and collections directories, fixing Fedora packaging-policy violations.

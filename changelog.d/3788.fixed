@@ -1,1 +1,0 @@
-Fixes EFI chainloading for CentOS 9 Stream so UEFI installs boot instead of failing.

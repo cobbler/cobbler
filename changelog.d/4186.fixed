@@ -1,1 +1,0 @@
-Fixes the Template content setter so saved template content is no longer lost after a refresh.

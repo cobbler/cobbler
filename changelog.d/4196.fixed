@@ -1,1 +1,0 @@
-Unifies network interface default-gateway handling and makes generated MAC addresses respect the configured virt type.

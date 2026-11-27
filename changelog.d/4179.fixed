@@ -1,1 +1,0 @@
-Fix GRUB netboot so system-specific config is actually used.

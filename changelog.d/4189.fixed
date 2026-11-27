@@ -1,1 +1,0 @@
-Fixes templates so the `active` flag is honored instead of falling back to insertion order.

@@ -1,1 +1,0 @@
-Fix XML-RPC `modify_setting` handling of boolean values.

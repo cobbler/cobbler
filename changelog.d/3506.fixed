@@ -1,1 +1,0 @@
-Fix cobbler import rsync failure with SELinux enabled

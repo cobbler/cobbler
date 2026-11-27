@@ -1,1 +1,0 @@
-Fix s390 parm file generation when kernel options are long.

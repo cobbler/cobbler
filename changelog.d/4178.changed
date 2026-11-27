@@ -1,1 +1,0 @@
-Improve bundled kickstart snippets/templates, removing redundant POST-section network reconfiguration and improving RHEL partitioning/IPv6 snippets.

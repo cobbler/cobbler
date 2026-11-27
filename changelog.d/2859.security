@@ -1,1 +1,0 @@
-Remove `shell=True` from subprocess calls to avoid shell injection risk.

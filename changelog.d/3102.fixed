@@ -1,1 +1,0 @@
-Fixes the `console=ttyS-1,-1` check in kernel option building.
