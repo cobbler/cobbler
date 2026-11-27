@@ -19,7 +19,7 @@ Schema: From -> To
 
 Current Schema: Please refer to the documentation visible of the individual methods.
 
-V4.0.0 (unreleased)
+V4.0.0
     * Added:
         * Create, Read, Update & Delete methods (plus collection properties) for the new item types:
           ``NetworkInterface``, ``Template``, ``DistroGroup``, ``ProfileGroup``, ``SystemGroup``
@@ -50,7 +50,7 @@ V4.0.0 (unreleased)
         * ``validate_autoinstall_files()``: Moved to ``AutoInstallationManager.validate_autoinstall_files()``
           (``api.autoinstall_mgr``)
 
-V3.3.4 (unreleased)
+V3.3.4
     * No changes
 
 V3.3.3

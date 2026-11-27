@@ -3,7 +3,7 @@ DistroGroup class for grouping distros.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the class as a concrete ``ItemGroup`` subclass for grouping distros. Full CRUD support
       added to ``cobbler.api``/``cobbler.remote``.
 """

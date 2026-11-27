@@ -3,7 +3,7 @@ All code belonging to Cobbler systems.
 
 Changelog (System):
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Added:
         * ``display_name``: str
         * ``redhat_management_org``: enums.VALUE_INHERITED
@@ -30,7 +30,7 @@ V4.0.0 (unreleased):
           ``__create_interface``, ``delete_interface``, ``__get_interface``, ``modify_interface``,
           ``rename_interface`` methods. ``ipv6_autoconfiguration`` and ``ipv6_default_device`` are unaffected and
           remain on ``System`` as system-wide defaults.
-V3.3.4 (unreleased):
+V3.3.4:
     * Changed:
         * The network interface ``default`` is not created on object creation.
 V3.3.3:

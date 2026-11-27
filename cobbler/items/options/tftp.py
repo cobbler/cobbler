@@ -3,7 +3,7 @@ TFTP option management for Cobbler Profile and System items.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the module. Introduces ``TFTPOption``, exposed as ``tftp`` on ``Profile`` and ``System``,
       consolidating the former ``next_server_v4``/``next_server_v6`` scalar properties.
 """

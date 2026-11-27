@@ -7,7 +7,7 @@ Schema: From -> To
 
 Current Schema: Please refer to the documentation visible of the individual methods.
 
-V4.0.0 (unreleased)
+V4.0.0
     * Added:
         * Create, Read, Update & Delete methods for the new item types: ``NetworkInterface``, ``Template``,
           ``DistroGroup``, ``ProfileGroup``, ``SystemGroup``
@@ -46,7 +46,7 @@ V4.0.0 (unreleased)
         * ``__interface_edits``, ``__is_interface_field``: Removed along with ``System``'s direct ownership of
           interface fields; see ``cobbler.items.network_interface`` changelog
 
-V3.3.4 (unreleased)
+V3.3.4
     * No changes
 
 V3.3.3

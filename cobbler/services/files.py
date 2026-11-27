@@ -25,7 +25,7 @@ trivially bypasses).
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the module. New WSGI static file server for distro tree files with HTTP Range support
       (``parse_range``), path-traversal protection (``is_safe_path``/``resolve_within_root``), directory listing,
       and a ``/healthz`` endpoint. Split out of the legacy ``cobbler/services.py`` (see ``cobbler.services.svc``

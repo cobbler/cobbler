@@ -3,7 +3,7 @@ SystemGroup class for grouping systems.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the class as a concrete ``ItemGroup`` subclass for grouping systems. Full CRUD support
       added to ``cobbler.api``/``cobbler.remote``.
 """

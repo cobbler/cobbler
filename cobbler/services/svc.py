@@ -7,7 +7,7 @@ Schema: From -> To
 
 Current Schema: Please refer to the documentation visible of the individual methods.
 
-V4.0.0 (unreleased)
+V4.0.0
     * Changed:
         * This module is now part of the ``cobbler.services`` package (formerly the standalone
           ``cobbler/services.py`` module), alongside new sibling modules ``cobbler.services.files`` (distro-tree
@@ -21,7 +21,7 @@ V4.0.0 (unreleased)
         * ``ks``/``findks`` (legacy Kickstart-alias endpoints for ``autoinstall``).
         * ``puppet`` (Puppet ENC support dropped).
 
-V3.3.4 (unreleased)
+V3.3.4
     * No changes
 
 V3.3.3

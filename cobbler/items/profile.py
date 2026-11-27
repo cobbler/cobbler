@@ -3,7 +3,7 @@ Cobbler module that contains the code for a Cobbler profile object.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
@@ -22,7 +22,7 @@ V4.0.0 (unreleased):
         * ``next_server_v4``, ``next_server_v6`` (-> ``tftp``).
         * ``virt_auto_boot``, ``virt_cpus``, ``virt_disk_driver``, ``virt_file_size``, ``virt_ram``, ``virt_type``
           (-> ``virt``; ``virt_bridge`` is unaffected and remains a standalone property).
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * Changed:

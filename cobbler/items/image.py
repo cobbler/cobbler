@@ -3,7 +3,7 @@ Cobbler module that contains the code for a Cobbler image object.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Added:
         * ``display_name``
         * ``virt`` property (``VirtOption``).
@@ -16,7 +16,7 @@ V4.0.0 (unreleased):
     * Removed:
         * ``virt_disk_driver``, ``virt_ram``, ``virt_type`` (-> ``virt``; these no longer exist as standalone
           properties, they are not merely "restored" as the inheritance fix originally implied).
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * Added:

@@ -3,7 +3,7 @@ All code belonging to Cobbler Templates.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the class. New item type representing a reusable autoinstall/boot template, with:
         * ``content``, ``template_type``, ``built_in``, ``tags`` properties.
         * ``uri`` property (``URIOption``) for resolving template content location.

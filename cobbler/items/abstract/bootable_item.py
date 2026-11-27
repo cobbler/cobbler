@@ -3,7 +3,7 @@ Cobbler module that contains the code for a generic Cobbler item.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Renamed to BootableItem
     * (Re-)Added Cache implementation with the following new methods and properties:
         * ``cache``
@@ -24,7 +24,7 @@ V4.0.0 (unreleased):
         * The ``File``, ``Mgmtclass``, ``Package``, and ``Resource`` item types (the Configuration-Management
           subsystem) were removed entirely, along with their CRUD surface on ``CobblerAPI``/
           ``CobblerXMLRPCInterface``.
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * Added:

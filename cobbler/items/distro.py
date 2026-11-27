@@ -5,7 +5,7 @@ Changelog:
 
 Schema: From -> To
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Added:
         * ``find_distro_path()``
         * ``link_distro()``
@@ -19,7 +19,7 @@ V4.0.0 (unreleased):
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * Changed:

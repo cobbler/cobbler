@@ -3,7 +3,7 @@ This module defines the `Option` classes for managing repository settings within
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the module. Introduces ``APTOption``, exposed as ``apt`` on ``Repo``, replacing the former
       ``apt_components``/``apt_dists`` scalar properties (see ``cobbler.items.repo`` changelog).
 """
