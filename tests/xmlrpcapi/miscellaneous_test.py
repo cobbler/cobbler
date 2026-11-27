@@ -90,10 +90,10 @@ def test_extended_version(remote: CobblerXMLRPCInterface):
     result = remote.extended_version()
 
     # Assert Example Dict: {'builddate': 'Mon Feb 10 15:38:48 2020', 'gitdate': '?', 'gitstamp': '?', 'version':
-    #                       '4.0.0', 'version_tuple': [4, 0, 0]}
+    #                       '4.0.1', 'version_tuple': [4, 0, 1]}
     assert type(result) == dict
     assert type(result.get("version_tuple")) == list
-    assert [4, 0, 0] == result.get("version_tuple")
+    assert [4, 0, 1] == result.get("version_tuple")
 
 
 def test_find_items_paged(
@@ -604,8 +604,8 @@ def test_version(remote: CobblerXMLRPCInterface):
     result = remote.version()
 
     # Assert
-    # Will fail if the version is adjusted in the setup.py
-    assert result == 4.0
+    # Will fail if the version is adjusted in pyproject.toml
+    assert result == pytest.approx(4.001)
 
 
 @pytest.mark.usefixtures(

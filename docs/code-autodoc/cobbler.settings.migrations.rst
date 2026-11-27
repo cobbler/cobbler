@@ -164,6 +164,14 @@ cobbler.settings.migrations.V4\_0\_0 module
    :show-inheritance:
    :undoc-members:
 
+cobbler.settings.migrations.V4\_0\_1 module
+-------------------------------------------
+
+.. automodule:: cobbler.settings.migrations.V4_0_1
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cobbler.settings.migrations.helper module
 -----------------------------------------
 

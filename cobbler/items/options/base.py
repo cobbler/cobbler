@@ -3,7 +3,7 @@ Module for the base Option type. It represents an abstract type that cannot be d
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the class. Introduces the generic ``ItemOption[ITEM]`` abstract base all concrete option
       classes inherit from, enabling composition of related settings (DNS, IP, power, etc.) onto item classes
       instead of flat property lists.

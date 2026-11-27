@@ -234,9 +234,9 @@ RPM
 
     $ make rpms
     ... (lots of output) ...
-    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.0-1.fc43.src.rpm
-    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.0-1.fc43.noarch.rpm
-    Wrote: /path/to/cobbler/rpm-build/cobbler-apache2-4.0.0-1.fc43.noarch.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.1-1.fc43.src.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-4.0.1-1.fc43.noarch.rpm
+    Wrote: /path/to/cobbler/rpm-build/cobbler-apache2-4.0.1-1.fc43.noarch.rpm
 
 As you can see, an RPM is output for the main package, its subpackages (``apache2``/``nginx``/``tests``/
 ``tests-containers``, depending on your build configuration), as well as a source RPM. This command was run on a system

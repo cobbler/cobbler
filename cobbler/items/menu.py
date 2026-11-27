@@ -3,13 +3,13 @@ Cobbler module that contains the code for a Cobbler menu object.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Changes:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
         * ``parent``: The property was moved to the base class.
         * ``from_dict()``: The method was moved to the base class.
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * Changed:

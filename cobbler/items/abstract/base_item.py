@@ -4,7 +4,7 @@ inherit from it or one of its derived classes.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the class; split out of the former monolithic ``Item`` class as the common root for all
       item types (concrete and abstract).
     * Added:

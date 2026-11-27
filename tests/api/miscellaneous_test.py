@@ -352,7 +352,7 @@ def test_version_extended_false(mocker: "MockerFixture"):
 
 def test_version_extended_true(mocker: "MockerFixture"):
     """version(extended=True) returns a dict with all five keys."""
-    mocker.patch("cobbler.api.__version__", "4.0.0")
+    mocker.patch("cobbler.api.__version__", "4.0.1")
     mocker.patch("cobbler.api.__gitstamp__", "c07b4303a")
     mocker.patch("cobbler.api.__gitdate__", "2026-06-30")
     mocker.patch("cobbler.api.__builddate__", "2026-07-01T13:35:25.872704+00:00")
@@ -364,8 +364,8 @@ def test_version_extended_true(mocker: "MockerFixture"):
     fake_self = cast(CobblerAPI, types.SimpleNamespace())
     result = cast(Dict[str, Any], CobblerAPI.version(fake_self, extended=True))
 
-    assert result["version"] == "4.0.0"
-    assert result["version_tuple"] == [4, 0, 0]
+    assert result["version"] == "4.0.1"
+    assert result["version_tuple"] == [4, 0, 1]
     assert result["gitstamp"] == "c07b4303a"
     assert result["gitdate"] == "2026-06-30"
     assert result["builddate"] == "2026-07-01T13:35:25.872704+00:00"
@@ -373,7 +373,7 @@ def test_version_extended_true(mocker: "MockerFixture"):
 
 def test_version_pre_release(mocker: "MockerFixture"):
     """version() correctly extracts [major, minor, patch] from PEP 440 pre-release strings."""
-    mocker.patch("cobbler.api.__version__", "4.0.0a2.dev1")
+    mocker.patch("cobbler.api.__version__", "4.0.1a2.dev1")
     mocker.patch("cobbler.api.__gitstamp__", "abc1234")
     mocker.patch("cobbler.api.__gitdate__", "")
     mocker.patch("cobbler.api.__builddate__", "")
@@ -385,8 +385,8 @@ def test_version_pre_release(mocker: "MockerFixture"):
     fake_self = cast(CobblerAPI, types.SimpleNamespace())
     result = cast(Dict[str, Any], CobblerAPI.version(fake_self, extended=True))
 
-    assert result["version_tuple"] == [4, 0, 0]
-    assert CobblerAPI.version(fake_self, extended=False) == pytest.approx(4.0)
+    assert result["version_tuple"] == [4, 0, 1]
+    assert CobblerAPI.version(fake_self, extended=False) == pytest.approx(4.001)
 
 
 def test_get_process_management_module_auto_resolves_to_docker_in_container(

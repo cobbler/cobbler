@@ -33,7 +33,7 @@ unimportable/unstartable when it's absent.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the module. New Kerberos/GSSAPI SPNEGO single-sign-on WSGI endpoint (``/sso_login``),
       exchanging the negotiated principal for a Cobbler session token via
       ``cobbler.modules.authentication.passthru``.

@@ -8,7 +8,7 @@ inheritance and lazy property evaluation.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Initial creation of the module. Introduces ``DNSOption`` (used by ``Profile``/``System``) and
       ``DNSInterfaceOption`` (used by ``NetworkInterface``), consolidating the former scalar ``name_servers``,
       ``name_servers_search``, ``dns_name``, and ``cnames`` properties.

@@ -6,7 +6,7 @@ required to be done.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * No functional changes; relocated from the former monolithic ``cobbler/items/item.py``.
 """
 

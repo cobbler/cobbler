@@ -4,7 +4,7 @@ All code belonging to network interfaces
 
 Changelog (NetworkInterface):
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Changes:
         * The NetworkInterface class is now a dedicated, independently addressable item type with full CRUD
           support via ``cobbler.api``/``cobbler.remote``. All interface-related properties and lookups formerly on
@@ -22,7 +22,7 @@ V4.0.0 (unreleased):
         * ``dhcp_tag``, ``static``, ``management``, ``mac_address``, ``virt_bridge``,
           ``interface_type``, ``interface_master``, ``bonding_opts``, ``bridge_opts``, ``connected_mode``
         * ``system_name``, ``system_uid``, ``system`` back-references to the owning ``System``.
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * Changed:

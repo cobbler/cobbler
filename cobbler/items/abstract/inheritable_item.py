@@ -2,7 +2,7 @@
 "InheritableItem" the entry point for items that have logical parents and children.
 
 Changelog:
-    * V4.0.0 (unreleased):
+    * V4.0.0:
         * Initial creation of the class; absorbed the parent/child/inheritance logic formerly on ``Item`` (now
           ``BootableItem``) so that non-bootable grouping types (``ItemGroup`` and subclasses) can also participate
           in the hierarchy.

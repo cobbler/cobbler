@@ -3,7 +3,7 @@ Cobbler module that contains the code for a Cobbler repo object.
 
 Changelog:
 
-V4.0.0 (unreleased):
+V4.0.0:
     * Changed:
         * Constructor: ``kwargs`` can now be used to seed the item during creation.
         * ``children``: The property was moved to the base class.
@@ -12,7 +12,7 @@ V4.0.0 (unreleased):
         * ``apt`` property (``APTOption``).
     * Removed:
         * ``apt_components``, ``apt_dists`` (-> ``apt.components``/``apt.dists``).
-V3.3.4 (unreleased):
+V3.3.4:
     * No changes
 V3.3.3:
     * No changes
