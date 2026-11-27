@@ -1,3 +1,9 @@
+cobbler (4.0.1) unstable; urgency=low
+
+  * Re-release of Cobbler 4.0.0 with identical content, because the 4.0.0 tag is not available on PyPI
+
+ --  Enno Gotthold <enno@4seul.de>  Fri, 27 Nov 2026 12:00:00 +0100
+
 cobbler (4.0.0) unstable; urgency=low
 
   * Main Upgrade to Cobbler 4.0.0

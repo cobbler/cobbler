@@ -2,7 +2,7 @@ Format: 1.0
 Source: cobbler
 Maintainer: The Cobbler Authors <cobbler.project@gmail.com>
 Standards-Version: 4.5.1
-Version: 4.0.0a8
+Version: 4.0.1
 Homepage: https://cobbler.github.io/
 Build-Depends:
  git-core,
@@ -21,4 +21,4 @@ Build-Depends:
  libcobblersignatures,
  dh-python,
  debhelper (>=12)
-DEBTRANSFORM-TAR: cobbler-4.0.0a8.tar.gz
+DEBTRANSFORM-TAR: cobbler-4.0.1.tar.gz

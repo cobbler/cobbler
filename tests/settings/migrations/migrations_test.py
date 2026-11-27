@@ -68,7 +68,7 @@ def test_get_installed_version_dev_build(mocker: "MockerFixture"):
     """get_installed_version strips the dev suffix and local segment."""
     mocker.patch(
         "cobbler.settings.migrations.__version__",
-        "4.0.0.dev3",
+        "4.0.1.dev3",
         create=True,
     )
 
@@ -76,7 +76,7 @@ def test_get_installed_version_dev_build(mocker: "MockerFixture"):
 
     assert result.major == 4
     assert result.minor == 0
-    assert result.patch == 0
+    assert result.patch == 1
 
 
 def test_get_installed_version_fallback_on_import_error(mocker: "MockerFixture"):

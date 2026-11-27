@@ -71,10 +71,10 @@ def test_settings_cli_migrate():
     expected_config = (
         "tests/integration/data/test_settings_cli_migrate/settings-expected.yaml"
     )
-    new_version = "4.0.0"
+    new_version = "4.0.1"
 
     # Act
-    # Test migration from 3.3.2 to 4.0.0
+    # Test migration from 3.3.2 to 4.0.1
     cobbler_settings.main(
         ["-c", str(old_config), "migrate", "-t", str(new_config), "--new", new_version]
     )
