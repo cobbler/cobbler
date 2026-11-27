@@ -1,1 +1,0 @@
-Fix migration of `proxy_url_ext` when previously set to `None`.

@@ -1,1 +1,0 @@
-Fix `cobbler buildiso --exclude-dns`.

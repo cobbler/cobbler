@@ -1,1 +1,0 @@
-Fixes `connected_mode` not being applied in `modify_interface`.

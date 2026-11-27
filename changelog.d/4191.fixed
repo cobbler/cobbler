@@ -1,1 +1,0 @@
-Fixes UEFI image installs via Koan by honoring the image's UEFI toggle.

@@ -1,1 +1,0 @@
-Enables mod_wsgi during package installation so the web UI keeps working on affected distros.
